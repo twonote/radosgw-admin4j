@@ -14,6 +14,7 @@ You can obtain radosgw-admim4j from Maven Central using the following identifier
 ## Usage
 ```
 RGW_ADMIN_CLIENT = new RgwAdminClientImpl(accessKey, secretKey, s3Endpoint);
+
 // create user
 CreateUserResponse response = RGW_ADMIN_CLIENT.createUser(userId);
 
