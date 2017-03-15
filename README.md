@@ -47,7 +47,7 @@ RGW_ADMIN_CLIENT.removeUser(userId);
 Since this aritfact is a client of radosgw, you also need one ready to use radosgw instance and one radosgw account with admin capbilities. 
 
 ### “I do not have a radosgw setup currently”
-You can refer the [ceph offical manual](http://docs.ceph.com/docs/master/start/) to setup a ceph cluster with radosgw quickly. In fact in my experience it is not a piece of cake if you do not familiar with ceph. Things will be easier if you have **docker** in your environment. To setup a radosgw instance with admin account powered by docker, follow the instruction below:
+You can refer the [ceph offical manual](http://docs.ceph.com/docs/master/start/) to setup a ceph cluster with radosgw *quickly*. In fact in my experience it is not a piece of cake if you do not familiar with ceph. Things will be easier if you have **docker** in your environment. To setup a radosgw instance with an admin account powered by the [ceph demo image](https://hub.docker.com/r/ceph/demo/), follow instructions below:
 ```
 $ docker run -d --net=host -v /etc/ceph/:/etc/ceph/ -e MON_IP=10.0.2.15 -e CEPH_PUBLIC_NETWORK=10.0.2.0/24 -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e CEPH_DEMO_BUCKET=qqq --name rgw ceph/demo
 $ # Change IP and NETWORK in the above command to fit your network setting
