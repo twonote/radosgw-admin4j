@@ -299,7 +299,7 @@ public class RgwAdminClientImplTest {
     }
 
     //    @Test
-    // FIXME: 這版ceph rgw quota is buggy, skip it.
+    // FIXME: ceph rgw quota is buggy in 0.9, skip it.
     public void getAndSetUserQuota() throws Exception {
         String userId = "bobx" + UUID.randomUUID().toString();
         try {
