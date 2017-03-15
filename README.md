@@ -4,11 +4,6 @@ A Ceph Object Storage Admin SDK / Client Library for Java
 # Hightlight
 * Supports the least Cpeh version. (Jewel LTScurrently)
 * Continuous Integration and integration tests for quality and compatiabiliy
-* Spring friendly
-* Tracker connection pooling with balancing between hosts and strategies for dealing with failed nodes
-* Local file system implementation for faking in tests (`fm.last.moji.local.LocalFileSystemMoji`)
-
-
 
 # Start using 
 You can obtain radosgw-admim4j from Maven Central using the following identifier:
