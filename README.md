@@ -49,19 +49,19 @@ Since this artifact is a client of radosgw, you also need one ready to use rados
 ### “I do not have a radosgw setup currently”
 You can refer the [Ceph official manual](http://docs.ceph.com/docs/master/start/) to setup a Ceph cluster with radosgw *quickly*. In fact, in my experience it is not a piece of cake if you do not familiar with Ceph. Things will be easier if you have **docker** in your environment. To setup a setup instance with an admin account powered by the [ceph demo image](https://hub.docker.com/r/ceph/demo/), follow instructions below:
 ```
-$ docker run -d --net=host -v /etc/ceph/:/etc/ceph/ -e MON_IP=10.0.2.15 -e CEPH_PUBLIC_NETWORK=10.0.2.0/24 -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e CEPH_DEMO_BUCKET=qqq --name rgw ceph/demo
-$ # Change IP and NETWORK in the above command to fit your network setting
-$ docker exec -it rgw radosgw-admin --id admin caps add --caps="buckets=*,users=*" --uid=qqq
+$ sudo docker run -d --net=host -v /etc/ceph/:/etc/ceph/ -e MON_IP=127.0.0.1 -e CEPH_PUBLIC_NETWORK=127.0.0.0/24 -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e CEPH_DEMO_BUCKET=qqq --name rgw ceph/demo@sha256:7734ac78571ee0530724181c5b2db2e5a7ca0ff0e246c10c223d3ca9665c74ba
+$ sleep 10
+$ sudo docker exec -it rgw radosgw-admin --id admin caps add --caps="buckets=*;users=*" --uid=qqq
 ```
 
 Check the setup succeeded by the following command:
 ```
-$ docker ps |grep rgw
+$ sudo docker ps | grep rgw
 ```
 
 (Optionally) You can also *enter* the running container to take a look, watch log, execute the radosgw-admin management tool with the following command:
 ```
-$ docker exec -it rgw /bin/bash
+$ sudo docker exec -it rgw /bin/bash
 ```
 
 Once the above procedure is done, you can now run radosgw-admin4j tests without any config on the client side, since the [default config](https://github.com/twonote/radosgw-admin4j/blob/master/src/test/resources/rgwadmin.properties) is meet the case. Run tests by:
@@ -76,10 +76,10 @@ First, you need an admin account. If you not yet have it, create the account wit
 ```
 $ radosgw-admin user create --uid=qqq --display-name="qqq"
 $ radosgw-admin key create --uid=qqq --key-type=s3 --gen-access-key --gen-secret
-$ radosgw-admin --id admin caps add --caps="buckets=*,users=*" --uid=qqq
+$ radosgw-admin --id admin caps add --caps="buckets=*;users=*" --uid=qqq
 ```
 
-Second, enter the key pair and the radosgw endpoint to the [config file](https://github.com/twonote/radosgw-admin4j/blob/master/src/test/resources/rgwadmin.properties)
+Second, enter the key pair (qqq,qqq) and your radosgw endpoint to the [config file](https://github.com/twonote/radosgw-admin4j/blob/master/src/test/resources/rgwadmin.properties)
 
 Done!
 
