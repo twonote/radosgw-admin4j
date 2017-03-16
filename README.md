@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/twonote/radosgw-admin4j.svg?branch=master)](https://travis-ci.org/twonote/radosgw-admin4j)  [![License](https://img.shields.io/badge/license-Apache%202-blue.svg)]()
+
 # About
 A Ceph Object Storage Admin SDK / Client Library for Java
 
