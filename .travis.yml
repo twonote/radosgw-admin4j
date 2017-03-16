@@ -1,0 +1,17 @@
+sudo: required
+
+language: java
+
+services:
+  - docker
+
+before_install:
+- docker run -d --net=host -v /etc/ceph/:/etc/ceph/ -e MON_IP=127.0.0.1 -e CEPH_PUBLIC_NETWORK=127.0.0.0/24 -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e CEPH_DEMO_BUCKET=qqq --name rgw ceph/demo@sha256:7734ac78571ee0530724181c5b2db2e5a7ca0ff0e246c10c223d3ca9665c74ba
+- sleep 10
+- docker exec -it rgw radosgw-admin --id admin caps add --caps="buckets=*;users=*" --uid=qqq
+
+script:
+- mvn test
+
+after_failure:
+  - cat target/surefire-reports/*.txt
