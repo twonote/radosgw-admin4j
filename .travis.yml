@@ -12,7 +12,7 @@ before_install:
 - docker exec -it rgw radosgw-admin --id admin caps add --caps="buckets=*;users=*" --uid=qqq
 
 script:
-- mvn test
+- mvn test -Dgpg.skip
 
 after_failure:
   - cat target/surefire-reports/*.txt
