@@ -44,27 +44,27 @@ RGW_ADMIN_CLIENT.suspendUser(userId);
 RGW_ADMIN_CLIENT.removeUser(userId);
 ```
 ## Setup radosgw and do integration test
-Since this aritfact is a client of radosgw, you also need one ready to use radosgw instance and one radosgw account with admin capbilities. 
+Since this artifact is a client of radosgw, you also need one ready to use radosgw instance and one radosgw account with admin capabilities.
 
 ### “I do not have a radosgw setup currently”
-You can refer the [ceph offical manual](http://docs.ceph.com/docs/master/start/) to setup a ceph cluster with radosgw *quickly*. In fact in my experience it is not a piece of cake if you do not familiar with ceph. Things will be easier if you have **docker** in your environment. To setup a radosgw instance with an admin account powered by the [ceph demo image](https://hub.docker.com/r/ceph/demo/), follow instructions below:
+You can refer the [Ceph official manual](http://docs.ceph.com/docs/master/start/) to setup a Ceph cluster with radosgw *quickly*. In fact, in my experience it is not a piece of cake if you do not familiar with Ceph. Things will be easier if you have **docker** in your environment. To setup a setup instance with an admin account powered by the [ceph demo image](https://hub.docker.com/r/ceph/demo/), follow instructions below:
 ```
 $ docker run -d --net=host -v /etc/ceph/:/etc/ceph/ -e MON_IP=10.0.2.15 -e CEPH_PUBLIC_NETWORK=10.0.2.0/24 -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e CEPH_DEMO_BUCKET=qqq --name rgw ceph/demo
 $ # Change IP and NETWORK in the above command to fit your network setting
 $ docker exec -it rgw radosgw-admin --id admin caps add --caps="buckets=*,users=*" --uid=qqq
 ```
 
-Check the setup is success by the following command:
+Check the setup succeeded by the following command:
 ```
 $ docker ps |grep rgw
 ```
 
-(Optionally) You can also *enter* the running container to take a look, watch log, execute the radosgw-admin management tool by the following command:
+(Optionally) You can also *enter* the running container to take a look, watch log, execute the radosgw-admin management tool with the following command:
 ```
 $ docker exec -it rgw /bin/bash
 ```
 
-Once the above procedure is done, you can now run radosgw-admin4j tests without any config in client side, since the [default config](https://github.com/twonote/radosgw-admin4j/blob/master/src/test/resources/rgwadmin.properties) is meet the case. Run tests by:
+Once the above procedure is done, you can now run radosgw-admin4j tests without any config on the client side, since the [default config](https://github.com/twonote/radosgw-admin4j/blob/master/src/test/resources/rgwadmin.properties) is meet the case. Run tests by:
 ```
 $ git clone https://github.com/twonote/radosgw-admin4j.git
 $ cd radosgw-admin4j
@@ -72,7 +72,7 @@ $ mvn test
 ```
 
 ### “I already have a radosgw instance on hand”
-First, you need a admin account. If you not yet have it, create the account by the following command:
+First, you need an admin account. If you not yet have it, create the account with the following command:
 ```
 $ radosgw-admin user create --uid=qqq --display-name="qqq"
 $ radosgw-admin key create --uid=qqq --key-type=s3 --gen-access-key --gen-secret
