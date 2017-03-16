@@ -11,7 +11,7 @@ before_install:
 - sleep 30
 - docker exec -it rgw radosgw-admin --id admin caps add --caps="buckets=*;users=*" --uid=qqq
 
-
+install: mvn install -Dgpg.skip=true
 
 after_failure:
   - cat target/surefire-reports/*.txt
