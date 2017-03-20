@@ -26,17 +26,12 @@ import java.util.*;
 import static org.junit.Assert.*;
 
 public class RgwAdminClientImplTest {
-
-
     private static RgwAdminClient RGW_ADMIN_CLIENT;
 
     private static String adminUserId;
     private static String accessKey;
     private static String secretKey;
     private static String s3Endpoint;
-
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
 
     @BeforeClass
     public static void init() throws IOException {
@@ -90,6 +85,72 @@ public class RgwAdminClientImplTest {
         return s3;
     }
 
+
+    @Test
+    public void addUserCapability() throws Exception {
+        String userId = "test" + UUID.randomUUID().toString();
+        String userCaps = "usage=read,write;user=write";
+
+        // user not exist
+        try {
+            RGW_ADMIN_CLIENT.addUserCapability(userId, userCaps);
+        } catch (RuntimeException e) {
+            // 400
+        }
+
+        try {
+            RGW_ADMIN_CLIENT.createUser(userId, false);
+
+            // basic
+            RGW_ADMIN_CLIENT.addUserCapability(userId, userCaps);
+            GetUserInfoResponse response = RGW_ADMIN_CLIENT.getUserInfo(userId).get();
+            assertEquals("usage", response.getCaps().get(0).get("type"));
+            assertEquals("*", response.getCaps().get(0).get("perm"));
+            assertEquals("user", response.getCaps().get(1).get("type"));
+            assertEquals("write", response.getCaps().get(1).get("perm"));
+
+            // do it again
+            RGW_ADMIN_CLIENT.addUserCapability(userId, userCaps);
+
+        } finally {
+            try {
+                RGW_ADMIN_CLIENT.removeUser(userId);
+            } catch (Exception e) {}
+        }
+    }
+
+    @Test
+    public void deleteUserCapability() throws Exception {
+        String userId = "test" + UUID.randomUUID().toString();
+        String userCaps = "usage=read";
+
+        // user not exist
+        try {
+            RGW_ADMIN_CLIENT.deleteUserCapability(userId, userCaps);
+        } catch (RuntimeException e) {
+            // 400
+        }
+
+        try {
+            RGW_ADMIN_CLIENT.createUser(userId, false);
+
+            // cap not exist
+            RGW_ADMIN_CLIENT.deleteUserCapability(userId, userCaps);
+
+            // basic
+            RGW_ADMIN_CLIENT.addUserCapability(userId, userCaps);
+            RGW_ADMIN_CLIENT.deleteUserCapability(userId, userCaps);
+            GetUserInfoResponse response = RGW_ADMIN_CLIENT.getUserInfo(userId).get();
+            assertEquals(0, response.getCaps().size());
+
+            // do it again
+            RGW_ADMIN_CLIENT.deleteUserCapability(userId, userCaps);
+        } finally {
+            try {
+                RGW_ADMIN_CLIENT.removeUser(userId);
+            } catch (Exception e) {}
+        }
+    }
 
     @Test
     public void removeBucket() throws Exception {

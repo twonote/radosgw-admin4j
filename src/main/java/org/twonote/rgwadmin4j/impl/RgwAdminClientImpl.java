@@ -85,6 +85,56 @@ public class RgwAdminClientImpl implements RgwAdminClient {
     }
 
     /**
+     *
+     * @param uid
+     * @param userCaps In forms of [users|buckets|metadata|usage|zone]=[*|read|write|read, write]
+     */
+    @Override
+    public void addUserCapability(String uid, String userCaps) {
+        String resource = "/admin/user/";
+        String url = endpoint + resource + "?caps"
+            + "&uid=" + uid
+            + "&user-caps=" + userCaps;
+        String method = "PUT";
+        String date = DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneId.of("GMT")));
+        String sign = sign(method, date, resource);
+
+        Request request = new Request.Builder().put(emptyBody)
+            .url(url)
+            .header("Date", date)
+            .header("Authorization", sign)
+            .build();
+
+        safeCall(request);
+
+    }
+
+    /**
+     *
+     * @param uid
+     * @param userCaps In forms of [users|buckets|metadata|usage|zone]=[*|read|write|read, write]
+     */
+    @Override
+    public void deleteUserCapability(String uid, String userCaps) {
+        String resource = "/admin/user/";
+        String url = endpoint + resource + "?caps"
+            + "&uid=" + uid
+            + "&user-caps=" + userCaps;
+        String method = "DELETE";
+        String date = DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneId.of("GMT")));
+        String sign = sign(method, date, resource);
+
+        Request request = new Request.Builder().delete()
+            .url(url)
+            .header("Date", date)
+            .header("Authorization", sign)
+            .build();
+
+        safeCall(request);
+
+    }
+
+    /**
      * The operation is success if the target is not exist in the system after the operation is executed.
      * The operation does not throw exception even if the target is not exist in the beginning.
      *

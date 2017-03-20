@@ -4,6 +4,7 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
+import java.util.Map;
 
 public class GetUserInfoResponse {
 
@@ -33,7 +34,7 @@ public class GetUserInfoResponse {
     private List<Object> swiftKeys = null;
     @SerializedName("caps")
     @Expose
-    private List<Object> caps = null;
+    private List<Map<String,String>> caps = null;
 
     public String getUserId() {
         return userId;
@@ -99,11 +100,11 @@ public class GetUserInfoResponse {
         this.swiftKeys = swiftKeys;
     }
 
-    public List<Object> getCaps() {
+    public List<Map<String,String>> getCaps() {
         return caps;
     }
 
-    public void setCaps(List<Object> caps) {
+    public void setCaps(List<Map<String,String>> caps) {
         this.caps = caps;
     }
 

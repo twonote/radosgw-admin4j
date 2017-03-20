@@ -12,7 +12,11 @@ import java.util.Optional;
  * Created by petertc on 3/14/17.
  */
 public interface RgwAdminClient {
-    void removeBucket(String bucketName);
+    void addUserCapability(String uid, String userCaps);
+
+  void deleteUserCapability(String uid, String userCaps);
+
+  void removeBucket(String bucketName);
 
     void linkBucket(String bucketName, String bucketId, String userId);
 
