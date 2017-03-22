@@ -1,6 +1,5 @@
 package org.twonote.rgwadmin4j.impl;
 
-import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import okhttp3.*;
@@ -10,13 +9,7 @@ import org.twonote.rgwadmin4j.model.GetBucketInfoResponse;
 import org.twonote.rgwadmin4j.model.GetUserInfoResponse;
 import org.twonote.rgwadmin4j.model.Quota;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,61 +20,18 @@ import java.util.stream.Collectors;
  * Created by petertc on 2/16/17.
  */
 public class RgwAdminClientImpl implements RgwAdminClient {
-
-    private final String accessKey;
-    private final String secretKey;
+  
     private final String endpoint;
 
-    private static final OkHttpClient client = new OkHttpClient();
+    private final OkHttpClient client;
     private static final RequestBody emptyBody = RequestBody.create(null, new byte[]{});
     private static final Gson gson = new Gson();
 
     public RgwAdminClientImpl(String accessKey, String secretKey, String endpoint) {
-        this.accessKey = accessKey;
-        this.secretKey = secretKey;
+        this.client = new OkHttpClient().newBuilder()
+            .addInterceptor(new S3Auth(accessKey, secretKey))
+            .build();
         this.endpoint = endpoint;
-    }
-
-    private String sign(String httpVerb, String date, String resource) {
-        return sign(httpVerb, "", "", date, resource, null);
-    }
-
-    private String sign(String httpVerb, String contentMD5,
-                        String contentType, String date, String resource,
-                        Map<String, String> metas) {
-
-        String stringToSign = httpVerb + "\n"
-                + CharMatcher.whitespace().trimFrom(contentMD5) + "\n"
-                + CharMatcher.whitespace().trimFrom(contentType) + "\n" + date + "\n";
-        if (metas != null) {
-            for (Map.Entry<String, String> entity : metas.entrySet()) {
-                stringToSign += CharMatcher.whitespace().trimFrom(entity.getKey()) + ":"
-                        + CharMatcher.whitespace().trimFrom(entity.getValue()) + "\n";
-            }
-        }
-        stringToSign += resource;
-        try {
-            Mac mac = Mac.getInstance("HmacSHA1");
-            byte[] keyBytes = secretKey.getBytes("UTF8");
-            SecretKeySpec signingKey = new SecretKeySpec(keyBytes, "HmacSHA1");
-            mac.init(signingKey);
-            byte[] signBytes = mac.doFinal(stringToSign.getBytes("UTF8"));
-            String signature = encodeBase64(signBytes);
-            return "AWS" + " " + accessKey + ":" + signature;
-        } catch (Exception e) {
-            throw new RuntimeException("MAC CALC FAILED.");
-        }
-
-    }
-
-    private static String encodeBase64(byte[] data) {
-        String base64 = new String(Base64.getEncoder().encodeToString(data));
-        if (base64.endsWith("\r\n"))
-            base64 = base64.substring(0, base64.length() - 2);
-        if (base64.endsWith("\n"))
-            base64 = base64.substring(0, base64.length() - 1);
-
-        return base64;
     }
 
     /**
@@ -95,14 +45,9 @@ public class RgwAdminClientImpl implements RgwAdminClient {
         String url = endpoint + resource + "?caps"
             + "&uid=" + uid
             + "&user-caps=" + userCaps;
-        String method = "PUT";
-        String date = DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneId.of("GMT")));
-        String sign = sign(method, date, resource);
 
         Request request = new Request.Builder().put(emptyBody)
             .url(url)
-            .header("Date", date)
-            .header("Authorization", sign)
             .build();
 
         safeCall(request);
@@ -120,14 +65,9 @@ public class RgwAdminClientImpl implements RgwAdminClient {
         String url = endpoint + resource + "?caps"
             + "&uid=" + uid
             + "&user-caps=" + userCaps;
-        String method = "DELETE";
-        String date = DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneId.of("GMT")));
-        String sign = sign(method, date, resource);
 
         Request request = new Request.Builder().delete()
             .url(url)
-            .header("Date", date)
-            .header("Authorization", sign)
             .build();
 
         safeCall(request);
@@ -146,14 +86,9 @@ public class RgwAdminClientImpl implements RgwAdminClient {
         String url = endpoint + resource + "?"
                 + "bucket=" + bucketName
                 + "&purge-objects=true";
-        String method = "DELETE";
-        String date = DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneId.of("GMT")));
-        String sign = sign(method, date, resource);
 
         Request request = new Request.Builder().delete()
                 .url(url)
-                .header("Date", date)
-                .header("Authorization", sign)
                 .build();
 
         safeCall(request);
@@ -167,14 +102,9 @@ public class RgwAdminClientImpl implements RgwAdminClient {
                 + "bucket=" + bucketName
                 + "&bucket-id=" + bucketId
                 + "&uid=" + userId;
-        String method = "PUT";
-        String date = DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneId.of("GMT")));
-        String sign = sign(method, date, resource);
 
         Request request = new Request.Builder().put(emptyBody)
                 .url(url)
-                .header("Date", date)
-                .header("Authorization", sign)
                 .build();
 
         safeCall(request);
@@ -185,14 +115,9 @@ public class RgwAdminClientImpl implements RgwAdminClient {
         String resource = "/admin/bucket/";
         String url = endpoint + resource + "?"
                 + "bucket=" + bucketName;
-        String method = "GET";
-        String date = DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneId.of("GMT")));
-        String sign = sign(method, date, resource);
 
         Request request = new Request.Builder()
                 .url(url)
-                .header("Date", date)
-                .header("Authorization", sign)
                 .build();
 
         String resp = safeCall(request);
@@ -254,14 +179,9 @@ public class RgwAdminClientImpl implements RgwAdminClient {
             url += "&max-buckets=1";
         }
 
-        String method = "PUT";
-        String date = DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneId.of("GMT")));
-        String sign = sign(method, date, resource);
 
         Request request = new Request.Builder().put(emptyBody)
                 .url(url)
-                .header("Date", date)
-                .header("Authorization", sign)
                 .build();
 
         String resp = safeCall(request);
@@ -273,14 +193,9 @@ public class RgwAdminClientImpl implements RgwAdminClient {
         String resource = "/admin/user/";
         String url = endpoint + resource + "?"
                 + "uid=" + userId;
-        String method = "GET";
-        String date = DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneId.of("GMT")));
-        String sign = sign(method, date, resource);
 
         Request request = new Request.Builder()
                 .url(url)
-                .header("Date", date)
-                .header("Authorization", sign)
                 .build();
 
         String resp = safeCall(request);
@@ -298,14 +213,9 @@ public class RgwAdminClientImpl implements RgwAdminClient {
                 .collect(Collectors.joining("&"));
         url += "&" + _parameters;
 
-        String method = "POST";
-        String date = DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneId.of("GMT")));
-        String sign = sign(method, date, resource);
 
         Request request = new Request.Builder().post(emptyBody)
                 .url(url)
-                .header("Date", date)
-                .header("Authorization", sign)
                 .build();
 
         safeCall(request);
@@ -323,14 +233,9 @@ public class RgwAdminClientImpl implements RgwAdminClient {
 //                + "&secret-key=AOA"
 //                + "&max-buckets=1"
                 + "&suspended=True";
-        String method = "POST";
-        String date = DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneId.of("GMT")));
-        String sign = sign(method, date, resource);
 
         Request request = new Request.Builder().post(emptyBody)
                 .url(url)
-                .header("Date", date)
-                .header("Authorization", sign)
                 .build();
 
         safeCall(request);
@@ -348,14 +253,9 @@ public class RgwAdminClientImpl implements RgwAdminClient {
         String url = endpoint + resource + "?"
                 + "uid=" + userId
                 + "&purge-data=true";
-        String method = "DELETE";
-        String date = DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneId.of("GMT")));
-        String sign = sign(method, date, resource);
 
         Request request = new Request.Builder().delete()
                 .url(url)
-                .header("Date", date)
-                .header("Authorization", sign)
                 .build();
 
         safeCall(request);
@@ -370,14 +270,9 @@ public class RgwAdminClientImpl implements RgwAdminClient {
                 + "&uid=" + userId
                 + "&quota-type=bucket";
 
-        String method = "GET";
-        String date = DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneId.of("GMT")));
-        String sign = sign(method, date, resource);
 
         Request request = new Request.Builder().get()
                 .url(url)
-                .header("Date", date)
-                .header("Authorization", sign)
                 .build();
 
         String resp = safeCall(request);
@@ -399,9 +294,6 @@ public class RgwAdminClientImpl implements RgwAdminClient {
                 + "&quota-type=bucket";
 
 
-        String method = "PUT";
-        String date = DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneId.of("GMT")));
-        String sign = sign(method, date, resource);
 
         String body = gson.toJson(ImmutableMap.of(
                 "max_objects", String.valueOf(maxObjects),
@@ -410,8 +302,6 @@ public class RgwAdminClientImpl implements RgwAdminClient {
 
         Request request = new Request.Builder().put(RequestBody.create(null, body))
                 .url(url)
-                .header("Date", date)
-                .header("Authorization", sign)
                 .build();
 
         safeCall(request);
