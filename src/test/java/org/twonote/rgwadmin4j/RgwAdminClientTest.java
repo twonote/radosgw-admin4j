@@ -11,9 +11,7 @@ import com.amazonaws.services.s3.model.HeadBucketRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.google.common.collect.ImmutableMap;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.twonote.rgwadmin4j.impl.RgwAdminClientImpl;
 import org.twonote.rgwadmin4j.model.CreateUserResponse;
 import org.twonote.rgwadmin4j.model.GetBucketInfoResponse;
@@ -25,7 +23,7 @@ import java.util.*;
 
 import static org.junit.Assert.*;
 
-public class RgwAdminClientImplTest {
+public class RgwAdminClientTest {
     private static RgwAdminClient RGW_ADMIN_CLIENT;
 
     private static String adminUserId;
@@ -45,7 +43,7 @@ public class RgwAdminClientImplTest {
             env = "." + env;
         }
         Properties properties = new Properties();
-        properties.load(RgwAdminClientImplTest.class.getResourceAsStream("/rgwadmin.properties" + env));
+        properties.load(RgwAdminClientTest.class.getResourceAsStream("/rgwadmin.properties" + env));
 
         adminUserId = properties.getProperty("radosgw.adminId");
         accessKey = properties.getProperty("radosgw.adminAccessKey");
