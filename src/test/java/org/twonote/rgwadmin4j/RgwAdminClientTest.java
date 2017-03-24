@@ -20,6 +20,7 @@ import org.twonote.rgwadmin4j.model.Quota;
 
 import java.io.*;
 import java.util.*;
+import java.util.function.Consumer;
 
 import static org.junit.Assert.*;
 
@@ -113,7 +114,8 @@ public class RgwAdminClientTest {
         } finally {
             try {
                 RGW_ADMIN_CLIENT.removeUser(userId);
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         }
     }
 
@@ -146,7 +148,8 @@ public class RgwAdminClientTest {
         } finally {
             try {
                 RGW_ADMIN_CLIENT.removeUser(userId);
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         }
     }
 
@@ -333,7 +336,7 @@ public class RgwAdminClientTest {
         GetUserInfoResponse response = RGW_ADMIN_CLIENT.getUserInfo(adminUserId).get();
         assertEquals(Integer.valueOf(0), response.getSuspended());
         assertEquals(adminUserId, response.getUserId());
-        List<Map<String, String>> caps =Arrays.asList(ImmutableMap.of("type", "users", "perm", "*"),
+        List<Map<String, String>> caps = Arrays.asList(ImmutableMap.of("type", "users", "perm", "*"),
                 ImmutableMap.of("type", "buckets", "perm", "*"));
         assertTrue(caps.containsAll(response.getCaps()));
 
@@ -357,55 +360,117 @@ public class RgwAdminClientTest {
         RGW_ADMIN_CLIENT.suspendUser(UUID.randomUUID().toString());
     }
 
-    //    @Test
-    // FIXME: ceph rgw quota is buggy in 0.9, skip it.
+    @Test
+    public void testUserQuotaMaxObjects() throws Exception {
+        testWithAUser((v) -> {
+                    String userId = v.getUserId();
+                    Quota quota;
+
+                    // max object = 2
+                    RGW_ADMIN_CLIENT.setUserQuota(userId, 2, -1);
+                    quota = RGW_ADMIN_CLIENT.getUserQuota(userId).get();
+                    assertEquals(true, quota.getEnabled());
+
+                    AmazonS3 s3 = initS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
+                    String bucketName = userId.toLowerCase();
+                    s3.createBucket(bucketName);
+
+                    // allow 1st,2ed obj
+                    s3.putObject(bucketName, userId + "1", "qqqq");
+                    s3.putObject(bucketName, userId + "2", "qqqq");
+
+                    // deny 3rd obj
+                    try {
+                        s3.putObject(bucketName, userId + "3", "qqqq");
+                        fail();
+                    } catch (AmazonS3Exception e) {
+                        assertEquals("QuotaExceeded", e.getErrorCode());
+                    }
+                }
+        );
+    }
+
+    /*
+     * Implementation note:
+     * The behavior of the quota evaluation is taking effect in the unit of 4KiB, i.e., isExceed = ( ceil(TO_USED_SIZE_IN_BYTE/4096) > floor(maxSize/4) ? )
+     * For example, when mazSize is 5, put a object with 4096 bytes will be ok, but put with 4096 + 1 bytes will be blocked.
+     * (Assume that the used size is 0 before taking the action.)
+     */
+    @Test
+    public void testUserQuotaMaxSize() throws Exception {
+        testWithAUser((v) -> {
+                    String userId = v.getUserId();
+                    Quota quota;
+
+                    // max size = 6 bytes
+                    RGW_ADMIN_CLIENT.setUserQuota(userId, -1, 12);
+                    quota = RGW_ADMIN_CLIENT.getUserQuota(userId).get();
+                    assertEquals(true, quota.getEnabled());
+
+                    AmazonS3 s3 = initS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
+                    String bucketName = userId.toLowerCase();
+                    s3.createBucket(bucketName);
+
+                    // ok, ok, ok, since the total to used size exceed 12KiB
+                    s3.putObject(bucketName, userId + "1", createString(4096));
+                    s3.putObject(bucketName, userId + "2", createString(4096));
+                    s3.putObject(bucketName, userId + "3", createString(4096));
+
+                    // not ok, since the total to used size exceed 12KiB +1
+                    try {
+                        s3.putObject(bucketName, userId + "4", createString(1));
+                    } catch (AmazonS3Exception e) {
+                        assertEquals("QuotaExceeded", e.getErrorCode());
+                    }
+                }
+        );
+    }
+
+    private static String createString(int size) {
+        char[] chars = new char[size];
+        Arrays.fill(chars, 'f');
+        return new String(chars);
+    }
+
+    @Test
     public void getAndSetUserQuota() throws Exception {
-        String userId = "bobx" + UUID.randomUUID().toString();
+        testWithAUser((v) -> {
+                    String userId = v.getUserId();
+                    Quota quota;
+
+                    // default false
+                    quota = RGW_ADMIN_CLIENT.getUserQuota(userId).get();
+                    assertEquals(false, quota.getEnabled());
+                    assertEquals(Integer.valueOf(-1), quota.getMaxObjects());
+                    assertEquals(Integer.valueOf(-1), quota.getMaxSizeKb());
+
+                    // set quota
+                    RGW_ADMIN_CLIENT.setUserQuota(userId, 1, 1);
+                    quota = RGW_ADMIN_CLIENT.getUserQuota(userId).get();
+                    assertEquals(true, quota.getEnabled());
+                    assertEquals(Integer.valueOf(1), quota.getMaxObjects());
+                    assertEquals(Integer.valueOf(1), quota.getMaxSizeKb());
+                }
+        );
+
+        // not exist
+        try {
+            RGW_ADMIN_CLIENT.getUserQuota(UUID.randomUUID().toString());
+        } catch (RgwAdminException e) {
+            assertEquals(400, e.status());
+            assertEquals("InvalidArgument", e.getMessage());
+        }
+
+        RGW_ADMIN_CLIENT.setUserQuota(UUID.randomUUID().toString(), 1, 1);
+    }
+
+    private static void testWithAUser(Consumer<CreateUserResponse> test) {
+        String userId = "rgwAdmin4jTest-" + UUID.randomUUID().toString();
         try {
             CreateUserResponse response = RGW_ADMIN_CLIENT.createUser(userId);
-            Quota quota;
-
-            // default false
-            quota = RGW_ADMIN_CLIENT.getUserQuota(userId).get();
-            assertEquals(false, quota.getEnabled());
-            assertEquals(Integer.valueOf(-1), quota.getMaxObjects());
-            assertEquals(Integer.valueOf(-1), quota.getMaxSizeKb());
-
-            // set quota
-            RGW_ADMIN_CLIENT.setUserQuota(userId, 1, 1);
-            quota = RGW_ADMIN_CLIENT.getUserQuota(userId).get();
-            assertEquals(true, quota.getEnabled());
-            assertEquals(Integer.valueOf(1), quota.getMaxObjects());
-            assertEquals(Integer.valueOf(4), quota.getMaxSizeKb());
-
-            AmazonS3 s3 = initS3(response.getKeys().get(0).getAccessKey(), response.getKeys().get(0).getSecretKey(), s3Endpoint);
-            s3.createBucket(userId);
-
-            // deny obj in 6 bytes
-            try {
-                s3.putObject(userId, userId, "qqqqqq");
-            } catch (AmazonS3Exception e) {
-                assertEquals("QuotaExceeded", e.getErrorCode());
-            }
-
-            // allow 1 obj
-            s3.putObject(userId, userId, "qqqq");
-
-            // deny 2 obj
-            try {
-                s3.putObject(userId, userId, "qqqq");
-            } catch (AmazonS3Exception e) {
-                assertEquals("QuotaExceeded", e.getErrorCode());
-            }
-
-
+            test.accept(response);
         } finally {
             RGW_ADMIN_CLIENT.removeUser(userId);
         }
-
-        // not exist
-        RGW_ADMIN_CLIENT.setUserQuota(UUID.randomUUID().toString(), 1, 1);
-
     }
-
 }

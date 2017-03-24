@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import okhttp3.*;
 import org.twonote.rgwadmin4j.RgwAdminClient;
+import org.twonote.rgwadmin4j.RgwAdminException;
 import org.twonote.rgwadmin4j.model.CreateUserResponse;
 import org.twonote.rgwadmin4j.model.GetBucketInfoResponse;
 import org.twonote.rgwadmin4j.model.GetUserInfoResponse;
@@ -129,7 +130,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
      *
      * @param request
      * @return resp body in str; null if no body or status code == 404
-     * @throws RuntimeException if resp code != 200 or anything is wrong
+     * @throws RgwAdminException if resp code != (200||404)
      */
     private String safeCall(Request request) {
         try (Response response = client.newCall(request).execute()) {
@@ -137,7 +138,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
                 return null;
             }
             if (!response.isSuccessful()) {
-                throw new RuntimeException("Unexpected code: message: " + response + "body:" + response.body().string());
+                throw ErrorUtils.parseError(response);
             }
             ResponseBody body = response.body();
             if (body != null) {
@@ -146,7 +147,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
                 return null;
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RgwAdminException(500, "IOException", e);
         }
     }
 
@@ -268,8 +269,8 @@ public class RgwAdminClientImpl implements RgwAdminClient {
         String url = endpoint + resource + "?"
                 + "quota"
                 + "&uid=" + userId
-                + "&quota-type=bucket";
-
+//                + "&quota-type=bucket";
+                + "&quota-type=user";
 
         Request request = new Request.Builder().get()
                 .url(url)
@@ -283,21 +284,22 @@ public class RgwAdminClientImpl implements RgwAdminClient {
     /**
      * @param userId
      * @param maxObjects The max-objects setting allows you to specify the maximum number of objects. A negative value disables this setting.
-     * @param maxSize    The max-size option allows you to specify a quota for the maximum number of bytes. A negative value disables this setting.
+     * @param maxSizeKB    The max-size option allows you to specify a quota for the maximum number of bytes. A negative value disables this setting.
      */
     @Override
-    public void setUserQuota(String userId, long maxObjects, long maxSize) {
+    public void setUserQuota(String userId, long maxObjects, long maxSizeKB) {
         String resource = "/admin/user/";
         String url = endpoint + resource + "?"
                 + "quota"
                 + "&uid=" + userId
-                + "&quota-type=bucket";
+//                + "&quota-type=bucket";
+                + "&quota-type=user";
 
 
 
         String body = gson.toJson(ImmutableMap.of(
                 "max_objects", String.valueOf(maxObjects),
-                "max_size_kb", String.valueOf(maxSize),
+                "max_size_kb", String.valueOf(maxSizeKB),
                 "enabled", "true"));
 
         Request request = new Request.Builder().put(RequestBody.create(null, body))
