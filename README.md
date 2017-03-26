@@ -11,7 +11,7 @@ A Ceph Object Storage Admin SDK / Client Library for Java
 
 # Start using 
 You can obtain radosgw-admim4j from Maven Central using the following identifier:
-* [io.github.twonote.radosgw-admin4j:0.0.3](https://search.maven.org/#artifactdetails%7Cio.github.twonote%7Cradosgw-admin4j%7C0.0.3%7Cjar)
+* [io.github.twonote.radosgw-admin4j:0.0.4](https://search.maven.org/#artifactdetails%7Cio.github.twonote%7Cradosgw-admin4j%7C0.0.4%7Cjar)
 
 ## Usage
 ```
