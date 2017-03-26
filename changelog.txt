@@ -1,0 +1,6 @@
+0.0.4 (2017-03-26)
+- Add/remove an administrative capability
+- Get/set user quota
+
+0.0.3 (2017-03-14)
+- Initial release
