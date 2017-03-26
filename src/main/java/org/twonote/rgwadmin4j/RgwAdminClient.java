@@ -36,5 +36,5 @@ public interface RgwAdminClient {
 
     Optional<Quota> getUserQuota(String userId);
 
-    void setUserQuota(String userId, long maxObjects, long maxSize);
+    void setUserQuota(String userId, long maxObjects, long maxSizeKB);
 }
