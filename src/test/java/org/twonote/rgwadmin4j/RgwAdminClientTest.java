@@ -31,11 +31,12 @@ public class RgwAdminClientTest {
     private static String accessKey;
     private static String secretKey;
     private static String s3Endpoint;
+    private static String adminEndpoint;
 
     @BeforeClass
     public static void init() throws IOException {
         initPros();
-        RGW_ADMIN_CLIENT = new RgwAdminClientImpl(accessKey, secretKey, s3Endpoint);
+        RGW_ADMIN_CLIENT = new RgwAdminClientImpl(accessKey, secretKey, adminEndpoint);
     }
 
     private static void initPros() throws IOException {
@@ -49,7 +50,8 @@ public class RgwAdminClientTest {
         adminUserId = properties.getProperty("radosgw.adminId");
         accessKey = properties.getProperty("radosgw.adminAccessKey");
         secretKey = properties.getProperty("radosgw.adminSecretKey");
-        s3Endpoint = properties.getProperty("radosgw.adminEndpoint");
+        s3Endpoint = properties.getProperty("radosgw.endpoint");
+        adminEndpoint = properties.getProperty("radosgw.adminEndpoint");
     }
 
     /**
