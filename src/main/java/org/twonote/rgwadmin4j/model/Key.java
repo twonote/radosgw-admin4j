@@ -8,9 +8,11 @@ public class Key {
   @SerializedName("user")
   @Expose
   private String user;
+
   @SerializedName("access_key")
   @Expose
   private String accessKey;
+
   @SerializedName("secret_key")
   @Expose
   private String secretKey;
@@ -38,5 +40,4 @@ public class Key {
   public void setSecretKey(String secretKey) {
     this.secretKey = secretKey;
   }
-
 }

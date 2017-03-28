@@ -12,6 +12,7 @@ public class Quota {
   @SerializedName("max_size_kb")
   @Expose
   private Integer maxSizeKb;
+
   @SerializedName("max_objects")
   @Expose
   private Integer maxObjects;
@@ -39,5 +40,4 @@ public class Quota {
   public void setMaxObjects(Integer maxObjects) {
     this.maxObjects = maxObjects;
   }
-
 }

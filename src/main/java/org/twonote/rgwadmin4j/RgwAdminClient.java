@@ -8,9 +8,7 @@ import org.twonote.rgwadmin4j.model.Quota;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Created by petertc on 3/14/17.
- */
+/** Created by petertc on 3/14/17. */
 public interface RgwAdminClient {
   void addUserCapability(String uid, String userCaps);
 
@@ -37,4 +35,8 @@ public interface RgwAdminClient {
   Optional<Quota> getUserQuota(String userId);
 
   void setUserQuota(String userId, long maxObjects, long maxSizeKB);
+
+  void removeObject(String bucketName, String objectKey);
+
+  String getPolicy(String bucketName, String objectKey);
 }

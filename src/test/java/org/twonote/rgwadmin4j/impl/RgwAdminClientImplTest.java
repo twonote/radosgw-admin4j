@@ -1,4 +1,4 @@
-package org.twonote.rgwadmin4j;
+package org.twonote.rgwadmin4j.impl;
 
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
@@ -9,10 +9,11 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.HeadBucketRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.twonote.rgwadmin4j.impl.RgwAdminClientImpl;
+import org.twonote.rgwadmin4j.RgwAdminException;
 import org.twonote.rgwadmin4j.model.CreateUserResponse;
 import org.twonote.rgwadmin4j.model.GetBucketInfoResponse;
 import org.twonote.rgwadmin4j.model.GetUserInfoResponse;
@@ -24,8 +25,8 @@ import java.util.function.Consumer;
 
 import static org.junit.Assert.*;
 
-public class RgwAdminClientTest {
-  private static RgwAdminClient RGW_ADMIN_CLIENT;
+public class RgwAdminClientImplTest {
+  private static RgwAdminClientImpl RGW_ADMIN_CLIENT;
 
   private static String adminUserId;
   private static String accessKey;
@@ -45,7 +46,7 @@ public class RgwAdminClientTest {
       env = "." + env;
     }
     Properties properties = new Properties();
-    properties.load(RgwAdminClientTest.class.getResourceAsStream("/rgwadmin.properties" + env));
+    properties.load(RgwAdminClientImplTest.class.getResourceAsStream("/rgwadmin.properties" + env));
 
     adminUserId = properties.getProperty("radosgw.adminId");
     accessKey = properties.getProperty("radosgw.adminAccessKey");
@@ -55,8 +56,7 @@ public class RgwAdminClientTest {
   }
 
   /**
-   * Creates a temporary file with text data to demonstrate uploading a file
-   * to Amazon S3
+   * Creates a temporary file with text data to demonstrate uploading a file to Amazon S3
    *
    * @return A newly created temporary file with text data.
    * @throws IOException
@@ -181,8 +181,11 @@ public class RgwAdminClientTest {
 
     try {
       CreateUserResponse response = RGW_ADMIN_CLIENT.createUser(userId, false);
-      AmazonS3 s3 = initS3(response.getKeys().get(0).getAccessKey(), response.getKeys().get(0).getSecretKey(),
-          s3Endpoint);
+      AmazonS3 s3 =
+          initS3(
+              response.getKeys().get(0).getAccessKey(),
+              response.getKeys().get(0).getSecretKey(),
+              s3Endpoint);
       s3.createBucket(bucketName);
 
       ByteArrayInputStream input = new ByteArrayInputStream("Hello World!".getBytes());
@@ -202,7 +205,6 @@ public class RgwAdminClientTest {
 
       }
     }
-
   }
 
   @Test
@@ -211,8 +213,11 @@ public class RgwAdminClientTest {
     String bucketName = "linkbkusrbk" + UUID.randomUUID().toString();
     try {
       CreateUserResponse response = RGW_ADMIN_CLIENT.createUser(userId, false);
-      AmazonS3 s3 = initS3(response.getKeys().get(0).getAccessKey(), response.getKeys().get(0).getSecretKey(),
-          s3Endpoint);
+      AmazonS3 s3 =
+          initS3(
+              response.getKeys().get(0).getAccessKey(),
+              response.getKeys().get(0).getSecretKey(),
+              s3Endpoint);
       s3.createBucket(bucketName);
 
       GetBucketInfoResponse _response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName).get();
@@ -250,7 +255,6 @@ public class RgwAdminClientTest {
       } catch (Exception e) {
 
       }
-
     }
   }
 
@@ -264,8 +268,11 @@ public class RgwAdminClientTest {
 
     try {
       CreateUserResponse response = RGW_ADMIN_CLIENT.createUser(userId, false);
-      AmazonS3 s3 = initS3(response.getKeys().get(0).getAccessKey(), response.getKeys().get(0).getSecretKey(),
-          s3Endpoint);
+      AmazonS3 s3 =
+          initS3(
+              response.getKeys().get(0).getAccessKey(),
+              response.getKeys().get(0).getSecretKey(),
+              s3Endpoint);
       s3.createBucket(bucketName);
 
       GetBucketInfoResponse _response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName).get();
@@ -278,7 +285,6 @@ public class RgwAdminClientTest {
 
       }
     }
-
   }
 
   @Test
@@ -287,18 +293,20 @@ public class RgwAdminClientTest {
     RGW_ADMIN_CLIENT.createUser(userId, false);
 
     // basic
-    RGW_ADMIN_CLIENT.modifyUser(userId, ImmutableMap.of("max-buckets", String.valueOf(Integer.MAX_VALUE)));
+    RGW_ADMIN_CLIENT.modifyUser(
+        userId, ImmutableMap.of("max-buckets", String.valueOf(Integer.MAX_VALUE)));
     GetUserInfoResponse response = RGW_ADMIN_CLIENT.getUserInfo(userId).get();
     assertEquals(Integer.valueOf(Integer.MAX_VALUE), response.getMaxBuckets());
 
     // user not exist
-    RGW_ADMIN_CLIENT.modifyUser(userId + "qqqq", ImmutableMap.of("max-buckets", String.valueOf(Integer.MAX_VALUE)));
+    RGW_ADMIN_CLIENT.modifyUser(
+        userId + "qqqq", ImmutableMap.of("max-buckets", String.valueOf(Integer.MAX_VALUE)));
 
     // ignore call with wrong arguments
-    RGW_ADMIN_CLIENT.modifyUser(userId, ImmutableMap.of("QQQQQ", String.valueOf(Integer.MAX_VALUE)));
+    RGW_ADMIN_CLIENT.modifyUser(
+        userId, ImmutableMap.of("QQQQQ", String.valueOf(Integer.MAX_VALUE)));
     RGW_ADMIN_CLIENT.modifyUser(userId, ImmutableMap.of("max-buckets", "you-know-my-name"));
     assertEquals(Integer.valueOf(Integer.MAX_VALUE), response.getMaxBuckets());
-
   }
 
   @Test
@@ -344,7 +352,6 @@ public class RgwAdminClientTest {
     } finally {
       RGW_ADMIN_CLIENT.removeUser(limitUserId);
     }
-
   }
 
   @Test
@@ -353,8 +360,10 @@ public class RgwAdminClientTest {
     GetUserInfoResponse response = RGW_ADMIN_CLIENT.getUserInfo(adminUserId).get();
     assertEquals(Integer.valueOf(0), response.getSuspended());
     assertEquals(adminUserId, response.getUserId());
-    List<Map<String, String>> caps = Arrays.asList(ImmutableMap.of("type", "users", "perm", "*"),
-        ImmutableMap.of("type", "buckets", "perm", "*"));
+    List<Map<String, String>> caps =
+        Arrays.asList(
+            ImmutableMap.of("type", "users", "perm", "*"),
+            ImmutableMap.of("type", "buckets", "perm", "*"));
     assertTrue(caps.containsAll(response.getCaps()));
 
     // not exist
@@ -379,7 +388,8 @@ public class RgwAdminClientTest {
 
   @Test
   public void testUserQuotaMaxObjects() throws Exception {
-    testWithAUser((v) -> {
+    testWithAUser(
+        (v) -> {
           String userId = v.getUserId();
           Quota quota;
 
@@ -388,7 +398,9 @@ public class RgwAdminClientTest {
           quota = RGW_ADMIN_CLIENT.getUserQuota(userId).get();
           assertEquals(true, quota.getEnabled());
 
-          AmazonS3 s3 = initS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
+          AmazonS3 s3 =
+              initS3(
+                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
           String bucketName = userId.toLowerCase();
           s3.createBucket(bucketName);
 
@@ -403,8 +415,7 @@ public class RgwAdminClientTest {
           } catch (AmazonS3Exception e) {
             assertEquals("QuotaExceeded", e.getErrorCode());
           }
-        }
-    );
+        });
   }
 
   /*
@@ -415,7 +426,8 @@ public class RgwAdminClientTest {
    */
   @Test
   public void testUserQuotaMaxSize() throws Exception {
-    testWithAUser((v) -> {
+    testWithAUser(
+        (v) -> {
           String userId = v.getUserId();
           Quota quota;
 
@@ -424,7 +436,9 @@ public class RgwAdminClientTest {
           quota = RGW_ADMIN_CLIENT.getUserQuota(userId).get();
           assertEquals(true, quota.getEnabled());
 
-          AmazonS3 s3 = initS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
+          AmazonS3 s3 =
+              initS3(
+                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
           String bucketName = userId.toLowerCase();
           s3.createBucket(bucketName);
 
@@ -439,13 +453,13 @@ public class RgwAdminClientTest {
           } catch (AmazonS3Exception e) {
             assertEquals("QuotaExceeded", e.getErrorCode());
           }
-        }
-    );
+        });
   }
 
   @Test
   public void getAndSetUserQuota() throws Exception {
-    testWithAUser((v) -> {
+    testWithAUser(
+        (v) -> {
           String userId = v.getUserId();
           Quota quota;
 
@@ -453,7 +467,10 @@ public class RgwAdminClientTest {
           quota = RGW_ADMIN_CLIENT.getUserQuota(userId).get();
           assertEquals(false, quota.getEnabled());
           assertEquals(Integer.valueOf(-1), quota.getMaxObjects());
-          assertEquals(Integer.valueOf(-1), quota.getMaxSizeKb());
+          assertTrue(
+              quota.getMaxSizeKb() == -1 // jewel
+                  || quota.getMaxSizeKb() == 0 // kraken
+              );
 
           // set quota
           RGW_ADMIN_CLIENT.setUserQuota(userId, 1, 1);
@@ -461,8 +478,7 @@ public class RgwAdminClientTest {
           assertEquals(true, quota.getEnabled());
           assertEquals(Integer.valueOf(1), quota.getMaxObjects());
           assertEquals(Integer.valueOf(1), quota.getMaxSizeKb());
-        }
-    );
+        });
 
     // not exist
     try {
@@ -473,5 +489,48 @@ public class RgwAdminClientTest {
     }
 
     RGW_ADMIN_CLIENT.setUserQuota(UUID.randomUUID().toString(), 1, 1);
+  }
+
+  @Test
+  public void getPolicy() throws Exception {
+    testWithAUser(
+        (v) -> {
+          String userId = v.getUserId();
+          AmazonS3 s3 =
+              initS3(
+                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
+          String bucketName = userId.toLowerCase();
+          String objectKey = userId.toLowerCase();
+          s3.createBucket(bucketName);
+          s3.putObject(bucketName, objectKey, "qqq");
+          String resp = RGW_ADMIN_CLIENT.getPolicy(bucketName, objectKey);
+          assertFalse(Strings.isNullOrEmpty(resp));
+        });
+  }
+
+  @Test
+  public void removeObject() throws Exception {
+    testWithAUser(
+        (v) -> {
+          String userId = v.getUserId();
+          AmazonS3 s3 =
+              initS3(
+                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
+          String bucketName = userId.toLowerCase();
+          s3.createBucket(bucketName);
+          String objectKey = userId.toLowerCase();
+          s3.putObject(bucketName, objectKey, "qqq");
+
+          // basic
+          RGW_ADMIN_CLIENT.removeObject(bucketName, objectKey);
+          try {
+            s3.getObjectMetadata(bucketName, objectKey);
+          } catch (AmazonS3Exception e) {
+            assertEquals(404, e.getStatusCode());
+          }
+
+          // not exist
+          RGW_ADMIN_CLIENT.removeObject(bucketName, objectKey);
+        });
   }
 }

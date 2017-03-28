@@ -8,36 +8,47 @@ public class GetBucketInfoResponse {
   @SerializedName("bucket")
   @Expose
   private String bucket;
+
   @SerializedName("pool")
   @Expose
   private String pool;
+
   @SerializedName("index_pool")
   @Expose
   private String indexPool;
+
   @SerializedName("id")
   @Expose
   private String id;
+
   @SerializedName("marker")
   @Expose
   private String marker;
+
   @SerializedName("owner")
   @Expose
   private String owner;
+
   @SerializedName("ver")
   @Expose
   private String ver;
+
   @SerializedName("master_ver")
   @Expose
   private String masterVer;
+
   @SerializedName("mtime")
   @Expose
   private String mtime;
+
   @SerializedName("max_marker")
   @Expose
   private String maxMarker;
+
   @SerializedName("usage")
   @Expose
   private Usage usage;
+
   @SerializedName("bucket_quota")
   @Expose
   private Quota bucketQuota;
@@ -137,5 +148,4 @@ public class GetBucketInfoResponse {
   public void setBucketQuota(Quota bucketQuota) {
     this.bucketQuota = bucketQuota;
   }
-
 }

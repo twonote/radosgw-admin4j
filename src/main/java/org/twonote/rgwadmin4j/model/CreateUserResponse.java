@@ -10,27 +10,35 @@ public class CreateUserResponse {
   @SerializedName("user_id")
   @Expose
   private String userId;
+
   @SerializedName("display_name")
   @Expose
   private String displayName;
+
   @SerializedName("email")
   @Expose
   private String email;
+
   @SerializedName("suspended")
   @Expose
   private Integer suspended;
+
   @SerializedName("max_buckets")
   @Expose
   private Integer maxBuckets;
+
   @SerializedName("subusers")
   @Expose
   private List<Object> subusers = null;
+
   @SerializedName("keys")
   @Expose
   private List<Key> keys = null;
+
   @SerializedName("swift_keys")
   @Expose
   private List<Object> swiftKeys = null;
+
   @SerializedName("caps")
   @Expose
   private List<Object> caps = null;
@@ -106,5 +114,4 @@ public class CreateUserResponse {
   public void setCaps(List<Object> caps) {
     this.caps = caps;
   }
-
 }

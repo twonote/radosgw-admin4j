@@ -1,8 +1,6 @@
 package org.twonote.rgwadmin4j;
 
-/**
- * Created by petertc on 3/24/17.
- */
+/** Created by petertc on 3/24/17. */
 public class RgwAdminException extends RuntimeException {
   private final int statusCode;
 
@@ -23,5 +21,4 @@ public class RgwAdminException extends RuntimeException {
   public int status() {
     return statusCode;
   }
-
 }
