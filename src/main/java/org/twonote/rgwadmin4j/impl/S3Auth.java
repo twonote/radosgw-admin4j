@@ -27,19 +27,17 @@ import java.util.Map;
  * OkHttpClient client = new OkHttpClient.Builder()
  * .addInterceptor(new S3Auth())
  * .build();
- *
  * Request request = new Request.Builder()
  * .url("http://www.publicobject.com/helloworld.txt")
  * .header("User-Agent", "OkHttp Example")
  * .build();
- *
  * Response response = client.newCall(request).execute();
  * response.body().close();
  * }
  *  </pre>
- *  <p>
- *    Inspired by https://github.com/tax/python-requests-aws
- *  </p>
+ * <p>
+ * Inspired by https://github.com/tax/python-requests-aws
+ * </p>
  * Created by hrchu on 2017/3/22.
  */
 class S3Auth implements Interceptor {
@@ -51,6 +49,16 @@ class S3Auth implements Interceptor {
   public S3Auth(String accessKey, String secretKey) {
     this.accessKey = accessKey;
     this.secretKey = secretKey;
+  }
+
+  private static String encodeBase64(byte[] data) {
+    String base64 = new String(Base64.getEncoder().encodeToString(data));
+    if (base64.endsWith("\r\n"))
+      base64 = base64.substring(0, base64.length() - 2);
+    if (base64.endsWith("\n"))
+      base64 = base64.substring(0, base64.length() - 1);
+
+    return base64;
   }
 
   @Override
@@ -97,15 +105,5 @@ class S3Auth implements Interceptor {
       throw new RuntimeException("MAC CALC FAILED.");
     }
 
-  }
-
-  private static String encodeBase64(byte[] data) {
-    String base64 = new String(Base64.getEncoder().encodeToString(data));
-    if (base64.endsWith("\r\n"))
-      base64 = base64.substring(0, base64.length() - 2);
-    if (base64.endsWith("\n"))
-      base64 = base64.substring(0, base64.length() - 1);
-
-    return base64;
   }
 }
