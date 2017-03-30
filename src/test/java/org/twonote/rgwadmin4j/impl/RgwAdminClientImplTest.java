@@ -35,8 +35,24 @@ public class RgwAdminClientImplTest {
   public static void init() throws IOException {
     initPros();
     RGW_ADMIN_CLIENT = new RgwAdminClientImpl(accessKey, secretKey, adminEndpoint);
+    testRgwConnectivity();
   }
 
+  private static void testRgwConnectivity() {
+    try {
+        AmazonS3 s3 = initS3(accessKey, secretKey, s3Endpoint);
+        s3.listBuckets();
+    } catch (Exception e) {
+      System.out.println("Cannot make communication with radosgw S3 endpoint: " + e.getLocalizedMessage());
+      System.exit(0);
+    }
+    try {
+        RGW_ADMIN_CLIENT.getUserInfo(adminUserId).get();
+    } catch (Exception e) {
+        System.out.println("Cannot make communication with radosgw admin endpoint: " + e.getLocalizedMessage());
+        System.exit(0);
+    }
+  }
   private static void initPros() throws IOException {
     String env = System.getProperty("env", "");
     if (!"".equals(env)) {
