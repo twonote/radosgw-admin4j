@@ -112,18 +112,39 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   @Override
   public void unlinkBucket(String bucketName, String userId) {
     Request request =
-            new Request.Builder()
-                    .post(emptyBody)
-                    .url(
-                            HttpUrl.parse(endpoint)
-                                    .newBuilder()
-                                    .addPathSegment("bucket")
-                                    .addQueryParameter("bucket", bucketName)
-                                    .addQueryParameter("uid", userId)
-                                    .build())
-                    .build();
+        new Request.Builder()
+            .post(emptyBody)
+            .url(
+                HttpUrl.parse(endpoint)
+                    .newBuilder()
+                    .addPathSegment("bucket")
+                    .addQueryParameter("bucket", bucketName)
+                    .addQueryParameter("uid", userId)
+                    .build())
+            .build();
 
     safeCall(request);
+  }
+
+  @Override
+  public Optional<String> checkBucketIndex(
+      String bucketName, boolean isCheckObjects, boolean isFix) {
+    Request request =
+        new Request.Builder()
+            .get()
+            .url(
+                HttpUrl.parse(endpoint)
+                    .newBuilder()
+                    .addPathSegment("bucket")
+                    .query("index")
+                    .addQueryParameter("bucket", bucketName)
+                    .addQueryParameter("check-objects", Boolean.toString(isCheckObjects))
+                    .addQueryParameter("fix", Boolean.toString(isFix))
+                    .build())
+            .build();
+
+    String resp = safeCall(request);
+    return Optional.ofNullable(resp);
   }
 
   @Override

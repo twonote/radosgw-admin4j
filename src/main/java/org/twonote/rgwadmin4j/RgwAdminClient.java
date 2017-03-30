@@ -64,6 +64,38 @@ public interface RgwAdminClient {
    */
   void unlinkBucket(String bucketName, String userId);
 
+  /**
+   * Check the index of an existing bucket.
+   *
+   * <p>NOTE: to check multipart object accounting with check-objects, fix must be set to True.
+   *
+   * <p>Example response:
+   *
+   * <pre>
+   * [
+   *
+   * ]{
+   *
+   * }{
+   *    "existing_header":{
+   *       "usage":{
+   *
+   *       }
+   *    },
+   *    "calculated_header":{
+   *       "usage":{
+   *
+   *       }
+   *    }
+   * }
+   * </pre>
+   *
+   * @param bucketName The bucket to return info on.
+   * @param isCheckObjects Check multipart object accounting. Example: True [False]
+   * @param isFix Also fix the bucket index when checking. Example: False [False]
+   */
+  Optional<String> checkBucketIndex(String bucketName, boolean isCheckObjects, boolean isFix);
+
   // TODO: list bucket info by user id
 
   /**

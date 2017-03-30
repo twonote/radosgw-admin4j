@@ -12,6 +12,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.twonote.rgwadmin4j.RgwAdminException;
 import org.twonote.rgwadmin4j.model.CreateUserResponse;
@@ -26,9 +27,7 @@ import java.util.function.Consumer;
 import static org.junit.Assert.*;
 
 public class RgwAdminClientImplTest {
-
   private static RgwAdminClientImpl RGW_ADMIN_CLIENT;
-
   private static String adminUserId;
   private static String accessKey;
   private static String secretKey;
@@ -102,6 +101,34 @@ public class RgwAdminClientImplTest {
       RGW_ADMIN_CLIENT.removeUser(userId);
     }
   }
+
+  @Test
+  public void checkBucketIndex() throws Exception {
+    testWithAUser(
+        (v) -> {
+          String userId = v.getUserId();
+          AmazonS3 s3 =
+              initS3(
+                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
+          String bucketName = userId.toLowerCase();
+
+          // not exist
+          RGW_ADMIN_CLIENT.checkBucketIndex(bucketName, true, true);
+
+          s3.createBucket(bucketName);
+          // Do not know how to check the behavior...
+          Optional result = RGW_ADMIN_CLIENT.checkBucketIndex(bucketName, true, true);
+          assertTrue(result.isPresent());
+        });
+  }
+
+  @Ignore
+  @Test
+  public void getUserQuota() throws Exception {}
+
+  @Ignore
+  @Test
+  public void setUserQuota() throws Exception {}
 
   @Test
   public void addUserCapability() throws Exception {
