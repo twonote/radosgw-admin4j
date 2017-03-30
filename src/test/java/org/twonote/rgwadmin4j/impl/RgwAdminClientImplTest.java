@@ -26,6 +26,7 @@ import java.util.function.Consumer;
 import static org.junit.Assert.*;
 
 public class RgwAdminClientImplTest {
+
   private static RgwAdminClientImpl RGW_ADMIN_CLIENT;
 
   private static String adminUserId;
@@ -205,6 +206,33 @@ public class RgwAdminClientImplTest {
 
       }
     }
+  }
+
+  @Test
+  public void unlinkBucket() throws Exception {
+    testWithAUser(
+        (v) -> {
+          String userId = v.getUserId();
+          AmazonS3 s3 =
+              initS3(
+                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
+          String bucketName = userId.toLowerCase();
+
+          // not exist
+          RGW_ADMIN_CLIENT.unlinkBucket(bucketName, userId);
+
+          s3.createBucket(bucketName);
+
+          // basic
+          RGW_ADMIN_CLIENT.unlinkBucket(bucketName, userId);
+          assertEquals(0, s3.listBuckets().size());
+
+          // head is ok...
+          s3.headBucket(new HeadBucketRequest(bucketName));
+
+          // again
+          RGW_ADMIN_CLIENT.unlinkBucket(bucketName, userId);
+        });
   }
 
   @Test

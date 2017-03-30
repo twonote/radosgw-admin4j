@@ -56,6 +56,14 @@ public interface RgwAdminClient {
    */
   void linkBucket(String bucketName, String bucketId, String userId);
 
+  /**
+   * Unlink a bucket from a specified user. Primarily useful for changing bucket ownership.
+   *
+   * @param bucketName The bucket to unlink.
+   * @param userId The user ID to unlink the bucket from.
+   */
+  void unlinkBucket(String bucketName, String userId);
+
   // TODO: list bucket info by user id
 
   /**

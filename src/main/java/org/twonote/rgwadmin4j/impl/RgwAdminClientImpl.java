@@ -110,6 +110,23 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
+  public void unlinkBucket(String bucketName, String userId) {
+    Request request =
+            new Request.Builder()
+                    .post(emptyBody)
+                    .url(
+                            HttpUrl.parse(endpoint)
+                                    .newBuilder()
+                                    .addPathSegment("bucket")
+                                    .addQueryParameter("bucket", bucketName)
+                                    .addQueryParameter("uid", userId)
+                                    .build())
+                    .build();
+
+    safeCall(request);
+  }
+
+  @Override
   public Optional<GetBucketInfoResponse> getBucketInfo(String bucketName) {
     Request request =
         new Request.Builder()
