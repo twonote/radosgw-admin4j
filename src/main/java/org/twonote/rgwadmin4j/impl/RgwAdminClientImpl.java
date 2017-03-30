@@ -7,13 +7,11 @@ import com.google.gson.Gson;
 import okhttp3.*;
 import org.twonote.rgwadmin4j.RgwAdminClient;
 import org.twonote.rgwadmin4j.RgwAdminException;
-import org.twonote.rgwadmin4j.model.CreateUserResponse;
-import org.twonote.rgwadmin4j.model.GetBucketInfoResponse;
-import org.twonote.rgwadmin4j.model.GetUserInfoResponse;
-import org.twonote.rgwadmin4j.model.Quota;
+import org.twonote.rgwadmin4j.model.*;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -63,6 +61,49 @@ public class RgwAdminClientImpl implements RgwAdminClient {
                     .query("caps")
                     .addQueryParameter("uid", uid)
                     .addQueryParameter("user-caps", userCaps)
+                    .build())
+            .build();
+
+    safeCall(request);
+  }
+
+  @Override
+  public List<CreateKeyResponse> createKey(String uid, Map<String, String> parameters) {
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("user")
+            .query("key")
+            .addQueryParameter("uid", uid);
+
+    if (parameters != null) {
+      parameters.forEach((k, v) -> urlBuilder.addQueryParameter(k, v));
+    }
+
+    Request request = new Request.Builder().put(emptyBody).url(urlBuilder.build()).build();
+
+    String resp = safeCall(request);
+    Type type = new TypeToken<List<CreateKeyResponse>>() {}.getType();
+    return gson.fromJson(resp, type);
+  }
+
+  @Override
+  public List<CreateKeyResponse> createKey(String uid) {
+    return createKey(uid, null);
+  }
+
+  @Override
+  public void removeKey(String accessKey, String keyType) {
+    Request request =
+        new Request.Builder()
+            .delete()
+            .url(
+                HttpUrl.parse(endpoint)
+                    .newBuilder()
+                    .addPathSegment("user")
+                    .query("key")
+                    .addQueryParameter("access-key", accessKey)
+                    .addQueryParameter("key-type", keyType)
                     .build())
             .build();
 

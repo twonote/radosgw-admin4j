@@ -1,10 +1,8 @@
 package org.twonote.rgwadmin4j;
 
-import org.twonote.rgwadmin4j.model.CreateUserResponse;
-import org.twonote.rgwadmin4j.model.GetBucketInfoResponse;
-import org.twonote.rgwadmin4j.model.GetUserInfoResponse;
-import org.twonote.rgwadmin4j.model.Quota;
+import org.twonote.rgwadmin4j.model.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -35,6 +33,51 @@ public interface RgwAdminClient {
    */
   void removeUserCapability(String uid, String userCaps);
 
+  /**
+   * Create a new key.
+   *
+   * <p>If a subuser is specified then by default created keys will be swift type. If only one of
+   * access-key or secret-key is provided the committed key will be automatically generated, that is
+   * if only secret-key is specified then access-key will be automatically generated. By default, a
+   * generated key is added to the keyring without replacing an existing key pair. If access-key is
+   * specified and refers to an existing key owned by the user then it will be modified. The
+   * response is a container listing all keys of the same type as the key created. Note that when
+   * creating a swift key, specifying the option access-key will have no effect. Additionally, only
+   * one swift key may be held by each user or subuser.
+   *
+   * <p>Available parameters are:
+   *
+   * <ul>
+   * <li>subuser: The subuser ID to receive the new key.
+   * <li>key-type: Key type to be generated, options are: swift, s3 (default).
+   * <li>access-key: Specify the access key.
+   * <li>secret-key: Specify the secret key.
+   * </ul>
+   *
+   * @param uid The user ID to receive the new key.
+   * @param parameters Create key options.
+   * @return Create key response.
+   */
+  List<CreateKeyResponse> createKey(String uid, Map<String, String> parameters);
+
+  /**
+   * Create a new key.
+   *
+   * <p>The S3 key will be automatically generated for the user. If you want to specify the key,
+   * create swift key for the subuser or do other customizations, please use {@link
+   * #createKey(String, Map)}
+   *
+   * @param uid The user ID to receive the new key.
+   * @return Create key response.
+   */
+  List<CreateKeyResponse> createKey(String uid);
+  /**
+   * Remove an existing key.
+   *
+   * @param accessKey The access key belonging to the key pair to remove.
+   * @param keyType Key type to be removed, options are: swift, s3.
+   */
+  void removeKey(String accessKey, String keyType);
   /**
    * Delete an existing bucket.
    *

@@ -15,10 +15,7 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.twonote.rgwadmin4j.RgwAdminException;
-import org.twonote.rgwadmin4j.model.CreateUserResponse;
-import org.twonote.rgwadmin4j.model.GetBucketInfoResponse;
-import org.twonote.rgwadmin4j.model.GetUserInfoResponse;
-import org.twonote.rgwadmin4j.model.Quota;
+import org.twonote.rgwadmin4j.model.*;
 
 import java.io.*;
 import java.util.*;
@@ -100,6 +97,52 @@ public class RgwAdminClientImplTest {
     } finally {
       RGW_ADMIN_CLIENT.removeUser(userId);
     }
+  }
+
+  @Test
+  public void createKey() throws Exception {
+    testWithAUser(
+        v -> {
+          List<CreateKeyResponse> response;
+
+          // basic
+          response = RGW_ADMIN_CLIENT.createKey(v.getUserId());
+          assertEquals(2, response.size());
+          assertEquals(2, RGW_ADMIN_CLIENT.getUserInfo(v.getUserId()).get().getKeys().size());
+
+          // specify the key
+          Map<String, String> paras = ImmutableMap.of("access-key", UUID.randomUUID().toString());
+          response = RGW_ADMIN_CLIENT.createKey(v.getUserId(), paras);
+          assertTrue(
+              response.stream().anyMatch(v1 -> paras.get("access-key").equals(v1.getAccess_key())));
+
+          // user not exist
+          try {
+            RGW_ADMIN_CLIENT.createKey(UUID.randomUUID().toString());
+          } catch (RgwAdminException e) {
+            assertEquals("InvalidArgument", e.getMessage());
+          }
+        });
+  }
+
+  @Test
+  public void removeKey() throws Exception {
+    testWithAUser(
+        v -> {
+          String accessKey = v.getKeys().get(0).getAccessKey();
+
+          // basic
+          RGW_ADMIN_CLIENT.removeKey(accessKey, "s3");
+          assertEquals(0, RGW_ADMIN_CLIENT.getUserInfo(v.getUserId()).get().getKeys().size());
+
+          // not exist
+          try {
+            RGW_ADMIN_CLIENT.removeKey(accessKey, "s3");
+          } catch (RgwAdminException e) {
+            assertEquals(
+                403, e.status()); // ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
+          }
+        });
   }
 
   @Test
