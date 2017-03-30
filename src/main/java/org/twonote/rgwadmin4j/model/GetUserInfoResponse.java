@@ -30,7 +30,7 @@ public class GetUserInfoResponse {
 
   @SerializedName("subusers")
   @Expose
-  private List<Object> subusers = null;
+  private List<SubUser> subusers = null;
 
   @SerializedName("keys")
   @Expose
@@ -38,7 +38,7 @@ public class GetUserInfoResponse {
 
   @SerializedName("swift_keys")
   @Expose
-  private List<Object> swiftKeys = null;
+  private List<Key> swiftKeys = null;
 
   @SerializedName("caps")
   @Expose
@@ -84,11 +84,11 @@ public class GetUserInfoResponse {
     this.maxBuckets = maxBuckets;
   }
 
-  public List<Object> getSubusers() {
+  public List<SubUser> getSubusers() {
     return subusers;
   }
 
-  public void setSubusers(List<Object> subusers) {
+  public void setSubusers(List<SubUser> subusers) {
     this.subusers = subusers;
   }
 
@@ -100,11 +100,11 @@ public class GetUserInfoResponse {
     this.keys = keys;
   }
 
-  public List<Object> getSwiftKeys() {
+  public List<Key> getSwiftKeys() {
     return swiftKeys;
   }
 
-  public void setSwiftKeys(List<Object> swiftKeys) {
+  public void setSwiftKeys(List<Key> swiftKeys) {
     this.swiftKeys = swiftKeys;
   }
 

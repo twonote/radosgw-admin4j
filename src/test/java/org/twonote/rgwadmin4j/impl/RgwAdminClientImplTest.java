@@ -11,6 +11,11 @@ import com.amazonaws.services.s3.model.HeadBucketRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import org.javaswift.joss.client.factory.AccountConfig;
+import org.javaswift.joss.client.factory.AccountFactory;
+import org.javaswift.joss.client.factory.AuthenticationMethod;
+import org.javaswift.joss.model.Account;
+import org.javaswift.joss.model.Container;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -29,7 +34,19 @@ public class RgwAdminClientImplTest {
   private static String accessKey;
   private static String secretKey;
   private static String s3Endpoint;
+  private static String swiftEndpoint;
   private static String adminEndpoint;
+
+  private static void testSwiftConnectivity(String username, String password) {
+    AccountConfig config = new AccountConfig();
+    config.setUsername(username);
+    config.setPassword(password);
+    config.setAuthUrl(swiftEndpoint);
+    config.setAuthenticationMethod(AuthenticationMethod.BASIC);
+    Account account = new AccountFactory(config).createAccount();
+    Container container = account.getContainer(UUID.randomUUID().toString().toLowerCase());
+    container.create();
+  }
 
   @BeforeClass
   public static void init() throws IOException {
@@ -40,19 +57,22 @@ public class RgwAdminClientImplTest {
 
   private static void testRgwConnectivity() {
     try {
-        AmazonS3 s3 = initS3(accessKey, secretKey, s3Endpoint);
-        s3.listBuckets();
+      AmazonS3 s3 = initS3(accessKey, secretKey, s3Endpoint);
+      s3.listBuckets();
     } catch (Exception e) {
-      System.out.println("Cannot make communication with radosgw S3 endpoint: " + e.getLocalizedMessage());
+      System.out.println(
+          "Cannot make communication with radosgw S3 endpoint: " + e.getLocalizedMessage());
       System.exit(0);
     }
     try {
-        RGW_ADMIN_CLIENT.getUserInfo(adminUserId).get();
+      RGW_ADMIN_CLIENT.getUserInfo(adminUserId).get();
     } catch (Exception e) {
-        System.out.println("Cannot make communication with radosgw admin endpoint: " + e.getLocalizedMessage());
-        System.exit(0);
+      System.out.println(
+          "Cannot make communication with radosgw admin endpoint: " + e.getLocalizedMessage());
+      System.exit(0);
     }
   }
+
   private static void initPros() throws IOException {
     String env = System.getProperty("env", "");
     if (!"".equals(env)) {
@@ -66,6 +86,7 @@ public class RgwAdminClientImplTest {
     secretKey = properties.getProperty("radosgw.adminSecretKey");
     s3Endpoint = properties.getProperty("radosgw.endpoint");
     adminEndpoint = properties.getProperty("radosgw.adminEndpoint");
+    swiftEndpoint = s3Endpoint + "/auth/1.0";
   }
 
   /**
@@ -113,6 +134,92 @@ public class RgwAdminClientImplTest {
     } finally {
       RGW_ADMIN_CLIENT.removeUser(userId);
     }
+  }
+
+  @Test
+  public void modifySubUser() throws Exception {
+    testWithAUser(
+        v -> {
+          String subUserId = UUID.randomUUID().toString();
+          // basic
+          List<SubUser> response = RGW_ADMIN_CLIENT.createSubUser(v.getUserId(), subUserId, null);
+          assertEquals("<none>", response.get(0).getPermissions());
+          response =
+              RGW_ADMIN_CLIENT.modifySubUser(
+                  v.getUserId(), subUserId, ImmutableMap.of("access", "full"));
+          assertEquals("full-control", response.get(0).getPermissions());
+        });
+  }
+
+  @Test
+  public void removeSubUser() throws Exception {
+    testWithAUser(
+        v -> {
+          String subUserId = UUID.randomUUID().toString();
+          // basic
+          RGW_ADMIN_CLIENT.createSubUserForSwift(v.getUserId(), subUserId);
+          GetUserInfoResponse response2 = RGW_ADMIN_CLIENT.getUserInfo(v.getUserId()).get();
+          assertEquals(1, response2.getSwiftKeys().size());
+          RGW_ADMIN_CLIENT.removeSubUser(v.getUserId(), subUserId);
+          response2 = RGW_ADMIN_CLIENT.getUserInfo(v.getUserId()).get();
+          assertEquals(0, response2.getSwiftKeys().size());
+        });
+  }
+
+  @Ignore("Works in v11.2.0-kraken or above.")
+  @Test
+  public void createSubUser() throws Exception {
+    testWithAUser(
+        v -> {
+          String subUserId = UUID.randomUUID().toString();
+          // basic
+          List<SubUser> response =
+              RGW_ADMIN_CLIENT.createSubUser(
+                  v.getUserId(), subUserId, ImmutableMap.of("key-type", "s3", "access", "full"));
+          assertEquals(1, response.size());
+          String fullSubUserId = v.getUserId() + ":" + subUserId;
+          assertEquals(fullSubUserId, response.get(0).getId());
+          assertEquals("full-control", response.get(0).getPermissions());
+
+          // exist in get user info response
+          GetUserInfoResponse response2 = RGW_ADMIN_CLIENT.getUserInfo(v.getUserId()).get();
+          assertEquals(fullSubUserId, response2.getSubusers().get(0).getId());
+
+          // test subuser in s3
+          Key key =
+              response2
+                  .getKeys()
+                  .stream()
+                  .filter(e -> fullSubUserId.equals(e.getUser()))
+                  .findFirst()
+                  .get();
+          AmazonS3 s3 = initS3(key.getAccessKey(), key.getSecretKey(), s3Endpoint);
+          s3.listBuckets();
+          String bucketName = UUID.randomUUID().toString().toLowerCase();
+          s3.createBucket(bucketName);
+          s3.putObject(bucketName, "qqq", "qqqq");
+          s3.listObjects(bucketName);
+          s3.getObject(bucketName, "qqq");
+        });
+  }
+
+  @Test
+  public void createSubUserForSwift() throws Exception {
+    testWithAUser(
+        v -> {
+          String subUserId = UUID.randomUUID().toString();
+          // basic
+          List<SubUser> response = RGW_ADMIN_CLIENT.createSubUserForSwift(v.getUserId(), subUserId);
+          assertEquals(1, response.size());
+          assertEquals(v.getUserId() + ":" + subUserId, response.get(0).getId());
+          assertEquals("full-control", response.get(0).getPermissions());
+
+          // test subuser in swift
+          GetUserInfoResponse response2 = RGW_ADMIN_CLIENT.getUserInfo(v.getUserId()).get();
+          String username = response2.getSwiftKeys().get(0).getUser();
+          String password = response2.getSwiftKeys().get(0).getSecretKey();
+          testSwiftConnectivity(username, password);
+        });
   }
 
   @Test

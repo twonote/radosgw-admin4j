@@ -68,6 +68,70 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
+  public List<SubUser> createSubUser(String uid, String subUserId, Map<String, String> parameters) {
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("user")
+            .query("subuser")
+            .addQueryParameter("uid", uid)
+            // TODO:
+            .addQueryParameter("generate-secret", "true")
+            .addQueryParameter("subuser", subUserId);
+
+    if (parameters != null) {
+      parameters.forEach((k, v) -> urlBuilder.addQueryParameter(k, v));
+    }
+
+    Request request = new Request.Builder().put(emptyBody).url(urlBuilder.build()).build();
+
+    String resp = safeCall(request);
+    Type type = new TypeToken<List<SubUser>>() {}.getType();
+    return gson.fromJson(resp, type);
+  }
+
+  @Override
+  public List<SubUser> createSubUserForSwift(String uid, String subUserId) {
+    return createSubUser(uid, subUserId, ImmutableMap.of("access", "full"));
+  }
+
+  @Override
+  public List<SubUser> modifySubUser(String uid, String subUserId, Map<String, String> parameters) {
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("user")
+            .query("subuser")
+            .addQueryParameter("uid", uid)
+            .addQueryParameter("subuser", subUserId);
+
+    if (parameters != null) {
+      parameters.forEach((k, v) -> urlBuilder.addQueryParameter(k, v));
+    }
+
+    Request request = new Request.Builder().post(emptyBody).url(urlBuilder.build()).build();
+
+    String resp = safeCall(request);
+    Type type = new TypeToken<List<SubUser>>() {}.getType();
+    return gson.fromJson(resp, type);
+  }
+
+  @Override
+  public void removeSubUser(String uid, String subUserId) {
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("user")
+            .query("subuser")
+            .addQueryParameter("uid", uid)
+            .addQueryParameter("subuser", subUserId);
+
+    Request request = new Request.Builder().delete().url(urlBuilder.build()).build();
+
+    safeCall(request);
+  }
+
+  @Override
   public List<CreateKeyResponse> createKey(String uid, Map<String, String> parameters) {
     HttpUrl.Builder urlBuilder =
         HttpUrl.parse(endpoint)

@@ -34,6 +34,77 @@ public interface RgwAdminClient {
   void removeUserCapability(String uid, String userCaps);
 
   /**
+   * Create a new subuser
+   *
+   * <p>Note that in general for a subuser to be useful, it must be granted permissions by
+   * specifying access. As with user creation if subuser is specified without secret, then a secret
+   * key will be automatically generated.
+   *
+   * <p>Available parameters includes:
+   *
+   * <ul>
+   * <li>secret-key: Specify secret key.
+   * <li>key-type: Key type to be generated, options are: swift (default), s3.
+   * <li>access: Set access permissions for sub-user, should be one of read, write, readwrite, full.
+   * <li>generate-secret: Generate the secret key. Default: False
+   * </ul>
+   *
+   * <p>Note that you can get subuser (swift) keys and other information by {@link
+   * #getUserInfo(String)}
+   *
+   * <p>Note that to create subuser for S3, you need ceph v11.2.0-kraken or above.
+   *
+   * @param uid The user ID under which a subuser is to be created.
+   * @param subUserId Specify the subuser ID to be created.
+   * @param parameters The subuser parameters.
+   * @return The subuser information.
+   */
+  List<SubUser> createSubUser(String uid, String subUserId, Map<String, String> parameters);
+
+  /**
+   * Create a new subuser for Swift use.
+   *
+   * <p>Note that the subuser will has "full" control permission.
+   *
+   * <p>Note that you can get subuser (swift) keys and other information by {@link
+   * #getUserInfo(String)}
+   *
+   * @param uid
+   * @param subUserId
+   * @return
+   */
+  List<SubUser> createSubUserForSwift(String uid, String subUserId);
+
+  /**
+   * Modify an existing subuser.
+   *
+   * <p>Available parameters includes:
+   *
+   * <ul>
+   * <li>secret-key: Specify secret key.
+   * <li>key-type: Key type to be generated, options are: swift (default), s3.
+   * <li>access: Set access permissions for sub-user, should be one of read, write, readwrite, full.
+   * <li>generate-secret: Generate the secret key. Default: False
+   * </ul>
+   *
+   * @param uid The user ID under which a subuser is to be created.
+   * @param subUserId Specify the subuser ID to be created.
+   * @param parameters The subuser parameters.
+   * @return The subuser information.
+   */
+  List<SubUser> modifySubUser(String uid, String subUserId, Map<String, String> parameters);
+
+  /**
+   * Remove an existing subuser.
+   *
+   * <p>Note that the operation also removes keys belonging to the subuser.
+   *
+   * @param uid The user ID under which the subuser is to be removed.
+   * @param subUserId The subuser ID to be removed.
+   */
+  void removeSubUser(String uid, String subUserId);
+
+  /**
    * Create a new key.
    *
    * <p>If a subuser is specified then by default created keys will be swift type. If only one of
@@ -71,6 +142,7 @@ public interface RgwAdminClient {
    * @return Create key response.
    */
   List<CreateKeyResponse> createKey(String uid);
+
   /**
    * Remove an existing key.
    *
@@ -78,10 +150,9 @@ public interface RgwAdminClient {
    * @param keyType Key type to be removed, options are: swift, s3.
    */
   void removeKey(String accessKey, String keyType);
+
   /**
    * Delete an existing bucket.
-   *
-   * <p>
    *
    * <p>Note that the operation ask radosgw to purge objects in the bucket before deletion.
    *
@@ -116,18 +187,14 @@ public interface RgwAdminClient {
    *
    * <pre>
    * [
-   *
    * ]{
-   *
    * }{
    *    "existing_header":{
    *       "usage":{
-   *
    *       }
    *    },
    *    "calculated_header":{
    *       "usage":{
-   *
    *       }
    *    }
    * }
@@ -268,8 +335,6 @@ public interface RgwAdminClient {
   /**
    * Remove an existing object.
    *
-   * <p>
-   *
    * <p>NOTE: Does not require owner to be non-suspended.
    *
    * @param bucketName The bucket containing the object to be removed.
@@ -280,17 +345,11 @@ public interface RgwAdminClient {
   /**
    * Read the policy of an object or bucket.
    *
-   * <p>
-   *
    * <p>Note that the term "policy" here is not stand for "S3 bucket policy". Instead, it represents
    * S3 Access Control Policy (ACP).
    *
-   * <p>
-   *
    * <p>We return json string instead of the concrete model here due to the server returns the
    * internal data structure which is not well defined. For example:
-   *
-   * <p>
    *
    * <pre>
    * {
@@ -302,7 +361,6 @@ public interface RgwAdminClient {
    *          }
    *       ],
    *       "acl_group_map":[
-   *
    *       ],
    *       "grant_map":[
    *          {
