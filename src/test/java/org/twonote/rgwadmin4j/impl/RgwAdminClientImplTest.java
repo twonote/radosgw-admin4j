@@ -115,7 +115,7 @@ public class RgwAdminClientImplTest {
     }
 
     try {
-      RGW_ADMIN_CLIENT.createUser(userId, false);
+      RGW_ADMIN_CLIENT.createUser(userId);
 
       // basic
       RGW_ADMIN_CLIENT.addUserCapability(userId, userCaps);
@@ -137,31 +137,31 @@ public class RgwAdminClientImplTest {
   }
 
   @Test
-  public void deleteUserCapability() throws Exception {
+  public void removeUserCapability() throws Exception {
     String userId = "test" + UUID.randomUUID().toString();
     String userCaps = "usage=read";
 
     // user not exist
     try {
-      RGW_ADMIN_CLIENT.deleteUserCapability(userId, userCaps);
+      RGW_ADMIN_CLIENT.removeUserCapability(userId, userCaps);
     } catch (RuntimeException e) {
       // 400
     }
 
     try {
-      RGW_ADMIN_CLIENT.createUser(userId, false);
+      RGW_ADMIN_CLIENT.createUser(userId);
 
       // cap not exist
-      RGW_ADMIN_CLIENT.deleteUserCapability(userId, userCaps);
+      RGW_ADMIN_CLIENT.removeUserCapability(userId, userCaps);
 
       // basic
       RGW_ADMIN_CLIENT.addUserCapability(userId, userCaps);
-      RGW_ADMIN_CLIENT.deleteUserCapability(userId, userCaps);
+      RGW_ADMIN_CLIENT.removeUserCapability(userId, userCaps);
       GetUserInfoResponse response = RGW_ADMIN_CLIENT.getUserInfo(userId).get();
       assertEquals(0, response.getCaps().size());
 
       // do it again
-      RGW_ADMIN_CLIENT.deleteUserCapability(userId, userCaps);
+      RGW_ADMIN_CLIENT.removeUserCapability(userId, userCaps);
     } finally {
       try {
         RGW_ADMIN_CLIENT.removeUser(userId);
@@ -180,7 +180,7 @@ public class RgwAdminClientImplTest {
     RGW_ADMIN_CLIENT.removeBucket(bucketName);
 
     try {
-      CreateUserResponse response = RGW_ADMIN_CLIENT.createUser(userId, false);
+      CreateUserResponse response = RGW_ADMIN_CLIENT.createUser(userId);
       AmazonS3 s3 =
           initS3(
               response.getKeys().get(0).getAccessKey(),
@@ -212,7 +212,7 @@ public class RgwAdminClientImplTest {
     String userId = "linkbkusr" + UUID.randomUUID().toString();
     String bucketName = "linkbkusrbk" + UUID.randomUUID().toString();
     try {
-      CreateUserResponse response = RGW_ADMIN_CLIENT.createUser(userId, false);
+      CreateUserResponse response = RGW_ADMIN_CLIENT.createUser(userId);
       AmazonS3 s3 =
           initS3(
               response.getKeys().get(0).getAccessKey(),
@@ -267,7 +267,7 @@ public class RgwAdminClientImplTest {
     assertFalse(RGW_ADMIN_CLIENT.getBucketInfo(bucketName).isPresent());
 
     try {
-      CreateUserResponse response = RGW_ADMIN_CLIENT.createUser(userId, false);
+      CreateUserResponse response = RGW_ADMIN_CLIENT.createUser(userId);
       AmazonS3 s3 =
           initS3(
               response.getKeys().get(0).getAccessKey(),
@@ -290,7 +290,7 @@ public class RgwAdminClientImplTest {
   @Test
   public void modifyUser() throws Exception {
     String userId = "testModifyUserId";
-    RGW_ADMIN_CLIENT.createUser(userId, false);
+    RGW_ADMIN_CLIENT.createUser(userId);
 
     // basic
     RGW_ADMIN_CLIENT.modifyUser(
@@ -313,7 +313,7 @@ public class RgwAdminClientImplTest {
   public void removeUser() throws Exception {
     // The operation is success if the user is not exist in the system after the operation is executed.
     String userId = "testRemoveUserId";
-    RGW_ADMIN_CLIENT.createUser(userId, false);
+    RGW_ADMIN_CLIENT.createUser(userId);
     RGW_ADMIN_CLIENT.removeUser(userId);
     assertFalse(RGW_ADMIN_CLIENT.getUserInfo(userId).isPresent());
 
@@ -321,36 +321,24 @@ public class RgwAdminClientImplTest {
     RGW_ADMIN_CLIENT.removeUser(userId);
   }
 
-  // TODO: quota
   @Test
   public void createUser() throws Exception {
     String userId = "bobx" + UUID.randomUUID().toString();
     try {
-      CreateUserResponse response = RGW_ADMIN_CLIENT.createUser(userId, false);
+      // basic
+      CreateUserResponse response = RGW_ADMIN_CLIENT.createUser(userId);
       assertEquals(userId, response.getUserId());
       assertNotNull(response.getKeys().get(0).getAccessKey());
       assertNotNull(response.getKeys().get(0).getSecretKey());
       assertEquals(Integer.valueOf(0), response.getSuspended());
-      assertNotEquals(Integer.valueOf(1), response.getMaxBuckets());
+      assertEquals(Integer.valueOf(1000), response.getMaxBuckets());
 
-      // create again / should no effect
-      response = RGW_ADMIN_CLIENT.createUser(userId, false);
-      assertEquals(userId, response.getUserId());
-      assertNotNull(response.getKeys().get(0).getAccessKey());
-      assertNotNull(response.getKeys().get(0).getSecretKey());
-      assertEquals(Integer.valueOf(0), response.getSuspended());
-      assertNotEquals(Integer.valueOf(1), response.getMaxBuckets());
+      // create exist one should act like modification
+      response = RGW_ADMIN_CLIENT.createUser(userId, ImmutableMap.of("max-buckets", "1"));
+      assertEquals(Integer.valueOf(1), response.getMaxBuckets());
+
     } finally {
       RGW_ADMIN_CLIENT.removeUser(userId);
-    }
-
-    // limit user
-    String limitUserId = "bobx" + UUID.randomUUID().toString();
-    try {
-      CreateUserResponse response = RGW_ADMIN_CLIENT.createUser(userId, true);
-      assertEquals(Integer.valueOf(1), response.getMaxBuckets());
-    } finally {
-      RGW_ADMIN_CLIENT.removeUser(limitUserId);
     }
   }
 
@@ -387,7 +375,7 @@ public class RgwAdminClientImplTest {
   }
 
   @Test
-  public void testUserQuotaMaxObjects() throws Exception {
+  public void userQuotaMaxObjects() throws Exception {
     testWithAUser(
         (v) -> {
           String userId = v.getUserId();
@@ -419,13 +407,13 @@ public class RgwAdminClientImplTest {
   }
 
   /*
-   * Implementation note:
+   * radosgw implementation note:
    * The behavior of the quota evaluation is taking effect in the unit of 4KiB, i.e., isExceed = ( ceil(TO_USED_SIZE_IN_BYTE/4096) > floor(maxSize/4) ? )
    * For example, when mazSize is 5, put a object with 4096 bytes will be ok, but put with 4096 + 1 bytes will be blocked.
    * (Assume that the used size is 0 before taking the action.)
    */
   @Test
-  public void testUserQuotaMaxSize() throws Exception {
+  public void userQuotaMaxSize() throws Exception {
     testWithAUser(
         (v) -> {
           String userId = v.getUserId();
@@ -503,7 +491,7 @@ public class RgwAdminClientImplTest {
           String objectKey = userId.toLowerCase();
           s3.createBucket(bucketName);
           s3.putObject(bucketName, objectKey, "qqq");
-          String resp = RGW_ADMIN_CLIENT.getPolicy(bucketName, objectKey);
+          String resp = RGW_ADMIN_CLIENT.getPolicy(bucketName, objectKey).get();
           assertFalse(Strings.isNullOrEmpty(resp));
         });
   }

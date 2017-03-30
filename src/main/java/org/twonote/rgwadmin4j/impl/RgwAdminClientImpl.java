@@ -17,7 +17,7 @@ import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Optional;
 
-/** A.K.A. S3 admin as you (should) know... Created by petertc on 2/16/17. */
+/** Created by petertc on 2/16/17. */
 public class RgwAdminClientImpl implements RgwAdminClient {
   private static final Gson gson = new Gson();
   private static final Type MAP_TYPE = new TypeToken<Map<String, Object>>() {}.getType();
@@ -33,10 +33,6 @@ public class RgwAdminClientImpl implements RgwAdminClient {
     this.endpoint = endpoint;
   }
 
-  /**
-   * @param uid
-   * @param userCaps In forms of [users|buckets|metadata|usage|zone]=[*|read|write|read, write]
-   */
   @Override
   public void addUserCapability(String uid, String userCaps) {
     Request request =
@@ -55,12 +51,8 @@ public class RgwAdminClientImpl implements RgwAdminClient {
     safeCall(request);
   }
 
-  /**
-   * @param uid
-   * @param userCaps In forms of [users|buckets|metadata|usage|zone]=[*|read|write|read, write]
-   */
   @Override
-  public void deleteUserCapability(String uid, String userCaps) {
+  public void removeUserCapability(String uid, String userCaps) {
     Request request =
         new Request.Builder()
             .delete()
@@ -77,12 +69,10 @@ public class RgwAdminClientImpl implements RgwAdminClient {
     safeCall(request);
   }
 
-  /**
+  /*
    * The operation is success if the target is not exist in the system after the operation is
    * executed. The operation does not throw exception even if the target is not exist in the
    * beginning.
-   *
-   * @param bucketName
    */
   @Override
   public void removeBucket(String bucketName) {
@@ -164,19 +154,11 @@ public class RgwAdminClientImpl implements RgwAdminClient {
 
   @Override
   public CreateUserResponse createUser(String userId) {
-    return createUser(userId, false);
+    return createUser(userId, null);
   }
 
-  /**
-   * Create user with limit
-   *
-   * @param userId
-   * @param isLimit if specify, user can only have one bucket, and quota is 1TiB
-   * @return
-   */
-  // TODO: quota
   @Override
-  public CreateUserResponse createUser(String userId, boolean isLimit) {
+  public CreateUserResponse createUser(String userId, Map<String, String> options) {
     HttpUrl.Builder urlBuilder =
         HttpUrl.parse(endpoint)
             .newBuilder()
@@ -184,8 +166,8 @@ public class RgwAdminClientImpl implements RgwAdminClient {
             .addQueryParameter("uid", userId)
             .addQueryParameter("display-name", userId);
 
-    if (isLimit) {
-      urlBuilder.addQueryParameter("max-buckets", "1");
+    if (options != null) {
+      options.forEach((k, v) -> urlBuilder.addQueryParameter(k, v));
     }
 
     Request request = new Request.Builder().put(emptyBody).url(urlBuilder.build()).build();
@@ -233,12 +215,15 @@ public class RgwAdminClientImpl implements RgwAdminClient {
     modifyUser(userId, ImmutableMap.of("suspended", "true"));
   }
 
-  /**
+  @Override
+  public void suspendUser(String userId, boolean suspend) {
+    modifyUser(userId, ImmutableMap.of("suspended", Boolean.toString(suspend)));
+  }
+
+  /*
    * The operation is success if the user is not exist in the system after the operation is
    * executed. The operation does not throw exception even if the user is not exist in the
    * beginning.
-   *
-   * @param userId
    */
   @Override
   public void removeUser(String userId) {
@@ -270,13 +255,6 @@ public class RgwAdminClientImpl implements RgwAdminClient {
     return Optional.ofNullable(gson.fromJson(resp, Quota.class));
   }
 
-  /**
-   * @param userId
-   * @param maxObjects The max-objects setting allows you to specify the maximum number of objects.
-   *     A negative value disables this setting.
-   * @param maxSizeKB The max-size option allows you to specify a quota for the maximum number of
-   *     bytes. A negative value disables this setting.
-   */
   @Override
   public void setUserQuota(String userId, long maxObjects, long maxSizeKB) {
     HttpUrl.Builder urlBuilder =
@@ -315,27 +293,8 @@ public class RgwAdminClientImpl implements RgwAdminClient {
     safeCall(request);
   }
 
-  /**
-   * Read the policy of an object or bucket.
-   *
-   * <p>Note that the term "policy" here is not stand for "S3 bucket policy". It represents S3
-   * Access Control Policy (ACP).
-   *
-   * <p>We return String instead of the concrete model here due to the server returns not well
-   * defined internal data structure. For example:
-   *
-   * <pre>
-   * {"acl":{"acl_user_map":[{"user":"rgwAdmin4jTest-6d6a2645-0219-4e49-8493-0bdc8cb00e19","acl":15}],"acl_group_map":[],"grant_map":[{"id":"rgwAdmin4jTest-6d6a2645-0219-4e49-8493-0bdc8cb00e19","grant":{"
-   * type":{"type":0},"id":"rgwAdmin4jTest-6d6a2645-0219-4e49-8493-0bdc8cb00e19","email":"","permission":{"flags":15},"name":"rgwAdmin4jTest-6d6a2645-0219-4e49-8493-0bdc8cb00e19","group":0,"url_spec":""}}
-   * ]},"owner":{"id":"rgwAdmin4jTest-6d6a2645-0219-4e49-8493-0bdc8cb00e19","display_name":"rgwAdmin4jTest-6d6a2645-0219-4e49-8493-0bdc8cb00e19"}}
-   * </pre>
-   *
-   * @param bucketName
-   * @param objectKey set null if you want to get policy of bucket
-   * @return json string
-   */
   @Override
-  public String getPolicy(String bucketName, String objectKey) {
+  public Optional<String> getPolicy(String bucketName, String objectKey) {
     if (Strings.isNullOrEmpty(bucketName)) {
       throw new IllegalArgumentException("no bucketName");
     }
@@ -353,6 +312,6 @@ public class RgwAdminClientImpl implements RgwAdminClient {
 
     Request request = new Request.Builder().get().url(urlBuilder.build()).build();
 
-    return safeCall(request);
+    return Optional.ofNullable(safeCall(request));
   }
 }

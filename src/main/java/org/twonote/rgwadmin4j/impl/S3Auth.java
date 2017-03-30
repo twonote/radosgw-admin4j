@@ -34,9 +34,7 @@ import java.util.Set;
  * .build();
  * Response response = client.newCall(request).execute();
  * response.body().close();
- * }
- *
- * </pre>
+ * }</pre>
  *
  * <p>Inspired by https://github.com/tax/python-requests-aws Created by hrchu on 2017/3/22.
  */
