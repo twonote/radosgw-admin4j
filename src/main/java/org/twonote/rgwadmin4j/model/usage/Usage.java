@@ -1,18 +1,10 @@
 package org.twonote.rgwadmin4j.model.usage;
 
-/**
- * Created by petertc on 4/6/17.
- */
+/** Created by petertc on 4/6/17. */
 public class Usage {
-  /**
-   * category : create_bucket
-   * bytes_sent : 171
-   * bytes_received : 0
-   * ops : 9
-   * successful_ops : 9
-   */
-
+  /** category : create_bucket bytes_sent : 171 bytes_received : 0 ops : 9 successful_ops : 9 */
   private String category;
+
   private int bytes_sent;
   private int bytes_received;
   private int ops;

@@ -101,10 +101,8 @@ Example:
    ]
 }
  */
-/**
- * Created by petertc on 4/6/17.
- */
-public class GetUsageResponse  {
+/** Created by petertc on 4/6/17. */
+public class GetUsageResponse {
   private List<Entries> entries;
   private List<Summary> summary;
 

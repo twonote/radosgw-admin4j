@@ -33,6 +33,12 @@ public class RgwAdminClientImpl implements RgwAdminClient {
     this.endpoint = endpoint;
   }
 
+  private static void appendParameters(Map<String, String> parameters, HttpUrl.Builder urlBuilder) {
+    if (parameters != null) {
+      parameters.forEach((k, v) -> urlBuilder.addQueryParameter(k, v));
+    }
+  }
+
   @Override
   public void trimUserUsage(String userId, Map<String, String> parameters) {
     if (parameters == null) {
@@ -202,12 +208,6 @@ public class RgwAdminClientImpl implements RgwAdminClient {
     String resp = safeCall(request);
     Type type = new TypeToken<List<CreateKeyResponse>>() {}.getType();
     return gson.fromJson(resp, type);
-  }
-
-  private static void appendParameters(Map<String, String> parameters, HttpUrl.Builder urlBuilder) {
-    if (parameters != null) {
-      parameters.forEach((k, v) -> urlBuilder.addQueryParameter(k, v));
-    }
   }
 
   @Override

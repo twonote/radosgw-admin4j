@@ -10,7 +10,8 @@ import java.util.Optional;
 /** Created by petertc on 3/14/17. */
 public interface RgwAdminClient {
   /**
-   * Remove usage information for specified user. With no dates specified, removes all usage information.
+   * Remove usage information for specified user. With no dates specified, removes all usage
+   * information.
    *
    * <p>There are few parameters available to filter the query result as you wish, includes:
    *
@@ -91,7 +92,9 @@ public interface RgwAdminClient {
 
   /**
    * Add an administrative capability to a specified user.
+   *
    * <p>The capability is in forms of [users|buckets|metadata|usage|zone]=[*|read|write|read, write]
+   *
    * <p>Note that you can get the capability by {@link #getUserInfo(String)}
    *
    * @param uid The user ID to add an administrative capability to.
