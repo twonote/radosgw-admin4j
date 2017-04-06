@@ -126,10 +126,10 @@ public class RgwAdminClientImplTest {
     return new String(chars);
   }
 
-  private static void testWithAUser(Consumer<CreateUserResponse> test) {
+  private static void testWithAUser(Consumer<User> test) {
     String userId = "rgwAdmin4jTest-" + UUID.randomUUID().toString();
     try {
-      CreateUserResponse response = RGW_ADMIN_CLIENT.createUser(userId);
+      User response = RGW_ADMIN_CLIENT.createUser(userId);
       test.accept(response);
     } finally {
       RGW_ADMIN_CLIENT.removeUser(userId);
@@ -158,7 +158,7 @@ public class RgwAdminClientImplTest {
           String subUserId = UUID.randomUUID().toString();
           // basic
           RGW_ADMIN_CLIENT.createSubUserForSwift(v.getUserId(), subUserId);
-          GetUserInfoResponse response2 = RGW_ADMIN_CLIENT.getUserInfo(v.getUserId()).get();
+          User response2 = RGW_ADMIN_CLIENT.getUserInfo(v.getUserId()).get();
           assertEquals(1, response2.getSwiftKeys().size());
           RGW_ADMIN_CLIENT.removeSubUser(v.getUserId(), subUserId);
           response2 = RGW_ADMIN_CLIENT.getUserInfo(v.getUserId()).get();
@@ -182,7 +182,7 @@ public class RgwAdminClientImplTest {
           assertEquals("full-control", response.get(0).getPermissions());
 
           // exist in get user info response
-          GetUserInfoResponse response2 = RGW_ADMIN_CLIENT.getUserInfo(v.getUserId()).get();
+          User response2 = RGW_ADMIN_CLIENT.getUserInfo(v.getUserId()).get();
           assertEquals(fullSubUserId, response2.getSubusers().get(0).getId());
 
           // test subuser in s3
@@ -215,7 +215,7 @@ public class RgwAdminClientImplTest {
           assertEquals("full-control", response.get(0).getPermissions());
 
           // test subuser in swift
-          GetUserInfoResponse response2 = RGW_ADMIN_CLIENT.getUserInfo(v.getUserId()).get();
+          User response2 = RGW_ADMIN_CLIENT.getUserInfo(v.getUserId()).get();
           String username = response2.getSwiftKeys().get(0).getUser();
           String password = response2.getSwiftKeys().get(0).getSecretKey();
           testSwiftConnectivity(username, password);
@@ -313,7 +313,7 @@ public class RgwAdminClientImplTest {
 
       // basic
       RGW_ADMIN_CLIENT.addUserCapability(userId, userCaps);
-      GetUserInfoResponse response = RGW_ADMIN_CLIENT.getUserInfo(userId).get();
+      User response = RGW_ADMIN_CLIENT.getUserInfo(userId).get();
       assertEquals("usage", response.getCaps().get(0).get("type"));
       assertEquals("*", response.getCaps().get(0).get("perm"));
       assertEquals("user", response.getCaps().get(1).get("type"));
@@ -351,7 +351,7 @@ public class RgwAdminClientImplTest {
       // basic
       RGW_ADMIN_CLIENT.addUserCapability(userId, userCaps);
       RGW_ADMIN_CLIENT.removeUserCapability(userId, userCaps);
-      GetUserInfoResponse response = RGW_ADMIN_CLIENT.getUserInfo(userId).get();
+      User response = RGW_ADMIN_CLIENT.getUserInfo(userId).get();
       assertEquals(0, response.getCaps().size());
 
       // do it again
@@ -374,7 +374,7 @@ public class RgwAdminClientImplTest {
     RGW_ADMIN_CLIENT.removeBucket(bucketName);
 
     try {
-      CreateUserResponse response = RGW_ADMIN_CLIENT.createUser(userId);
+      User response = RGW_ADMIN_CLIENT.createUser(userId);
       AmazonS3 s3 =
           initS3(
               response.getKeys().get(0).getAccessKey(),
@@ -433,7 +433,7 @@ public class RgwAdminClientImplTest {
     String userId = "linkbkusr" + UUID.randomUUID().toString();
     String bucketName = "linkbkusrbk" + UUID.randomUUID().toString();
     try {
-      CreateUserResponse response = RGW_ADMIN_CLIENT.createUser(userId);
+      User response = RGW_ADMIN_CLIENT.createUser(userId);
       AmazonS3 s3 =
           initS3(
               response.getKeys().get(0).getAccessKey(),
@@ -488,7 +488,7 @@ public class RgwAdminClientImplTest {
     assertFalse(RGW_ADMIN_CLIENT.getBucketInfo(bucketName).isPresent());
 
     try {
-      CreateUserResponse response = RGW_ADMIN_CLIENT.createUser(userId);
+      User response = RGW_ADMIN_CLIENT.createUser(userId);
       AmazonS3 s3 =
           initS3(
               response.getKeys().get(0).getAccessKey(),
@@ -516,7 +516,7 @@ public class RgwAdminClientImplTest {
     // basic
     RGW_ADMIN_CLIENT.modifyUser(
         userId, ImmutableMap.of("max-buckets", String.valueOf(Integer.MAX_VALUE)));
-    GetUserInfoResponse response = RGW_ADMIN_CLIENT.getUserInfo(userId).get();
+    User response = RGW_ADMIN_CLIENT.getUserInfo(userId).get();
     assertEquals(Integer.valueOf(Integer.MAX_VALUE), response.getMaxBuckets());
 
     // user not exist
@@ -547,7 +547,7 @@ public class RgwAdminClientImplTest {
     String userId = "bobx" + UUID.randomUUID().toString();
     try {
       // basic
-      CreateUserResponse response = RGW_ADMIN_CLIENT.createUser(userId);
+      User response = RGW_ADMIN_CLIENT.createUser(userId);
       assertEquals(userId, response.getUserId());
       assertNotNull(response.getKeys().get(0).getAccessKey());
       assertNotNull(response.getKeys().get(0).getSecretKey());
@@ -566,7 +566,7 @@ public class RgwAdminClientImplTest {
   @Test
   public void getUserInfo() throws Exception {
     // basic
-    GetUserInfoResponse response = RGW_ADMIN_CLIENT.getUserInfo(adminUserId).get();
+    User response = RGW_ADMIN_CLIENT.getUserInfo(adminUserId).get();
     assertEquals(Integer.valueOf(0), response.getSuspended());
     assertEquals(adminUserId, response.getUserId());
     List<Map<String, String>> caps =
@@ -585,7 +585,7 @@ public class RgwAdminClientImplTest {
     try {
       RGW_ADMIN_CLIENT.createUser(userId);
       RGW_ADMIN_CLIENT.suspendUser(userId);
-      GetUserInfoResponse response = RGW_ADMIN_CLIENT.getUserInfo(userId).get();
+      User response = RGW_ADMIN_CLIENT.getUserInfo(userId).get();
       assertEquals(Integer.valueOf(1), response.getSuspended());
     } finally {
       RGW_ADMIN_CLIENT.removeUser(userId);

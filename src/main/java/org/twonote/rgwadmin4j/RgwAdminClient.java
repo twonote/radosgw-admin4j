@@ -225,7 +225,7 @@ public interface RgwAdminClient {
    * @param userId The user ID to be created.
    * @return The user information.
    */
-  CreateUserResponse createUser(String userId);
+  User createUser(String userId);
 
   /**
    * Create a new user.
@@ -254,7 +254,7 @@ public interface RgwAdminClient {
    * @param parameters The user properties.
    * @return The user information.
    */
-  CreateUserResponse createUser(String userId, Map<String, String> parameters);
+  User createUser(String userId, Map<String, String> parameters);
 
   // TODO: list users
 
@@ -264,7 +264,7 @@ public interface RgwAdminClient {
    * @param userId The user for which the information is requested.
    * @return The user information.
    */
-  Optional<GetUserInfoResponse> getUserInfo(String userId);
+  Optional<User> getUserInfo(String userId);
 
   /**
    * Modify a user.

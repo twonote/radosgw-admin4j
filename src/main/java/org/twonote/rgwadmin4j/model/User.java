@@ -6,7 +6,7 @@ import com.google.gson.annotations.SerializedName;
 import java.util.List;
 import java.util.Map;
 
-public class GetUserInfoResponse {
+public class User {
 
   @SerializedName("user_id")
   @Expose

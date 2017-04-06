@@ -296,12 +296,12 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public CreateUserResponse createUser(String userId) {
+  public User createUser(String userId) {
     return createUser(userId, null);
   }
 
   @Override
-  public CreateUserResponse createUser(String userId, Map<String, String> options) {
+  public User createUser(String userId, Map<String, String> options) {
     HttpUrl.Builder urlBuilder =
         HttpUrl.parse(endpoint)
             .newBuilder()
@@ -316,11 +316,11 @@ public class RgwAdminClientImpl implements RgwAdminClient {
     Request request = new Request.Builder().put(emptyBody).url(urlBuilder.build()).build();
 
     String resp = safeCall(request);
-    return gson.fromJson(resp, CreateUserResponse.class);
+    return gson.fromJson(resp, User.class);
   }
 
   @Override
-  public Optional<GetUserInfoResponse> getUserInfo(String userId) {
+  public Optional<User> getUserInfo(String userId) {
     Request request =
         new Request.Builder()
             .get()
@@ -333,7 +333,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
             .build();
 
     String resp = safeCall(request);
-    return Optional.ofNullable(gson.fromJson(resp, GetUserInfoResponse.class));
+    return Optional.ofNullable(gson.fromJson(resp, User.class));
   }
 
   @Override
