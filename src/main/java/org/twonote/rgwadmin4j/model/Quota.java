@@ -5,39 +5,39 @@ import com.google.gson.annotations.SerializedName;
 
 public class Quota {
 
-    @SerializedName("enabled")
-    @Expose
-    private Boolean enabled;
-    // FIXME: byte or kb?
-    @SerializedName("max_size_kb")
-    @Expose
-    private Integer maxSizeKb;
-    @SerializedName("max_objects")
-    @Expose
-    private Integer maxObjects;
+  @SerializedName("enabled")
+  @Expose
+  private Boolean enabled;
+  // FIXME: byte or kb?
+  @SerializedName("max_size_kb")
+  @Expose
+  private Integer maxSizeKb;
 
-    public Boolean getEnabled() {
-        return enabled;
-    }
+  @SerializedName("max_objects")
+  @Expose
+  private Integer maxObjects;
 
-    public void setEnabled(Boolean enabled) {
-        this.enabled = enabled;
-    }
+  public Boolean getEnabled() {
+    return enabled;
+  }
 
-    public Integer getMaxSizeKb() {
-        return maxSizeKb;
-    }
+  public void setEnabled(Boolean enabled) {
+    this.enabled = enabled;
+  }
 
-    public void setMaxSizeKb(Integer maxSizeKb) {
-        this.maxSizeKb = maxSizeKb;
-    }
+  public Integer getMaxSizeKb() {
+    return maxSizeKb;
+  }
 
-    public Integer getMaxObjects() {
-        return maxObjects;
-    }
+  public void setMaxSizeKb(Integer maxSizeKb) {
+    this.maxSizeKb = maxSizeKb;
+  }
 
-    public void setMaxObjects(Integer maxObjects) {
-        this.maxObjects = maxObjects;
-    }
+  public Integer getMaxObjects() {
+    return maxObjects;
+  }
 
+  public void setMaxObjects(Integer maxObjects) {
+    this.maxObjects = maxObjects;
+  }
 }

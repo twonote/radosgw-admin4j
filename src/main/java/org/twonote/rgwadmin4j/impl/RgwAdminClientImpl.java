@@ -1,312 +1,517 @@
 package org.twonote.rgwadmin4j.impl;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import okhttp3.*;
 import org.twonote.rgwadmin4j.RgwAdminClient;
 import org.twonote.rgwadmin4j.RgwAdminException;
-import org.twonote.rgwadmin4j.model.CreateUserResponse;
-import org.twonote.rgwadmin4j.model.GetBucketInfoResponse;
-import org.twonote.rgwadmin4j.model.GetUserInfoResponse;
-import org.twonote.rgwadmin4j.model.Quota;
+import org.twonote.rgwadmin4j.model.*;
+import org.twonote.rgwadmin4j.model.usage.GetUsageResponse;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-/**
- * A.K.A. S3 admin as you (should) know...
- * <p>
- * Created by petertc on 2/16/17.
- */
+/** Created by petertc on 2/16/17. */
 public class RgwAdminClientImpl implements RgwAdminClient {
-  
-    private final String endpoint;
+  private static final Gson gson = new Gson();
+  private static final Type MAP_TYPE = new TypeToken<Map<String, Object>>() {}.getType();
 
-    private final OkHttpClient client;
-    private static final RequestBody emptyBody = RequestBody.create(null, new byte[]{});
-    private static final Gson gson = new Gson();
+  private static final RequestBody emptyBody = RequestBody.create(null, new byte[] {});
 
-    public RgwAdminClientImpl(String accessKey, String secretKey, String endpoint) {
-        this.client = new OkHttpClient().newBuilder()
-            .addInterceptor(new S3Auth(accessKey, secretKey))
+  private final String endpoint;
+  private final OkHttpClient client;
+
+  public RgwAdminClientImpl(String accessKey, String secretKey, String endpoint) {
+    this.client =
+        new OkHttpClient().newBuilder().addInterceptor(new S3Auth(accessKey, secretKey)).build();
+    this.endpoint = endpoint;
+  }
+
+  private static void appendParameters(Map<String, String> parameters, HttpUrl.Builder urlBuilder) {
+    if (parameters != null) {
+      parameters.forEach((k, v) -> urlBuilder.addQueryParameter(k, v));
+    }
+  }
+
+  @Override
+  public void trimUserUsage(String userId, Map<String, String> parameters) {
+    if (parameters == null) {
+      parameters = new HashMap<>();
+    }
+    parameters.put("uid", userId);
+    trimUsage(parameters);
+  }
+
+  @Override
+  public void trimUsage(Map<String, String> parameters) {
+    HttpUrl.Builder urlBuilder = HttpUrl.parse(endpoint).newBuilder().addPathSegment("usage");
+
+    if (parameters == null) {
+      parameters = new HashMap<>();
+    }
+
+    parameters.put("remove-all", "True");
+
+    appendParameters(parameters, urlBuilder);
+
+    Request request = new Request.Builder().delete().url(urlBuilder.build()).build();
+
+    safeCall(request);
+  }
+
+  @Override
+  public Optional<GetUsageResponse> getUserUsage(String userId) {
+    return getUserUsage(userId, null);
+  }
+
+  @Override
+  public Optional<GetUsageResponse> getUserUsage(String userId, Map<String, String> parameters) {
+    if (parameters == null) {
+      parameters = new HashMap<>();
+    }
+    parameters.put("uid", userId);
+    return getUsage(parameters);
+  }
+
+  @Override
+  public Optional<GetUsageResponse> getUsage() {
+    return getUsage(null);
+  }
+
+  @Override
+  public Optional<GetUsageResponse> getUsage(Map<String, String> parameters) {
+    HttpUrl.Builder urlBuilder = HttpUrl.parse(endpoint).newBuilder().addPathSegment("usage");
+
+    appendParameters(parameters, urlBuilder);
+
+    Request request = new Request.Builder().get().url(urlBuilder.build()).build();
+
+    String resp = safeCall(request);
+    return Optional.ofNullable(gson.fromJson(resp, GetUsageResponse.class));
+  }
+
+  @Override
+  public void addUserCapability(String uid, String userCaps) {
+    Request request =
+        new Request.Builder()
+            .put(emptyBody)
+            .url(
+                HttpUrl.parse(endpoint)
+                    .newBuilder()
+                    .addPathSegment("user")
+                    .query("caps")
+                    .addQueryParameter("uid", uid)
+                    .addQueryParameter("user-caps", userCaps)
+                    .build())
             .build();
-        this.endpoint = endpoint;
-    }
 
-    /**
-     *
-     * @param uid
-     * @param userCaps In forms of [users|buckets|metadata|usage|zone]=[*|read|write|read, write]
-     */
-    @Override
-    public void addUserCapability(String uid, String userCaps) {
-        String resource = "/admin/user/";
-        String url = endpoint + resource + "?caps"
-            + "&uid=" + uid
-            + "&user-caps=" + userCaps;
+    safeCall(request);
+  }
 
-        Request request = new Request.Builder().put(emptyBody)
-            .url(url)
+  @Override
+  public void removeUserCapability(String uid, String userCaps) {
+    Request request =
+        new Request.Builder()
+            .delete()
+            .url(
+                HttpUrl.parse(endpoint)
+                    .newBuilder()
+                    .addPathSegment("user")
+                    .query("caps")
+                    .addQueryParameter("uid", uid)
+                    .addQueryParameter("user-caps", userCaps)
+                    .build())
             .build();
 
-        safeCall(request);
+    safeCall(request);
+  }
 
-    }
+  @Override
+  public List<SubUser> createSubUser(String uid, String subUserId, Map<String, String> parameters) {
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("user")
+            .query("subuser")
+            .addQueryParameter("uid", uid)
+            // TODO:
+            .addQueryParameter("generate-secret", "true")
+            .addQueryParameter("subuser", subUserId);
 
-    /**
-     *
-     * @param uid
-     * @param userCaps In forms of [users|buckets|metadata|usage|zone]=[*|read|write|read, write]
-     */
-    @Override
-    public void deleteUserCapability(String uid, String userCaps) {
-        String resource = "/admin/user/";
-        String url = endpoint + resource + "?caps"
-            + "&uid=" + uid
-            + "&user-caps=" + userCaps;
+    appendParameters(parameters, urlBuilder);
 
-        Request request = new Request.Builder().delete()
-            .url(url)
+    Request request = new Request.Builder().put(emptyBody).url(urlBuilder.build()).build();
+
+    String resp = safeCall(request);
+    Type type = new TypeToken<List<SubUser>>() {}.getType();
+    return gson.fromJson(resp, type);
+  }
+
+  @Override
+  public List<SubUser> createSubUserForSwift(String uid, String subUserId) {
+    return createSubUser(uid, subUserId, ImmutableMap.of("access", "full"));
+  }
+
+  @Override
+  public List<SubUser> modifySubUser(String uid, String subUserId, Map<String, String> parameters) {
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("user")
+            .query("subuser")
+            .addQueryParameter("uid", uid)
+            .addQueryParameter("subuser", subUserId);
+
+    appendParameters(parameters, urlBuilder);
+
+    Request request = new Request.Builder().post(emptyBody).url(urlBuilder.build()).build();
+
+    String resp = safeCall(request);
+    Type type = new TypeToken<List<SubUser>>() {}.getType();
+    return gson.fromJson(resp, type);
+  }
+
+  @Override
+  public void removeSubUser(String uid, String subUserId) {
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("user")
+            .query("subuser")
+            .addQueryParameter("uid", uid)
+            .addQueryParameter("subuser", subUserId);
+
+    Request request = new Request.Builder().delete().url(urlBuilder.build()).build();
+
+    safeCall(request);
+  }
+
+  @Override
+  public List<CreateKeyResponse> createKey(String uid, Map<String, String> parameters) {
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("user")
+            .query("key")
+            .addQueryParameter("uid", uid);
+
+    appendParameters(parameters, urlBuilder);
+
+    Request request = new Request.Builder().put(emptyBody).url(urlBuilder.build()).build();
+
+    String resp = safeCall(request);
+    Type type = new TypeToken<List<CreateKeyResponse>>() {}.getType();
+    return gson.fromJson(resp, type);
+  }
+
+  @Override
+  public List<CreateKeyResponse> createKey(String uid) {
+    return createKey(uid, null);
+  }
+
+  @Override
+  public void removeKey(String accessKey, String keyType) {
+    Request request =
+        new Request.Builder()
+            .delete()
+            .url(
+                HttpUrl.parse(endpoint)
+                    .newBuilder()
+                    .addPathSegment("user")
+                    .query("key")
+                    .addQueryParameter("access-key", accessKey)
+                    .addQueryParameter("key-type", keyType)
+                    .build())
             .build();
 
-        safeCall(request);
+    safeCall(request);
+  }
 
+  /*
+   * The operation is success if the target is not exist in the system after the operation is
+   * executed. The operation does not throw exception even if the target is not exist in the
+   * beginning.
+   */
+  @Override
+  public void removeBucket(String bucketName) {
+    Request request =
+        new Request.Builder()
+            .delete()
+            .url(
+                HttpUrl.parse(endpoint)
+                    .newBuilder()
+                    .addPathSegment("bucket")
+                    .addQueryParameter("bucket", bucketName)
+                    .addQueryParameter("purge-objects", "true")
+                    .build())
+            .build();
+
+    safeCall(request);
+  }
+
+  @Override
+  public void linkBucket(String bucketName, String bucketId, String userId) {
+    Request request =
+        new Request.Builder()
+            .put(emptyBody)
+            .url(
+                HttpUrl.parse(endpoint)
+                    .newBuilder()
+                    .addPathSegment("bucket")
+                    .addQueryParameter("bucket", bucketName)
+                    .addQueryParameter("bucket-id", bucketId)
+                    .addQueryParameter("uid", userId)
+                    .build())
+            .build();
+
+    safeCall(request);
+  }
+
+  @Override
+  public void unlinkBucket(String bucketName, String userId) {
+    Request request =
+        new Request.Builder()
+            .post(emptyBody)
+            .url(
+                HttpUrl.parse(endpoint)
+                    .newBuilder()
+                    .addPathSegment("bucket")
+                    .addQueryParameter("bucket", bucketName)
+                    .addQueryParameter("uid", userId)
+                    .build())
+            .build();
+
+    safeCall(request);
+  }
+
+  @Override
+  public Optional<String> checkBucketIndex(
+      String bucketName, boolean isCheckObjects, boolean isFix) {
+    Request request =
+        new Request.Builder()
+            .get()
+            .url(
+                HttpUrl.parse(endpoint)
+                    .newBuilder()
+                    .addPathSegment("bucket")
+                    .query("index")
+                    .addQueryParameter("bucket", bucketName)
+                    .addQueryParameter("check-objects", Boolean.toString(isCheckObjects))
+                    .addQueryParameter("fix", Boolean.toString(isFix))
+                    .build())
+            .build();
+
+    String resp = safeCall(request);
+    return Optional.ofNullable(resp);
+  }
+
+  @Override
+  public Optional<GetBucketInfoResponse> getBucketInfo(String bucketName) {
+    Request request =
+        new Request.Builder()
+            .get()
+            .url(
+                HttpUrl.parse(endpoint)
+                    .newBuilder()
+                    .addPathSegment("bucket")
+                    .addQueryParameter("bucket", bucketName)
+                    .build())
+            .build();
+
+    String resp = safeCall(request);
+    return Optional.ofNullable(gson.fromJson(resp, GetBucketInfoResponse.class));
+  }
+
+  /**
+   * Guarantee that the request is execute success and the connection is closed
+   *
+   * @param request
+   * @return resp body in str; null if no body or status code == 404
+   * @throws RgwAdminException if resp code != (200||404)
+   */
+  private String safeCall(Request request) {
+    try (Response response = client.newCall(request).execute()) {
+      if (response.code() == 404) {
+        return null;
+      }
+      if (!response.isSuccessful()) {
+        throw ErrorUtils.parseError(response);
+      }
+      ResponseBody body = response.body();
+      if (body != null) {
+        return response.body().string();
+      } else {
+        return null;
+      }
+    } catch (IOException e) {
+      throw new RgwAdminException(500, "IOException", e);
     }
+  }
 
-    /**
-     * The operation is success if the target is not exist in the system after the operation is executed.
-     * The operation does not throw exception even if the target is not exist in the beginning.
-     *
-     * @param bucketName
-     */
-    @Override
-    public void removeBucket(String bucketName) {
-        String resource = "/admin/bucket/";
-        String url = endpoint + resource + "?"
-                + "bucket=" + bucketName
-                + "&purge-objects=true";
+  @Override
+  public User createUser(String userId) {
+    return createUser(userId, null);
+  }
 
-        Request request = new Request.Builder().delete()
-                .url(url)
-                .build();
+  @Override
+  public User createUser(String userId, Map<String, String> options) {
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("user")
+            .addQueryParameter("uid", userId)
+            .addQueryParameter("display-name", userId);
 
-        safeCall(request);
+    appendParameters(options, urlBuilder);
 
-    }
+    Request request = new Request.Builder().put(emptyBody).url(urlBuilder.build()).build();
 
-    @Override
-    public void linkBucket(String bucketName, String bucketId, String userId) {
-        String resource = "/admin/bucket/";
-        String url = endpoint + resource + "?"
-                + "bucket=" + bucketName
-                + "&bucket-id=" + bucketId
-                + "&uid=" + userId;
+    String resp = safeCall(request);
+    return gson.fromJson(resp, User.class);
+  }
 
-        Request request = new Request.Builder().put(emptyBody)
-                .url(url)
-                .build();
+  @Override
+  public Optional<User> getUserInfo(String userId) {
+    Request request =
+        new Request.Builder()
+            .get()
+            .url(
+                HttpUrl.parse(endpoint)
+                    .newBuilder()
+                    .addPathSegment("user")
+                    .addQueryParameter("uid", userId)
+                    .build())
+            .build();
 
-        safeCall(request);
-    }
+    String resp = safeCall(request);
+    return Optional.ofNullable(gson.fromJson(resp, User.class));
+  }
 
-    @Override
-    public Optional<GetBucketInfoResponse> getBucketInfo(String bucketName) {
-        String resource = "/admin/bucket/";
-        String url = endpoint + resource + "?"
-                + "bucket=" + bucketName;
+  @Override
+  public void modifyUser(String userId, Map<String, String> parameters) {
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("user")
+            .addQueryParameter("uid", userId);
 
-        Request request = new Request.Builder()
-                .url(url)
-                .build();
+    parameters
+        .entrySet()
+        .forEach(entry -> urlBuilder.addQueryParameter(entry.getKey(), entry.getValue()));
 
-        String resp = safeCall(request);
-        return Optional.ofNullable(gson.fromJson(resp, GetBucketInfoResponse.class));
-    }
+    Request request = new Request.Builder().post(emptyBody).url(urlBuilder.build()).build();
 
-    /**
-     * Guarantee that the request is execute success and the connection is closed
-     *
-     * @param request
-     * @return resp body in str; null if no body or status code == 404
-     * @throws RgwAdminException if resp code != (200||404)
-     */
-    private String safeCall(Request request) {
-        try (Response response = client.newCall(request).execute()) {
-            if (response.code() == 404) {
-                return null;
-            }
-            if (!response.isSuccessful()) {
-                throw ErrorUtils.parseError(response);
-            }
-            ResponseBody body = response.body();
-            if (body != null) {
-                return response.body().string();
-            } else {
-                return null;
-            }
-        } catch (IOException e) {
-            throw new RgwAdminException(500, "IOException", e);
-        }
-    }
+    safeCall(request);
+  }
 
-    @Override
-    public CreateUserResponse createUser(String userId) {
-        return createUser(userId, false);
-    }
+  @Override
+  public void suspendUser(String userId) {
+    modifyUser(userId, ImmutableMap.of("suspended", "true"));
+  }
 
-    /**
-     * Create user with limit
-     *
-     * @param userId
-     * @param isLimit if specify, user can only have one bucket, and quota is 1TiB
-     * @return
-     */
-    // TODO: quota
-    @Override
-    public CreateUserResponse createUser(String userId, boolean isLimit) {
-        String resource = "/admin/user/";
-        String url = endpoint + resource + "?"
-                + "uid=" + userId
-                + "&display-name=" + userId
-                //                  + "&email=abc@xxx.com"
-                //					+ "&key-type=s3"
-//                + "&access-key=AOA"
-//                + "&secret-key=AOA"
-                + "&suspended=False";
+  @Override
+  public void suspendUser(String userId, boolean suspend) {
+    modifyUser(userId, ImmutableMap.of("suspended", Boolean.toString(suspend)));
+  }
 
-        if (isLimit) {
-            url += "&max-buckets=1";
-        }
+  /*
+   * The operation is success if the user is not exist in the system after the operation is
+   * executed. The operation does not throw exception even if the user is not exist in the
+   * beginning.
+   */
+  @Override
+  public void removeUser(String userId) {
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("user")
+            .addQueryParameter("uid", userId)
+            .addQueryParameter("purge-data", "true");
 
+    Request request = new Request.Builder().delete().url(urlBuilder.build()).build();
 
-        Request request = new Request.Builder().put(emptyBody)
-                .url(url)
-                .build();
+    safeCall(request);
+  }
 
-        String resp = safeCall(request);
-        return gson.fromJson(resp, CreateUserResponse.class);
-    }
+  @Override
+  public Optional<Quota> getUserQuota(String userId) {
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("user")
+            .query("quota")
+            .addQueryParameter("uid", userId)
+            .addQueryParameter("quota-type", "user");
 
-    @Override
-    public Optional<GetUserInfoResponse> getUserInfo(String userId) {
-        String resource = "/admin/user/";
-        String url = endpoint + resource + "?"
-                + "uid=" + userId;
+    Request request = new Request.Builder().get().url(urlBuilder.build()).build();
 
-        Request request = new Request.Builder()
-                .url(url)
-                .build();
+    String resp = safeCall(request);
+    return Optional.ofNullable(gson.fromJson(resp, Quota.class));
+  }
 
-        String resp = safeCall(request);
-        return Optional.ofNullable(gson.fromJson(resp, GetUserInfoResponse.class));
-    }
+  @Override
+  public void setUserQuota(String userId, long maxObjects, long maxSizeKB) {
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("user")
+            .query("quota")
+            .addQueryParameter("uid", userId)
+            .addQueryParameter("quota-type", "user");
 
-    @Override
-    public void modifyUser(String userId, Map<String, String> parameters) {
-        String resource = "/admin/user/";
-        String url = endpoint + resource + "?"
-                + "uid=" + userId;
-        String _parameters = parameters.entrySet()
-                .stream()
-                .map(entry -> entry.getKey() + "=" + entry.getValue())
-                .collect(Collectors.joining("&"));
-        url += "&" + _parameters;
-
-
-        Request request = new Request.Builder().post(emptyBody)
-                .url(url)
-                .build();
-
-        safeCall(request);
-    }
-
-    @Override
-    public void suspendUser(String userId) {
-        String resource = "/admin/user/";
-        String url = endpoint + resource + "?"
-                + "uid=" + userId
-//                + "&display-name=" + userId
-                //                  + "&email=abc@xxx.com"
-                //					+ "&key-type=s3"
-//                + "&access-key=AOA"
-//                + "&secret-key=AOA"
-//                + "&max-buckets=1"
-                + "&suspended=True";
-
-        Request request = new Request.Builder().post(emptyBody)
-                .url(url)
-                .build();
-
-        safeCall(request);
-    }
-
-    /**
-     * The operation is success if the user is not exist in the system after the operation is executed.
-     * The operation does not throw exception even if the user is not exist in the beginning.
-     *
-     * @param userId
-     */
-    @Override
-    public void removeUser(String userId) {
-        String resource = "/admin/user/";
-        String url = endpoint + resource + "?"
-                + "uid=" + userId
-                + "&purge-data=true";
-
-        Request request = new Request.Builder().delete()
-                .url(url)
-                .build();
-
-        safeCall(request);
-
-    }
-
-    @Override
-    public Optional<Quota> getUserQuota(String userId) {
-        String resource = "/admin/user/";
-        String url = endpoint + resource + "?"
-                + "quota"
-                + "&uid=" + userId
-//                + "&quota-type=bucket";
-                + "&quota-type=user";
-
-        Request request = new Request.Builder().get()
-                .url(url)
-                .build();
-
-        String resp = safeCall(request);
-        return Optional.ofNullable(gson.fromJson(resp, Quota.class));
-
-    }
-
-    /**
-     * @param userId
-     * @param maxObjects The max-objects setting allows you to specify the maximum number of objects. A negative value disables this setting.
-     * @param maxSizeKB    The max-size option allows you to specify a quota for the maximum number of bytes. A negative value disables this setting.
-     */
-    @Override
-    public void setUserQuota(String userId, long maxObjects, long maxSizeKB) {
-        String resource = "/admin/user/";
-        String url = endpoint + resource + "?"
-                + "quota"
-                + "&uid=" + userId
-//                + "&quota-type=bucket";
-                + "&quota-type=user";
-
-
-
-        String body = gson.toJson(ImmutableMap.of(
+    String body =
+        gson.toJson(
+            ImmutableMap.of(
                 "max_objects", String.valueOf(maxObjects),
                 "max_size_kb", String.valueOf(maxSizeKB),
                 "enabled", "true"));
 
-        Request request = new Request.Builder().put(RequestBody.create(null, body))
-                .url(url)
-                .build();
+    Request request =
+        new Request.Builder().put(RequestBody.create(null, body)).url(urlBuilder.build()).build();
 
-        safeCall(request);
+    safeCall(request);
+  }
 
+  @Override
+  public void removeObject(String bucketName, String objectKey) {
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("bucket")
+            .query("object")
+            .addQueryParameter("bucket", bucketName)
+            .addQueryParameter("object", objectKey);
+
+    Request request = new Request.Builder().delete().url(urlBuilder.build()).build();
+
+    safeCall(request);
+  }
+
+  @Override
+  public Optional<String> getPolicy(String bucketName, String objectKey) {
+    if (Strings.isNullOrEmpty(bucketName)) {
+      throw new IllegalArgumentException("no bucketName");
     }
+
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("bucket")
+            .query("policy")
+            .addQueryParameter("bucket", bucketName);
+
+    if (!Strings.isNullOrEmpty(objectKey)) {
+      urlBuilder.addQueryParameter("object", objectKey);
+    }
+
+    Request request = new Request.Builder().get().url(urlBuilder.build()).build();
+
+    return Optional.ofNullable(safeCall(request));
+  }
 }
