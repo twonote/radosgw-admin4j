@@ -573,7 +573,7 @@ public class RgwAdminClientImplTest {
         Arrays.asList(
             ImmutableMap.of("type", "users", "perm", "*"),
             ImmutableMap.of("type", "buckets", "perm", "*"));
-    assertTrue(caps.containsAll(response.getCaps()));
+    assertTrue(response.getCaps().containsAll(caps));
 
     // not exist
     assertFalse(RGW_ADMIN_CLIENT.getUserInfo(UUID.randomUUID().toString()).isPresent());
