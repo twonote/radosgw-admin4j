@@ -1,6 +1,7 @@
 package org.twonote.rgwadmin4j;
 
 import org.twonote.rgwadmin4j.model.*;
+import org.twonote.rgwadmin4j.model.usage.GetUsageResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -9,10 +10,88 @@ import java.util.Optional;
 /** Created by petertc on 3/14/17. */
 public interface RgwAdminClient {
   /**
+   * Remove usage information for specified user. With no dates specified, removes all usage information.
+   *
+   * <p>There are few parameters available to filter the query result as you wish, includes:
+   *
+   * <ul>
+   * <li>start: Date and (optional) time that specifies the start time of the requested data.
+   *     Example: 2012-09-25 16:00:00
+   * <li>end: Date and (optional) time that specifies the end time of the requested data
+   *     (non-inclusive). Example: 2012-09-25 16:00:00
+   * </ul>
+   *
+   * @param userId The user for which the information is requested.
+   * @param parameters optional parameters to filter the usage to delete.
+   */
+  void trimUserUsage(String userId, Map<String, String> parameters);
+
+  /**
+   * Remove usage information. With no dates specified, removes all usage information.
+   *
+   * <p>There are few parameters available to filter the query result as you wish, includes:
+   *
+   * <ul>
+   * <li>start: Date and (optional) time that specifies the start time of the requested data.
+   *     Example: 2012-09-25 16:00:00
+   * <li>end: Date and (optional) time that specifies the end time of the requested data
+   *     (non-inclusive). Example: 2012-09-25 16:00:00
+   * </ul>
+   *
+   * @param parameters optional parameters to filter the usage to delete.
+   */
+  void trimUsage(Map<String, String> parameters);
+
+  /**
+   * Request bandwidth usage information for specified user.
+   *
+   * <p>See {@link #getUsage(Map)}
+   */
+  Optional<GetUsageResponse> getUserUsage(String userId);
+
+  /**
+   * Request bandwidth usage information for specified user.
+   *
+   * <p>See {@link #getUsage(Map)}
+   */
+  Optional<GetUsageResponse> getUserUsage(String userId, Map<String, String> parameters);
+
+  /**
+   * Request bandwidth usage information.
+   *
+   * <p>See {@link #getUsage(Map)}
+   */
+  Optional<GetUsageResponse> getUsage();
+
+  /**
+   * Request bandwidth usage information.
+   *
+   * <p>Note that radosgw does not enable usage collection in default. To get usage, you need the
+   * following option:
+   *
+   * <pre>
+   *   rgw enable usage log = true
+   * </pre>
+   *
+   * <p>There are few parameters available to filter the query result as you wish, includes:
+   *
+   * <ul>
+   * <li>start: Date and (optional) time that specifies the start time of the requested data.
+   *     Example: 2012-09-25 16:00:00
+   * <li>end: Date and (optional) time that specifies the end time of the requested data
+   *     (non-inclusive). Example: 2012-09-25 16:00:00
+   * <li>show-entries: Specifies whether data entries should be returned. Example: False [True]
+   * <li>show-summary: Specifies whether data summary should be returned. Example: False [True]
+   * </ul>
+   *
+   * @param parameters optional parameters to filter the query result.
+   * @return Request bandwidth usage information.
+   */
+  Optional<GetUsageResponse> getUsage(Map<String, String> parameters);
+
+  /**
    * Add an administrative capability to a specified user.
-   *
    * <p>The capability is in forms of [users|buckets|metadata|usage|zone]=[*|read|write|read, write]
-   *
    * <p>Note that you can get the capability by {@link #getUserInfo(String)}
    *
    * @param uid The user ID to add an administrative capability to.

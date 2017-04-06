@@ -8,9 +8,11 @@ import okhttp3.*;
 import org.twonote.rgwadmin4j.RgwAdminClient;
 import org.twonote.rgwadmin4j.RgwAdminException;
 import org.twonote.rgwadmin4j.model.*;
+import org.twonote.rgwadmin4j.model.usage.GetUsageResponse;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -29,6 +31,63 @@ public class RgwAdminClientImpl implements RgwAdminClient {
     this.client =
         new OkHttpClient().newBuilder().addInterceptor(new S3Auth(accessKey, secretKey)).build();
     this.endpoint = endpoint;
+  }
+
+  @Override
+  public void trimUserUsage(String userId, Map<String, String> parameters) {
+    if (parameters == null) {
+      parameters = new HashMap<>();
+    }
+    parameters.put("uid", userId);
+    trimUsage(parameters);
+  }
+
+  @Override
+  public void trimUsage(Map<String, String> parameters) {
+    HttpUrl.Builder urlBuilder = HttpUrl.parse(endpoint).newBuilder().addPathSegment("usage");
+
+    if (parameters == null) {
+      parameters = new HashMap<>();
+    }
+
+    parameters.put("remove-all", "True");
+
+    appendParameters(parameters, urlBuilder);
+
+    Request request = new Request.Builder().delete().url(urlBuilder.build()).build();
+
+    safeCall(request);
+  }
+
+  @Override
+  public Optional<GetUsageResponse> getUserUsage(String userId) {
+    return getUserUsage(userId, null);
+  }
+
+  @Override
+  public Optional<GetUsageResponse> getUserUsage(String userId, Map<String, String> parameters) {
+    if (parameters == null) {
+      parameters = new HashMap<>();
+    }
+    parameters.put("uid", userId);
+    return getUsage(parameters);
+  }
+
+  @Override
+  public Optional<GetUsageResponse> getUsage() {
+    return getUsage(null);
+  }
+
+  @Override
+  public Optional<GetUsageResponse> getUsage(Map<String, String> parameters) {
+    HttpUrl.Builder urlBuilder = HttpUrl.parse(endpoint).newBuilder().addPathSegment("usage");
+
+    appendParameters(parameters, urlBuilder);
+
+    Request request = new Request.Builder().get().url(urlBuilder.build()).build();
+
+    String resp = safeCall(request);
+    return Optional.ofNullable(gson.fromJson(resp, GetUsageResponse.class));
   }
 
   @Override
@@ -79,9 +138,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
             .addQueryParameter("generate-secret", "true")
             .addQueryParameter("subuser", subUserId);
 
-    if (parameters != null) {
-      parameters.forEach((k, v) -> urlBuilder.addQueryParameter(k, v));
-    }
+    appendParameters(parameters, urlBuilder);
 
     Request request = new Request.Builder().put(emptyBody).url(urlBuilder.build()).build();
 
@@ -105,9 +162,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
             .addQueryParameter("uid", uid)
             .addQueryParameter("subuser", subUserId);
 
-    if (parameters != null) {
-      parameters.forEach((k, v) -> urlBuilder.addQueryParameter(k, v));
-    }
+    appendParameters(parameters, urlBuilder);
 
     Request request = new Request.Builder().post(emptyBody).url(urlBuilder.build()).build();
 
@@ -140,15 +195,19 @@ public class RgwAdminClientImpl implements RgwAdminClient {
             .query("key")
             .addQueryParameter("uid", uid);
 
-    if (parameters != null) {
-      parameters.forEach((k, v) -> urlBuilder.addQueryParameter(k, v));
-    }
+    appendParameters(parameters, urlBuilder);
 
     Request request = new Request.Builder().put(emptyBody).url(urlBuilder.build()).build();
 
     String resp = safeCall(request);
     Type type = new TypeToken<List<CreateKeyResponse>>() {}.getType();
     return gson.fromJson(resp, type);
+  }
+
+  private static void appendParameters(Map<String, String> parameters, HttpUrl.Builder urlBuilder) {
+    if (parameters != null) {
+      parameters.forEach((k, v) -> urlBuilder.addQueryParameter(k, v));
+    }
   }
 
   @Override
@@ -309,9 +368,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
             .addQueryParameter("uid", userId)
             .addQueryParameter("display-name", userId);
 
-    if (options != null) {
-      options.forEach((k, v) -> urlBuilder.addQueryParameter(k, v));
-    }
+    appendParameters(options, urlBuilder);
 
     Request request = new Request.Builder().put(emptyBody).url(urlBuilder.build()).build();
 

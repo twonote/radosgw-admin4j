@@ -21,6 +21,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.twonote.rgwadmin4j.RgwAdminException;
 import org.twonote.rgwadmin4j.model.*;
+import org.twonote.rgwadmin4j.model.usage.GetUsageResponse;
 
 import java.io.*;
 import java.util.*;
@@ -29,6 +30,89 @@ import java.util.function.Consumer;
 import static org.junit.Assert.*;
 
 public class RgwAdminClientImplTest {
+  @Test
+  @Ignore("See trimUsage()")
+  public void trimUserUsage() throws Exception {}
+
+  @Test
+  public void trimUsage() throws Exception {
+    testWithAUser(
+            v -> {
+              doSomething(v);
+
+              String userId = v.getUserId();
+              
+              GetUsageResponse response;
+              response = RGW_ADMIN_CLIENT.getUserUsage(userId).get();
+              if (!response.getSummary().stream().anyMatch(vv -> userId.equals(vv.getUser()))) {
+                fail("No usage log corresponding to the given user id...need more sleep?");
+              }
+
+              RGW_ADMIN_CLIENT.trimUserUsage(userId, null);
+
+              // Usage data are generated in the async way, hope it will be available after wait.
+              try {
+                Thread.sleep(5000);
+              } catch (InterruptedException e) {
+                e.printStackTrace();
+              }
+
+              response = RGW_ADMIN_CLIENT.getUserUsage(userId).get();
+              if (response.getSummary().stream().anyMatch(vv -> userId.equals(vv.getUser()))) {
+                fail("Exist usage log corresponding to the given user id...trim log failed");
+              }
+            });
+  }
+
+  private static void doSomething(User v) {
+    String userId = v.getUserId();
+    // Do something to let usage log generated.
+    AmazonS3 s3 =
+            initS3(
+                    v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
+    String bucketName = userId.toLowerCase();
+    s3.createBucket(bucketName);
+
+    s3.putObject(bucketName, userId + "1", createString(40960));
+    s3.putObject(bucketName, userId + "2", createString(40960));
+    s3.putObject(bucketName, userId + "3", createString(40960));
+
+    // Usage data are generated in the async way, hope it will be available after wait.
+    try {
+      Thread.sleep(5000);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+  }
+
+
+  @Test
+  @Ignore("See getUsage()")
+  public void getUserUsage() throws Exception {}
+
+  @Test
+  public void getUsage() throws Exception {
+    testWithAUser(
+        v -> {
+          String userId = v.getUserId();
+
+          // Do something to let usage log generated.
+          doSomething(v);
+
+          GetUsageResponse response;
+
+          response = RGW_ADMIN_CLIENT.getUsage(null).get();
+          if (!response.getSummary().stream().anyMatch(vv -> userId.equals(vv.getUser()))) {
+            fail("No usage log corresponding to the given user id...need more sleep?");
+          }
+
+          response = RGW_ADMIN_CLIENT.getUserUsage(userId, null).get();
+          if (!response.getSummary().stream().anyMatch(vv -> userId.equals(vv.getUser()))) {
+            fail("No usage log corresponding to the given user id...need more sleep?");
+          }
+        });
+  }
+
   private static RgwAdminClientImpl RGW_ADMIN_CLIENT;
   private static String adminUserId;
   private static String accessKey;
