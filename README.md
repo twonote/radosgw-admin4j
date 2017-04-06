@@ -53,7 +53,7 @@ You can refer the [Ceph official manual](http://docs.ceph.com/docs/master/start/
 ```
 $ sudo docker run -d --net=host -v /etc/ceph/:/etc/ceph/ -e MON_IP=127.0.0.1 -e CEPH_PUBLIC_NETWORK=127.0.0.0/24 -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e CEPH_DEMO_BUCKET=qqq --name rgw ceph/demo@sha256:7734ac78571ee0530724181c5b2db2e5a7ca0ff0e246c10c223d3ca9665c74ba
 $ sleep 10
-$ sudo docker exec -it rgw radosgw-admin --id admin caps add --caps="buckets=*;users=*" --uid=qqq
+$ sudo docker exec -it rgw radosgw-admin --id admin caps add --caps="buckets=*;users=*;usage=*" --uid=qqq
 ```
 
 Check the setup succeeded by the following command:
@@ -78,10 +78,22 @@ First, you need an admin account. If you not yet have it, create the account wit
 ```
 $ radosgw-admin user create --uid=qqq --display-name="qqq"
 $ radosgw-admin key create --uid=qqq --key-type=s3 --gen-access-key --gen-secret
-$ radosgw-admin --id admin caps add --caps="buckets=*;users=*" --uid=qqq
+$ radosgw-admin --id admin caps add --caps="buckets=*;users=*;usage=*" --uid=qqq
 ```
 
 Second, enter the key pair (qqq,qqq) and your radosgw endpoint to the [config file](https://github.com/twonote/radosgw-admin4j/blob/master/src/test/resources/rgwadmin.properties)
+
+Note that radosgw does not enable [usage collection](http://docs.ceph.com/docs/master/radosgw/admin/#usage) in default. If you need the feature (or run test cases), be sure that you enable the usage in ceph config file. Example ceph.conf: 
+```
+...
+[client.radosgw.gateway]
+rgw enable usage log = true
+rgw usage log tick interval = 1
+rgw usage log flush threshold = 1
+rgw usage max shards = 32
+rgw usage max user shards = 1
+...
+```
 
 Done!
 
