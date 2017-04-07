@@ -4,14 +4,14 @@
 A Ceph Object Storage Admin SDK / Client Library for Java
 
 # Hightlight
-* Supports the least Ceph version. (Jewel LTS currently)
-* Continuous Integration and integration tests for quality and compatiabiliy
+* **Fully support all [operations](http://docs.ceph.com/docs/master/radosgw/adminops/)** in the least Ceph version. (Jewel LTS/Kraken stable currently)
+* [Continuous Integration](https://travis-ci.org/twonote/radosgw-admin4j) and tests aganst the least Ceph version for quality and compatiabiliy
 * Uses the [Maven](http://maven.apache.org/) build system, Java 8 is required.
 * **All contributions are welcome! Feel free here~**
 
 # Start using 
 You can obtain radosgw-admim4j from Maven Central using the following identifier:
-* [io.github.twonote.radosgw-admin4j:0.0.4](https://search.maven.org/#artifactdetails%7Cio.github.twonote%7Cradosgw-admin4j%7C0.0.4%7Cjar)
+* [io.github.twonote.radosgw-admin4j:0.0.5](https://search.maven.org/#artifactdetails%7Cio.github.twonote%7Cradosgw-admin4j%7C0.0.5%7Cjar)
 
 ## Usage
 ```
