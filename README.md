@@ -77,7 +77,7 @@ $ mvn test
 First, you need an admin account. If you not yet have it, create the account with the following command:
 ```
 $ radosgw-admin user create --uid=qqq --display-name="qqq"
-$ radosgw-admin key create --uid=qqq --key-type=s3 --gen-access-key --gen-secret
+$ radosgw-admin key create --uid=qqq --key-type=s3 --access-key=qqq --secret-key=qqq
 $ radosgw-admin --id admin caps add --caps="buckets=*;users=*;usage=*" --uid=qqq
 ```
 
