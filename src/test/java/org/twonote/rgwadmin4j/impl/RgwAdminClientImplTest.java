@@ -268,8 +268,7 @@ public class RgwAdminClientImplTest {
           String userId = absSubUserId.split(":")[0];
           String subUserId = absSubUserId.split(":")[1];
 
-          List<Key> response =
-              RGW_ADMIN_CLIENT.createKeyForSubUser(userId, subUserId);
+          List<Key> response = RGW_ADMIN_CLIENT.createKeyForSubUser(userId, subUserId);
           Key keyToDelete =
               response.stream().filter(vv -> absSubUserId.equals(vv.getUser())).findFirst().get();
 
@@ -318,8 +317,7 @@ public class RgwAdminClientImplTest {
               response
                   .stream()
                   .anyMatch(
-                      v1 ->
-                          absSubUserId.equals(v1.getUser()) && secret.equals(v1.getSecretKey())));
+                      v1 -> absSubUserId.equals(v1.getUser()) && secret.equals(v1.getSecretKey())));
 
           // sub user not exist
           // Create a orphan key without user in ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
@@ -932,7 +930,7 @@ public class RgwAdminClientImplTest {
   }
 
   @Test
-  public void getPolicy() throws Exception {
+  public void getObjectPolicy() throws Exception {
     testWithAUser(
         (v) -> {
           String userId = v.getUserId();
@@ -943,7 +941,22 @@ public class RgwAdminClientImplTest {
           String objectKey = userId.toLowerCase();
           s3.createBucket(bucketName);
           s3.putObject(bucketName, objectKey, "qqq");
-          String resp = RGW_ADMIN_CLIENT.getPolicy(bucketName, objectKey).get();
+          String resp = RGW_ADMIN_CLIENT.getObjectPolicy(bucketName, objectKey).get();
+          assertFalse(Strings.isNullOrEmpty(resp));
+        });
+  }
+
+  @Test
+  public void getBucketPolicy() throws Exception {
+    testWithAUser(
+        (v) -> {
+          String userId = v.getUserId();
+          AmazonS3 s3 =
+              initS3(
+                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
+          String bucketName = userId.toLowerCase();
+          s3.createBucket(bucketName);
+          String resp = RGW_ADMIN_CLIENT.getBucketPolicy(bucketName).get();
           assertFalse(Strings.isNullOrEmpty(resp));
         });
   }

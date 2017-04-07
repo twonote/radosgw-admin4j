@@ -475,7 +475,59 @@ public interface RgwAdminClient {
   void removeObject(String bucketName, String objectKey);
 
   /**
-   * Read the policy of an object or bucket.
+   * Read the policy of an object.
+   *
+   * <p>Note that the term "policy" here is not stand for "S3 bucket policy". Instead, it represents
+   * S3 Access Control Policy (ACP).
+   *
+   * <p>We return json string instead of the concrete model here due to the server returns the
+   * internal data structure which is not well defined. For example:
+   *
+   * <pre>
+   * {
+   *    "acl":{
+   *       "acl_user_map":[
+   *          {
+   *             "user":"rgwAdmin4jTest-6d6a2645-0219-4e49-8493-0bdc8cb00e19",
+   *             "acl":15
+   *          }
+   *       ],
+   *       "acl_group_map":[
+   *       ],
+   *       "grant_map":[
+   *          {
+   *             "id":"rgwAdmin4jTest-6d6a2645-0219-4e49-8493-0bdc8cb00e19",
+   *             "grant":{
+   *                "type":{
+   *                   "type":0
+   *                },
+   *                "id":"rgwAdmin4jTest-6d6a2645-0219-4e49-8493-0bdc8cb00e19",
+   *                "email":"",
+   *                "permission":{
+   *                   "flags":15
+   *                },
+   *                "name":"rgwAdmin4jTest-6d6a2645-0219-4e49-8493-0bdc8cb00e19",
+   *                "group":0,
+   *                "url_spec":""
+   *             }
+   *          }
+   *       ]
+   *    },
+   *    "owner":{
+   *       "id":"rgwAdmin4jTest-6d6a2645-0219-4e49-8493-0bdc8cb00e19",
+   *       "display_name":"rgwAdmin4jTest-6d6a2645-0219-4e49-8493-0bdc8cb00e19"
+   *    }
+   * }
+   * </pre>
+   *
+   * @param bucketName The bucket to which the object belong to.
+   * @param objectKey The object to read the policy from.
+   * @return If successful, returns the policy.
+   */
+  Optional<String> getObjectPolicy(String bucketName, String objectKey);
+
+  /**
+   * Read the policy of an bucket.
    *
    * <p>Note that the term "policy" here is not stand for "S3 bucket policy". Instead, it represents
    * S3 Access Control Policy (ACP).
@@ -521,9 +573,7 @@ public interface RgwAdminClient {
    * </pre>
    *
    * @param bucketName The bucket to read the policy from.
-   * @param objectKey The object to read the policy from. Set to null if you want to get policy of
-   *     bucket.
-   * @return If successful, returns the object or bucket policy.
+   * @return If successful, returns the policy.
    */
-  Optional<String> getPolicy(String bucketName, String objectKey);
+  Optional<String> getBucketPolicy(String bucketName);
 }

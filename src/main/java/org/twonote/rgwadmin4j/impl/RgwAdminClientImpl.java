@@ -276,8 +276,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public List<Key> createSecretForSubUser(
-      String userId, String subUserId, String secret) {
+  public List<Key> createSecretForSubUser(String userId, String subUserId, String secret) {
     return _createKey(
         userId,
         ImmutableMap.of(
@@ -562,7 +561,16 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public Optional<String> getPolicy(String bucketName, String objectKey) {
+  public Optional<String> getObjectPolicy(String bucketName, String objectKey) {
+    return _getPolicy(bucketName, objectKey);
+  }
+
+  @Override
+  public Optional<String> getBucketPolicy(String bucketName) {
+    return _getPolicy(bucketName, null);
+  }
+
+  private Optional<String> _getPolicy(String bucketName, String objectKey) {
     if (Strings.isNullOrEmpty(bucketName)) {
       throw new IllegalArgumentException("no bucketName");
     }
