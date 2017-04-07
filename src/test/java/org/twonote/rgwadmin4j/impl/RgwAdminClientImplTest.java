@@ -171,7 +171,7 @@ public class RgwAdminClientImplTest {
   public void createKey() throws Exception {
     testWithAUser(
         v -> {
-          List<CreateKeyResponse> response;
+          List<Key> response;
 
           // basic
           response = RGW_ADMIN_CLIENT.createKey(v.getUserId());
@@ -187,8 +187,8 @@ public class RgwAdminClientImplTest {
                   .stream()
                   .anyMatch(
                       v1 ->
-                          accessKey.equals(v1.getAccess_key())
-                              && secretKey.equals(v1.getSecret_key())));
+                          accessKey.equals(v1.getAccessKey())
+                              && secretKey.equals(v1.getSecretKey())));
 
           // user not exist
           try {
@@ -231,7 +231,7 @@ public class RgwAdminClientImplTest {
   public void createKeyForSubUser() throws Exception {
     testWithASubUser(
         v -> {
-          List<CreateKeyResponse> response;
+          List<Key> response;
 
           // basic
           String absSubUserId = v.getSubusers().get(0).getId(); // In forms of "foo:bar"
@@ -250,8 +250,8 @@ public class RgwAdminClientImplTest {
                   .anyMatch(
                       v1 ->
                           absSubUserId.equals(v1.getUser())
-                              && accessKey.equals(v1.getAccess_key())
-                              && secretKey.equals(v1.getSecret_key())));
+                              && accessKey.equals(v1.getAccessKey())
+                              && secretKey.equals(v1.getSecretKey())));
 
           // sub user not exist
           // Ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
@@ -268,13 +268,13 @@ public class RgwAdminClientImplTest {
           String userId = absSubUserId.split(":")[0];
           String subUserId = absSubUserId.split(":")[1];
 
-          List<CreateKeyResponse> response =
+          List<Key> response =
               RGW_ADMIN_CLIENT.createKeyForSubUser(userId, subUserId);
-          CreateKeyResponse keyToDelete =
+          Key keyToDelete =
               response.stream().filter(vv -> absSubUserId.equals(vv.getUser())).findFirst().get();
 
           // basic
-          RGW_ADMIN_CLIENT.removeKeyFromSubUser(userId, subUserId, keyToDelete.getAccess_key());
+          RGW_ADMIN_CLIENT.removeKeyFromSubUser(userId, subUserId, keyToDelete.getAccessKey());
           assertFalse(
               RGW_ADMIN_CLIENT
                   .getUserInfo(userId)
@@ -284,7 +284,7 @@ public class RgwAdminClientImplTest {
                   .anyMatch(
                       k ->
                           keyToDelete
-                              .getAccess_key()
+                              .getAccessKey()
                               .equals(k.getAccessKey()))); // Should not contain this key anymore
 
           // key not exist
@@ -302,7 +302,7 @@ public class RgwAdminClientImplTest {
   public void createSecretForSubUser() throws Exception {
     testWithASubUser(
         v -> {
-          List<CreateKeyResponse> response;
+          List<Key> response;
 
           // basic
           String absSubUserId = v.getSubusers().get(0).getId(); // In forms of "foo:bar"
@@ -319,7 +319,7 @@ public class RgwAdminClientImplTest {
                   .stream()
                   .anyMatch(
                       v1 ->
-                          absSubUserId.equals(v1.getUser()) && secret.equals(v1.getSecret_key())));
+                          absSubUserId.equals(v1.getUser()) && secret.equals(v1.getSecretKey())));
 
           // sub user not exist
           // Create a orphan key without user in ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)

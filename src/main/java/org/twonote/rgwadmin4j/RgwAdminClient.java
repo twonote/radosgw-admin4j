@@ -194,7 +194,7 @@ public interface RgwAdminClient {
    * @param secretKey S3 secret key
    * @return
    */
-  List<CreateKeyResponse> createKey(String userId, String accessKey, String secretKey);
+  List<Key> createKey(String userId, String accessKey, String secretKey);
 
   /**
    * Create a new S3 key pair for the specified user.
@@ -205,7 +205,7 @@ public interface RgwAdminClient {
    * @param userId the specified user.
    * @return
    */
-  List<CreateKeyResponse> createKey(String userId);
+  List<Key> createKey(String userId);
 
   /**
    * Remove an existing S3 key pair from the specified user.
@@ -224,7 +224,7 @@ public interface RgwAdminClient {
    * @param secretKey S3 secret key.
    * @return
    */
-  List<CreateKeyResponse> createKeyForSubUser(
+  List<Key> createKeyForSubUser(
       String userId, String subUserId, String accessKey, String secretKey);
 
   /**
@@ -238,7 +238,7 @@ public interface RgwAdminClient {
    *     foo:bar.
    * @return
    */
-  List<CreateKeyResponse> createKeyForSubUser(String userId, String subUserId);
+  List<Key> createKeyForSubUser(String userId, String subUserId);
 
   /**
    * Remove an existing S3 key pair from the specified sub user.
@@ -259,7 +259,7 @@ public interface RgwAdminClient {
    * @param secret
    * @return
    */
-  List<CreateKeyResponse> createSecretForSubUser(String userId, String subUserId, String secret);
+  List<Key> createSecretForSubUser(String userId, String subUserId, String secret);
 
   /**
    * Create a new swift secret for the specified sub user.
@@ -272,7 +272,7 @@ public interface RgwAdminClient {
    *     foo:bar.
    * @return
    */
-  List<CreateKeyResponse> createSecretForSubUser(String userId, String subUserId);
+  List<Key> createSecretForSubUser(String userId, String subUserId);
 
   /**
    * Remove the secret from the specified sub user.

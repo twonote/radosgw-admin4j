@@ -4,7 +4,10 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 public class Key {
-
+  /**
+   * user : rgwAdmin4jTest-69211f2b-d1c1-47e2-ade1-c0c6386db1a7 accessKey : 22742PSMHVP83QQM1232
+   * secretKey : KtgjPrNUu4uPRArJPJGmYYF07jlE966coQyvJ7pl
+   */
   @SerializedName("user")
   @Expose
   private String user;

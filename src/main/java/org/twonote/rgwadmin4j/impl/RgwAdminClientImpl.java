@@ -192,7 +192,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
     safeCall(request);
   }
 
-  private List<CreateKeyResponse> _createKey(String uid, Map<String, String> parameters) {
+  private List<Key> _createKey(String uid, Map<String, String> parameters) {
     HttpUrl.Builder urlBuilder =
         HttpUrl.parse(endpoint)
             .newBuilder()
@@ -205,7 +205,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
     Request request = new Request.Builder().put(emptyBody).url(urlBuilder.build()).build();
 
     String resp = safeCall(request);
-    Type type = new TypeToken<List<CreateKeyResponse>>() {}.getType();
+    Type type = new TypeToken<List<Key>>() {}.getType();
     return gson.fromJson(resp, type);
   }
 
@@ -225,7 +225,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public List<CreateKeyResponse> createKey(String userId, String accessKey, String secretKey) {
+  public List<Key> createKey(String userId, String accessKey, String secretKey) {
     return _createKey(
         userId,
         ImmutableMap.of(
@@ -234,7 +234,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public List<CreateKeyResponse> createKey(String userId) {
+  public List<Key> createKey(String userId) {
     return _createKey(userId, ImmutableMap.of("generate-key", "True"));
   }
 
@@ -244,7 +244,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public List<CreateKeyResponse> createKeyForSubUser(
+  public List<Key> createKeyForSubUser(
       String userId, String subUserId, String accessKey, String secretKey) {
     return _createKey(
         userId,
@@ -256,7 +256,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public List<CreateKeyResponse> createKeyForSubUser(String userId, String subUserId) {
+  public List<Key> createKeyForSubUser(String userId, String subUserId) {
     return _createKey(
         userId,
         ImmutableMap.of(
@@ -276,7 +276,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public List<CreateKeyResponse> createSecretForSubUser(
+  public List<Key> createSecretForSubUser(
       String userId, String subUserId, String secret) {
     return _createKey(
         userId,
@@ -287,7 +287,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public List<CreateKeyResponse> createSecretForSubUser(String userId, String subUserId) {
+  public List<Key> createSecretForSubUser(String userId, String subUserId) {
     return _createKey(
         userId,
         ImmutableMap.of(
