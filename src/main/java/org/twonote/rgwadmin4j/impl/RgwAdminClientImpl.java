@@ -12,10 +12,7 @@ import org.twonote.rgwadmin4j.model.usage.GetUsageResponse;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /** Created by petertc on 2/16/17. */
 public class RgwAdminClientImpl implements RgwAdminClient {
@@ -379,7 +376,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public Optional<GetBucketInfoResponse> getBucketInfo(String bucketName) {
+  public List<String> listBucket(String userId) {
     Request request =
         new Request.Builder()
             .get()
@@ -387,12 +384,57 @@ public class RgwAdminClientImpl implements RgwAdminClient {
                 HttpUrl.parse(endpoint)
                     .newBuilder()
                     .addPathSegment("bucket")
-                    .addQueryParameter("bucket", bucketName)
+                    .addQueryParameter("uid", userId)
+                    .addQueryParameter("stats", "False")
                     .build())
             .build();
 
     String resp = safeCall(request);
-    return Optional.ofNullable(gson.fromJson(resp, GetBucketInfoResponse.class));
+    Type type = new TypeToken<List<String>>() {}.getType();
+
+    return gson.fromJson(resp, type);
+  }
+
+  @Override
+  public List<GetBucketInfoResponse> listBucketInfo(String userId) {
+    return _getBucketInfo(ImmutableMap.of("uid", userId, "stats", "True"));
+  }
+
+  private List<GetBucketInfoResponse> _getBucketInfo(Map<String, String> parameters) {
+    HttpUrl.Builder urlBuilder = HttpUrl.parse(endpoint).newBuilder().addPathSegment("bucket");
+
+    appendParameters(parameters, urlBuilder);
+
+    Request request = new Request.Builder().get().url(urlBuilder.build()).build();
+
+    String resp = safeCall(request);
+
+    // ugly part...
+    if (parameters.containsKey("uid")) {
+      Type type = new TypeToken<List<GetBucketInfoResponse>>() {}.getType();
+      return gson.fromJson(resp, type);
+    } else if (parameters.containsKey("bucket")) {
+      GetBucketInfoResponse response = gson.fromJson(resp, GetBucketInfoResponse.class);
+      List<GetBucketInfoResponse> ret = new ArrayList<>();
+      if (response != null) {
+        ret.add(response);
+      }
+      return ret;
+    }
+
+    throw new RuntimeException("Parameters should have either uid or bucket");
+  }
+
+  @Override
+  public Optional<GetBucketInfoResponse> getBucketInfo(String bucketName) {
+    List<GetBucketInfoResponse> responses =
+        _getBucketInfo(ImmutableMap.of("bucket", bucketName, "stats", "True"));
+    if (responses.size() == 0) {
+      return Optional.empty();
+    } else if (responses.size() == 1) {
+      return Optional.of(responses.get(0));
+    }
+    throw new RuntimeException("Server should not return more than one bucket");
   }
 
   /**

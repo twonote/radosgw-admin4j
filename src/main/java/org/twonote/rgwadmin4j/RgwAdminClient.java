@@ -338,7 +338,21 @@ public interface RgwAdminClient {
    */
   Optional<String> checkBucketIndex(String bucketName, boolean isCheckObjects, boolean isFix);
 
-  // TODO: list bucket info by user id
+  /**
+   * List buckets belong to a user.
+   *
+   * @param userId The bucket owner we interested.
+   * @return Bucket list.
+   */
+  List<String> listBucket(String userId);
+
+  /**
+   * Get information about buckets.
+   *
+   * @param userId The user to retrieve bucket information for.
+   * @return The desired bucket information.
+   */
+  List<GetBucketInfoResponse> listBucketInfo(String userId);
 
   /**
    * Get information about a bucket.

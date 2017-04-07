@@ -4,7 +4,37 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 public class GetBucketInfoResponse {
-
+  /*
+   {
+    "bucket":"testgetbucketinfo",
+    "pool":"default.rgw.buckets.data",
+    "index_pool":"default.rgw.buckets.index",
+    "id":"064a046c-aa3b-405a-beb4-0968b75ea03f.24099.1",
+    "marker":"064a046c-aa3b-405a-beb4968b75ea03f.24099.1",
+    "owner":"testgetbucketinfouserx",
+    "ver":"0#7",
+    "master_ver":"0#0",
+    "mtime":"2017-04-07 15:07:37.280666",
+    "max_marker":"0#",
+    "usage":{
+       "rgw.main":{
+          "size":122880,
+          "size_actual":122880,
+          "size_utilized":122880,
+          "size_kb":120,
+          "size_kb_actual":120,
+          "size_kb_utilized":120,
+          "num_objects":3
+       }
+    },
+    "bucket_quota":{
+       "enabled":false,
+       "check_on_raw":false,
+       "max_size":-1,
+       "max_size_kb":0,
+       "max_objects":-1
+    }
+  */
   @SerializedName("bucket")
   @Expose
   private String bucket;

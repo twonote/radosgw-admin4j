@@ -4,6 +4,7 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.kms.model.ExpiredImportTokenException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
@@ -30,6 +31,7 @@ import java.util.function.Consumer;
 import static org.junit.Assert.*;
 
 public class RgwAdminClientImplTest {
+
   private static RgwAdminClientImpl RGW_ADMIN_CLIENT;
   private static String adminUserId;
   private static String accessKey;
@@ -709,32 +711,56 @@ public class RgwAdminClientImplTest {
   }
 
   @Test
-  public void getBucketInfo() throws Exception {
-    String userId = "testgetbucketinfouserx";
-    String bucketName = "testgetbucketinfo";
-
-    // not exist
-    assertFalse(RGW_ADMIN_CLIENT.getBucketInfo(bucketName).isPresent());
-
-    try {
-      User response = RGW_ADMIN_CLIENT.createUser(userId);
+  public void listBucketInfo() throws Exception {
+    testWithASubUser( v -> {
       AmazonS3 s3 =
           initS3(
-              response.getKeys().get(0).getAccessKey(),
-              response.getKeys().get(0).getSecretKey(),
+              v.getKeys().get(0).getAccessKey(),
+              v.getKeys().get(0).getSecretKey(),
               s3Endpoint);
-      s3.createBucket(bucketName);
-
-      GetBucketInfoResponse _response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName).get();
-      assertNotNull(_response.getId());
-
-    } finally {
-      try {
-        RGW_ADMIN_CLIENT.removeUser(userId);
-      } catch (Exception e) {
-
+      for(int i = 0; i< 3; i++) {
+        s3.createBucket(UUID.randomUUID().toString().toLowerCase());
       }
-    }
+        List<GetBucketInfoResponse> response = RGW_ADMIN_CLIENT.listBucketInfo(v.getUserId());
+      assertEquals(3, response.size());
+
+
+    });
+  }
+
+  @Test
+  public void listBucket() throws Exception {
+    testWithASubUser( v -> {
+      AmazonS3 s3 =
+          initS3(
+              v.getKeys().get(0).getAccessKey(),
+              v.getKeys().get(0).getSecretKey(),
+              s3Endpoint);
+      for(int i = 0; i< 3; i++) {
+        s3.createBucket(UUID.randomUUID().toString().toLowerCase());
+      }
+      List<String> response = RGW_ADMIN_CLIENT.listBucket(v.getUserId());
+      assertEquals(3, response.size());
+    });
+  }
+
+
+  @Test
+  public void getBucketInfo() throws Exception {
+    testWithASubUser( v -> {
+      AmazonS3 s3 =
+          initS3(
+              v.getKeys().get(0).getAccessKey(),
+              v.getKeys().get(0).getSecretKey(),
+              s3Endpoint);
+      String bucketName = UUID.randomUUID().toString().toLowerCase();
+        s3.createBucket(bucketName);
+
+      Optional<GetBucketInfoResponse> response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName);
+      assertTrue(response.isPresent());
+
+
+    });
   }
 
   @Test
