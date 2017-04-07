@@ -187,51 +187,101 @@ public interface RgwAdminClient {
   void removeSubUser(String uid, String subUserId);
 
   /**
-   * Create a new key.
+   * Create a new S3 key pair for the specified user.
    *
-   * <p>If a subuser is specified then by default created keys will be swift type. If only one of
-   * access-key or secret-key is provided the committed key will be automatically generated, that is
-   * if only secret-key is specified then access-key will be automatically generated. By default, a
-   * generated key is added to the keyring without replacing an existing key pair. If access-key is
-   * specified and refers to an existing key owned by the user then it will be modified. The
-   * response is a container listing all keys of the same type as the key created. Note that when
-   * creating a swift key, specifying the option access-key will have no effect. Additionally, only
-   * one swift key may be held by each user or subuser.
-   *
-   * <p>Available parameters are:
-   *
-   * <ul>
-   * <li>subuser: The subuser ID to receive the new key.
-   * <li>key-type: Key type to be generated, options are: swift, s3 (default).
-   * <li>access-key: Specify the access key.
-   * <li>secret-key: Specify the secret key.
-   * </ul>
-   *
-   * @param uid The user ID to receive the new key.
-   * @param parameters Create key options.
-   * @return Create key response.
+   * @param userId the specified user.
+   * @param accessKey S3 access key
+   * @param secretKey S3 secret key
+   * @return
    */
-  List<CreateKeyResponse> createKey(String uid, Map<String, String> parameters);
+  List<CreateKeyResponse> createKey(String userId, String accessKey, String secretKey);
 
   /**
-   * Create a new key.
+   * Create a new S3 key pair for the specified user.
    *
-   * <p>The S3 key will be automatically generated for the user. If you want to specify the key,
-   * create swift key for the subuser or do other customizations, please use {@link
-   * #createKey(String, Map)}
+   * <p>The S3 access key pair will be automatically generated for the user. If you want to specify
+   * the key, please use {@link #createKey(String, String, String)}
    *
-   * @param uid The user ID to receive the new key.
-   * @return Create key response.
+   * @param userId the specified user.
+   * @return
    */
-  List<CreateKeyResponse> createKey(String uid);
+  List<CreateKeyResponse> createKey(String userId);
 
   /**
-   * Remove an existing key.
+   * Remove an existing S3 key pair from the specified user.
    *
    * @param accessKey The access key belonging to the key pair to remove.
-   * @param keyType Key type to be removed, options are: swift, s3.
    */
-  void removeKey(String accessKey, String keyType);
+  void removeKey(String userId, String accessKey);
+
+  /**
+   * Create a new S3 key pair for the specified sub user.
+   *
+   * @param userId the specified user.
+   * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
+   *     foo:bar.
+   * @param accessKey S3 access key.
+   * @param secretKey S3 secret key.
+   * @return
+   */
+  List<CreateKeyResponse> createKeyForSubUser(
+      String userId, String subUserId, String accessKey, String secretKey);
+
+  /**
+   * Create a new S3 key pair for the specified sub user.
+   *
+   * <p>The S3 access key pair will be automatically generated for the user. If you want to specify
+   * the key, please use {@link #createKeyForSubUser(String, String, String, String)}
+   *
+   * @param userId the specified user.
+   * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
+   *     foo:bar.
+   * @return
+   */
+  List<CreateKeyResponse> createKeyForSubUser(String userId, String subUserId);
+
+  /**
+   * Remove an existing S3 key pair from the specified sub user.
+   *
+   * @param userId the specified user.
+   * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
+   *     foo:bar.
+   * @param accessKey The access key belonging to the key pair to remove.
+   */
+  void removeKeyFromSubUser(String userId, String subUserId, String accessKey);
+
+  /**
+   * Create a new swift secret for the specified sub user.
+   *
+   * @param userId the specified user.
+   * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
+   *     foo:bar.
+   * @param secret
+   * @return
+   */
+  List<CreateKeyResponse> createSecretForSubUser(String userId, String subUserId, String secret);
+
+  /**
+   * Create a new swift secret for the specified sub user.
+   *
+   * <p>The secret will be automatically generated for the user. If you want to specify it, please
+   * use {@link #createSecretForSubUser(String, String)}
+   *
+   * @param userId the specified user.
+   * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
+   *     foo:bar.
+   * @return
+   */
+  List<CreateKeyResponse> createSecretForSubUser(String userId, String subUserId);
+
+  /**
+   * Remove the secret from the specified sub user.
+   *
+   * @param userId the specified user.
+   * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
+   *     foo:bar.
+   */
+  void removeSecretFromSubuser(String userId, String subUserId);
 
   /**
    * Delete an existing bucket.

@@ -192,8 +192,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
     safeCall(request);
   }
 
-  @Override
-  public List<CreateKeyResponse> createKey(String uid, Map<String, String> parameters) {
+  private List<CreateKeyResponse> _createKey(String uid, Map<String, String> parameters) {
     HttpUrl.Builder urlBuilder =
         HttpUrl.parse(endpoint)
             .newBuilder()
@@ -210,27 +209,96 @@ public class RgwAdminClientImpl implements RgwAdminClient {
     return gson.fromJson(resp, type);
   }
 
-  @Override
-  public List<CreateKeyResponse> createKey(String uid) {
-    return createKey(uid, null);
+  private void _removeKey(String uid, Map<String, String> parameters) {
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("user")
+            .query("key")
+            .addQueryParameter("uid", uid);
+
+    appendParameters(parameters, urlBuilder);
+
+    Request request = new Request.Builder().delete().url(urlBuilder.build()).build();
+
+    safeCall(request);
   }
 
   @Override
-  public void removeKey(String accessKey, String keyType) {
-    Request request =
-        new Request.Builder()
-            .delete()
-            .url(
-                HttpUrl.parse(endpoint)
-                    .newBuilder()
-                    .addPathSegment("user")
-                    .query("key")
-                    .addQueryParameter("access-key", accessKey)
-                    .addQueryParameter("key-type", keyType)
-                    .build())
-            .build();
+  public List<CreateKeyResponse> createKey(String userId, String accessKey, String secretKey) {
+    return _createKey(
+        userId,
+        ImmutableMap.of(
+            "access-key", accessKey,
+            "secret-key", secretKey));
+  }
 
-    safeCall(request);
+  @Override
+  public List<CreateKeyResponse> createKey(String userId) {
+    return _createKey(userId, ImmutableMap.of("generate-key", "True"));
+  }
+
+  @Override
+  public void removeKey(String userId, String accessKey) {
+    _removeKey(userId, ImmutableMap.of("access-key", accessKey));
+  }
+
+  @Override
+  public List<CreateKeyResponse> createKeyForSubUser(
+      String userId, String subUserId, String accessKey, String secretKey) {
+    return _createKey(
+        userId,
+        ImmutableMap.of(
+            "subuser", subUserId,
+            "access-key", accessKey,
+            "secret-key", secretKey,
+            "key-type", "s3"));
+  }
+
+  @Override
+  public List<CreateKeyResponse> createKeyForSubUser(String userId, String subUserId) {
+    return _createKey(
+        userId,
+        ImmutableMap.of(
+            "subuser", subUserId,
+            "key-type", "s3",
+            "generate-key", "True"));
+  }
+
+  @Override
+  public void removeKeyFromSubUser(String userId, String subUserId, String accessKey) {
+    _removeKey(
+        userId,
+        ImmutableMap.of(
+            "subuser", subUserId,
+            "key-type", "s3",
+            "access-key", accessKey));
+  }
+
+  @Override
+  public List<CreateKeyResponse> createSecretForSubUser(
+      String userId, String subUserId, String secret) {
+    return _createKey(
+        userId,
+        ImmutableMap.of(
+            "subuser", subUserId,
+            "secret-key", secret,
+            "key-type", "swift"));
+  }
+
+  @Override
+  public List<CreateKeyResponse> createSecretForSubUser(String userId, String subUserId) {
+    return _createKey(
+        userId,
+        ImmutableMap.of(
+            "subuser", subUserId,
+            "key-type", "swift",
+            "generate-key", "True"));
+  }
+
+  @Override
+  public void removeSecretFromSubuser(String userId, String subUserId) {
+    _removeKey(userId, ImmutableMap.of("subuser", subUserId, "key-type", "swift"));
   }
 
   /*

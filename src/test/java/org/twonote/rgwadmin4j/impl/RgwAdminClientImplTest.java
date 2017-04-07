@@ -157,6 +157,201 @@ public class RgwAdminClientImplTest {
     }
   }
 
+  private static void testWithASubUser(Consumer<User> test) {
+    String subUserId = UUID.randomUUID().toString();
+    testWithAUser(
+        v -> {
+          RGW_ADMIN_CLIENT.createSubUser(v.getUserId(), subUserId, null);
+          User user = RGW_ADMIN_CLIENT.getUserInfo(v.getUserId()).get();
+          test.accept(user);
+        });
+  }
+
+  @Test
+  public void createKey() throws Exception {
+    testWithAUser(
+        v -> {
+          List<CreateKeyResponse> response;
+
+          // basic
+          response = RGW_ADMIN_CLIENT.createKey(v.getUserId());
+          assertEquals(2, response.size());
+          assertEquals(2, RGW_ADMIN_CLIENT.getUserInfo(v.getUserId()).get().getKeys().size());
+
+          // specify the key
+          String accessKey = v.getUserId() + "-accessKey";
+          String secretKey = v.getUserId() + "-secretKey";
+          response = RGW_ADMIN_CLIENT.createKey(v.getUserId(), accessKey, secretKey);
+          assertTrue(
+              response
+                  .stream()
+                  .anyMatch(
+                      v1 ->
+                          accessKey.equals(v1.getAccess_key())
+                              && secretKey.equals(v1.getSecret_key())));
+
+          // user not exist
+          try {
+            RGW_ADMIN_CLIENT.createKey(UUID.randomUUID().toString());
+          } catch (RgwAdminException e) {
+            assertEquals("InvalidArgument", e.getMessage());
+          }
+        });
+  }
+
+  @Test
+  public void removeKey() throws Exception {
+    testWithAUser(
+        v -> {
+          String accessKey = v.getKeys().get(0).getAccessKey();
+
+          // basic
+          RGW_ADMIN_CLIENT.removeKey(v.getUserId(), accessKey);
+          assertEquals(0, RGW_ADMIN_CLIENT.getUserInfo(v.getUserId()).get().getKeys().size());
+
+          // key not exist
+          try {
+            RGW_ADMIN_CLIENT.removeKey(v.getUserId(), UUID.randomUUID().toString());
+          } catch (RgwAdminException e) {
+            assertEquals(
+                403, e.status()); // ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
+          }
+
+          // user not exist
+          try {
+            RGW_ADMIN_CLIENT.removeKey(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+          } catch (RgwAdminException e) {
+            assertEquals(
+                400, e.status()); // ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
+          }
+        });
+  }
+
+  @Test
+  public void createKeyForSubUser() throws Exception {
+    testWithASubUser(
+        v -> {
+          List<CreateKeyResponse> response;
+
+          // basic
+          String absSubUserId = v.getSubusers().get(0).getId(); // In forms of "foo:bar"
+          String userId = absSubUserId.split(":")[0];
+          String subUserId = absSubUserId.split(":")[1];
+          response = RGW_ADMIN_CLIENT.createKeyForSubUser(userId, subUserId);
+          response.stream().anyMatch(vv -> absSubUserId.equals(vv.getUser()));
+
+          // specify the key
+          String accessKey = v.getUserId() + "-accessKey";
+          String secretKey = v.getUserId() + "-secretKey";
+          response = RGW_ADMIN_CLIENT.createKeyForSubUser(userId, subUserId, accessKey, secretKey);
+          assertTrue(
+              response
+                  .stream()
+                  .anyMatch(
+                      v1 ->
+                          absSubUserId.equals(v1.getUser())
+                              && accessKey.equals(v1.getAccess_key())
+                              && secretKey.equals(v1.getSecret_key())));
+
+          // sub user not exist
+          // Ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
+          // Create a orphan key without user in
+          RGW_ADMIN_CLIENT.createKeyForSubUser(userId, "XXXXXXX");
+        });
+  }
+
+  @Test
+  public void removeKeyFromSubUser() throws Exception {
+    testWithASubUser(
+        v -> {
+          String absSubUserId = v.getSubusers().get(0).getId(); // In forms of "foo:bar"
+          String userId = absSubUserId.split(":")[0];
+          String subUserId = absSubUserId.split(":")[1];
+
+          List<CreateKeyResponse> response =
+              RGW_ADMIN_CLIENT.createKeyForSubUser(userId, subUserId);
+          CreateKeyResponse keyToDelete =
+              response.stream().filter(vv -> absSubUserId.equals(vv.getUser())).findFirst().get();
+
+          // basic
+          RGW_ADMIN_CLIENT.removeKeyFromSubUser(userId, subUserId, keyToDelete.getAccess_key());
+          assertFalse(
+              RGW_ADMIN_CLIENT
+                  .getUserInfo(userId)
+                  .get()
+                  .getKeys()
+                  .stream()
+                  .anyMatch(
+                      k ->
+                          keyToDelete
+                              .getAccess_key()
+                              .equals(k.getAccessKey()))); // Should not contain this key anymore
+
+          // key not exist
+          try {
+            RGW_ADMIN_CLIENT.removeKeyFromSubUser(userId, subUserId, UUID.randomUUID().toString());
+          } catch (RgwAdminException e) {
+            // ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
+            assertEquals("InvalidAccessKeyId", e.getMessage());
+            assertEquals(403, e.status());
+          }
+        });
+  }
+
+  @Test
+  public void createSecretForSubUser() throws Exception {
+    testWithASubUser(
+        v -> {
+          List<CreateKeyResponse> response;
+
+          // basic
+          String absSubUserId = v.getSubusers().get(0).getId(); // In forms of "foo:bar"
+          String userId = absSubUserId.split(":")[0];
+          String subUserId = absSubUserId.split(":")[1];
+          response = RGW_ADMIN_CLIENT.createSecretForSubUser(userId, subUserId);
+          response.stream().anyMatch(vv -> absSubUserId.equals(vv.getUser()));
+
+          // specify the key
+          String secret = v.getUserId() + "-secret";
+          response = RGW_ADMIN_CLIENT.createSecretForSubUser(userId, subUserId, secret);
+          assertTrue(
+              response
+                  .stream()
+                  .anyMatch(
+                      v1 ->
+                          absSubUserId.equals(v1.getUser()) && secret.equals(v1.getSecret_key())));
+
+          // sub user not exist
+          // Create a orphan key without user in ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
+          RGW_ADMIN_CLIENT.createSecretForSubUser(userId, subUserId);
+        });
+  }
+
+  @Test
+  public void removeSecretFromSubUser() throws Exception {
+    testWithASubUser(
+        v -> {
+          String absSubUserId = v.getSubusers().get(0).getId(); // In forms of "foo:bar"
+          String userId = absSubUserId.split(":")[0];
+          String subUserId = absSubUserId.split(":")[1];
+
+          RGW_ADMIN_CLIENT.createSecretForSubUser(userId, subUserId);
+
+          // basic
+          RGW_ADMIN_CLIENT.removeSecretFromSubuser(userId, subUserId);
+          assertFalse(
+              RGW_ADMIN_CLIENT
+                  .getUserInfo(userId)
+                  .get()
+                  .getSwiftKeys()
+                  .stream()
+                  .anyMatch(
+                      k ->
+                          absSubUserId.equals(
+                              k.getUser()))); // The sub user should not have swift key/secret
+        });
+  }
+
   @Test
   @Ignore("See trimUsage()")
   public void trimUserUsage() throws Exception {}
@@ -301,52 +496,6 @@ public class RgwAdminClientImplTest {
           String username = response2.getSwiftKeys().get(0).getUser();
           String password = response2.getSwiftKeys().get(0).getSecretKey();
           testSwiftConnectivity(username, password);
-        });
-  }
-
-  @Test
-  public void createKey() throws Exception {
-    testWithAUser(
-        v -> {
-          List<CreateKeyResponse> response;
-
-          // basic
-          response = RGW_ADMIN_CLIENT.createKey(v.getUserId());
-          assertEquals(2, response.size());
-          assertEquals(2, RGW_ADMIN_CLIENT.getUserInfo(v.getUserId()).get().getKeys().size());
-
-          // specify the key
-          Map<String, String> paras = ImmutableMap.of("access-key", UUID.randomUUID().toString());
-          response = RGW_ADMIN_CLIENT.createKey(v.getUserId(), paras);
-          assertTrue(
-              response.stream().anyMatch(v1 -> paras.get("access-key").equals(v1.getAccess_key())));
-
-          // user not exist
-          try {
-            RGW_ADMIN_CLIENT.createKey(UUID.randomUUID().toString());
-          } catch (RgwAdminException e) {
-            assertEquals("InvalidArgument", e.getMessage());
-          }
-        });
-  }
-
-  @Test
-  public void removeKey() throws Exception {
-    testWithAUser(
-        v -> {
-          String accessKey = v.getKeys().get(0).getAccessKey();
-
-          // basic
-          RGW_ADMIN_CLIENT.removeKey(accessKey, "s3");
-          assertEquals(0, RGW_ADMIN_CLIENT.getUserInfo(v.getUserId()).get().getKeys().size());
-
-          // not exist
-          try {
-            RGW_ADMIN_CLIENT.removeKey(accessKey, "s3");
-          } catch (RgwAdminException e) {
-            assertEquals(
-                403, e.status()); // ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
-          }
         });
   }
 
