@@ -296,7 +296,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public void removeSecretFromSubuser(String userId, String subUserId) {
+  public void removeSecretFromSubUser(String userId, String subUserId) {
     _removeKey(userId, ImmutableMap.of("subuser", subUserId, "key-type", "swift"));
   }
 

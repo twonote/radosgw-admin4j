@@ -336,7 +336,7 @@ public class RgwAdminClientImplTest {
           RGW_ADMIN_CLIENT.createSecretForSubUser(userId, subUserId);
 
           // basic
-          RGW_ADMIN_CLIENT.removeSecretFromSubuser(userId, subUserId);
+          RGW_ADMIN_CLIENT.removeSecretFromSubUser(userId, subUserId);
           assertFalse(
               RGW_ADMIN_CLIENT
                   .getUserInfo(userId)

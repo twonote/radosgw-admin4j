@@ -281,7 +281,7 @@ public interface RgwAdminClient {
    * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
    *     foo:bar.
    */
-  void removeSecretFromSubuser(String userId, String subUserId);
+  void removeSecretFromSubUser(String userId, String subUserId);
 
   /**
    * Delete an existing bucket.
@@ -387,8 +387,6 @@ public interface RgwAdminClient {
    * @return The user information.
    */
   User createUser(String userId, Map<String, String> parameters);
-
-  // TODO: list users
 
   /**
    * Get user information.
