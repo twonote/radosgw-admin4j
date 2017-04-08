@@ -1,5 +1,6 @@
 package org.twonote.rgwadmin4j.impl;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
@@ -94,7 +95,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public void addUserCapability(String uid, String userCaps) {
+  public List<Cap> addUserCapability(String uid, List<Cap> userCaps) {
     Request request =
         new Request.Builder()
             .put(emptyBody)
@@ -104,15 +105,17 @@ public class RgwAdminClientImpl implements RgwAdminClient {
                     .addPathSegment("user")
                     .query("caps")
                     .addQueryParameter("uid", uid)
-                    .addQueryParameter("user-caps", userCaps)
+                    .addQueryParameter("user-caps", Joiner.on(";").join(userCaps))
                     .build())
             .build();
 
-    safeCall(request);
+    String resp = safeCall(request);
+    Type type = new TypeToken<List<Cap>>() {}.getType();
+    return gson.fromJson(resp, type);
   }
 
   @Override
-  public void removeUserCapability(String uid, String userCaps) {
+  public List<Cap> removeUserCapability(String uid, List<Cap> userCaps) {
     Request request =
         new Request.Builder()
             .delete()
@@ -122,11 +125,13 @@ public class RgwAdminClientImpl implements RgwAdminClient {
                     .addPathSegment("user")
                     .query("caps")
                     .addQueryParameter("uid", uid)
-                    .addQueryParameter("user-caps", userCaps)
+                    .addQueryParameter("user-caps", Joiner.on(";").join(userCaps))
                     .build())
             .build();
 
-    safeCall(request);
+    String resp = safeCall(request);
+    Type type = new TypeToken<List<Cap>>() {}.getType();
+    return gson.fromJson(resp, type);
   }
 
   @Override

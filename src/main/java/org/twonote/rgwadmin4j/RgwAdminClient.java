@@ -93,27 +93,24 @@ public interface RgwAdminClient {
   /**
    * Add an administrative capability to a specified user.
    *
-   * <p>The capability is in forms of [users|buckets|metadata|usage|zone]=[*|read|write|read, write]
-   *
    * <p>Note that you can get the capability by {@link #getUserInfo(String)}
    *
    * @param uid The user ID to add an administrative capability to.
-   * @param userCaps The administrative capability to add to the user. Example: usage=read,write
+   * @param userCaps The administrative capability to add to the user.
+   * @return The user’s capabilities after the operation.
    */
-  void addUserCapability(String uid, String userCaps);
+  List<Cap> addUserCapability(String uid, List<Cap> userCaps);
 
   /**
    * Remove an administrative capability from a specified user.
    *
-   * <p>The capability is in forms of [users|buckets|metadata|usage|zone]=[*|read|write|read, write]
-   *
    * <p>Note that you can get the capability by {@link #getUserInfo(String)}
    *
    * @param uid The user ID to remove an administrative capability from.
-   * @param userCaps The administrative capabilities to remove from the user. Example:
-   *     usage=read,write
+   * @param userCaps The administrative capabilities to remove from the user.
+   * @return The user’s capabilities after the operation.
    */
-  void removeUserCapability(String uid, String userCaps);
+  List<Cap> removeUserCapability(String uid, List<Cap> userCaps);
 
   /**
    * Create a new subuser
