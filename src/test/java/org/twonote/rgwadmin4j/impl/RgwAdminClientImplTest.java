@@ -21,7 +21,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.twonote.rgwadmin4j.RgwAdminException;
 import org.twonote.rgwadmin4j.model.*;
-import org.twonote.rgwadmin4j.model.usage.GetUsageResponse;
 
 import java.io.*;
 import java.util.*;
@@ -363,7 +362,7 @@ public class RgwAdminClientImplTest {
 
           String userId = v.getUserId();
 
-          GetUsageResponse response;
+          UsageInfo response;
           response = RGW_ADMIN_CLIENT.getUserUsage(userId).get();
           if (!response.getSummary().stream().anyMatch(vv -> userId.equals(vv.getUser()))) {
             fail("No usage log corresponding to the given user id...need more sleep?");
@@ -398,7 +397,7 @@ public class RgwAdminClientImplTest {
           // Do something to let usage log generated.
           doSomething(v);
 
-          GetUsageResponse response;
+          UsageInfo response;
 
           response = RGW_ADMIN_CLIENT.getUsage(null).get();
           if (!response.getSummary().stream().anyMatch(vv -> userId.equals(vv.getUser()))) {
@@ -518,11 +517,11 @@ public class RgwAdminClientImplTest {
         });
   }
 
-  @Ignore
+  @Ignore("See getAndSetUserQuota()")
   @Test
   public void getUserQuota() throws Exception {}
 
-  @Ignore
+  @Ignore("See getAndSetUserQuota()")
   @Test
   public void setUserQuota() throws Exception {}
 
@@ -634,12 +633,12 @@ public class RgwAdminClientImplTest {
               s3Endpoint);
       s3.createBucket(bucketName);
 
-      GetBucketInfoResponse _response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName).get();
+      BucketInfo _response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName).get();
 
       // basic
       String bucketId = _response.getId();
       RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId, adminUserId);
-      GetBucketInfoResponse __response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName).get();
+      BucketInfo __response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName).get();
       assertEquals(adminUserId, __response.getOwner());
 
       // execute again
@@ -682,7 +681,7 @@ public class RgwAdminClientImplTest {
           for (int i = 0; i < 3; i++) {
             s3.createBucket(UUID.randomUUID().toString().toLowerCase());
           }
-          List<GetBucketInfoResponse> response = RGW_ADMIN_CLIENT.listBucketInfo(v.getUserId());
+          List<BucketInfo> response = RGW_ADMIN_CLIENT.listBucketInfo(v.getUserId());
           assertEquals(3, response.size());
         });
   }
@@ -712,7 +711,7 @@ public class RgwAdminClientImplTest {
           String bucketName = UUID.randomUUID().toString().toLowerCase();
           s3.createBucket(bucketName);
 
-          Optional<GetBucketInfoResponse> response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName);
+          Optional<BucketInfo> response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName);
           assertTrue(response.isPresent());
         });
   }
@@ -790,18 +789,21 @@ public class RgwAdminClientImplTest {
 
   @Test
   public void suspendUser() throws Exception {
-    String userId = "bobx" + UUID.randomUUID().toString();
-    try {
-      RGW_ADMIN_CLIENT.createUser(userId);
-      RGW_ADMIN_CLIENT.suspendUser(userId);
-      User response = RGW_ADMIN_CLIENT.getUserInfo(userId).get();
-      assertEquals(Integer.valueOf(1), response.getSuspended());
-    } finally {
-      RGW_ADMIN_CLIENT.removeUser(userId);
-    }
+    testWithASubUser(
+        v -> {
+          String userId = v.getUserId();
+          User response;
 
-    // not exist
-    RGW_ADMIN_CLIENT.suspendUser(UUID.randomUUID().toString());
+          // suspend
+          RGW_ADMIN_CLIENT.suspendUser(userId, true);
+          response = RGW_ADMIN_CLIENT.getUserInfo(userId).get();
+          assertEquals(Integer.valueOf(1), response.getSuspended());
+
+          // resume
+          RGW_ADMIN_CLIENT.suspendUser(userId, false);
+          response = RGW_ADMIN_CLIENT.getUserInfo(userId).get();
+          assertEquals(Integer.valueOf(0), response.getSuspended());
+        });
   }
 
   @Test
@@ -884,7 +886,7 @@ public class RgwAdminClientImplTest {
           // default false
           quota = RGW_ADMIN_CLIENT.getUserQuota(userId).get();
           assertEquals(false, quota.getEnabled());
-          assertEquals(Integer.valueOf(-1), quota.getMaxObjects());
+          assertEquals(Long.valueOf(-1), quota.getMaxObjects());
           assertTrue(
               quota.getMaxSizeKb() == -1 // jewel
                   || quota.getMaxSizeKb() == 0 // kraken
@@ -894,8 +896,8 @@ public class RgwAdminClientImplTest {
           RGW_ADMIN_CLIENT.setUserQuota(userId, 1, 1);
           quota = RGW_ADMIN_CLIENT.getUserQuota(userId).get();
           assertEquals(true, quota.getEnabled());
-          assertEquals(Integer.valueOf(1), quota.getMaxObjects());
-          assertEquals(Integer.valueOf(1), quota.getMaxSizeKb());
+          assertEquals(Long.valueOf(1), quota.getMaxObjects());
+          assertEquals(Long.valueOf(1), quota.getMaxSizeKb());
         });
 
     // not exist

@@ -1,13 +1,22 @@
 package org.twonote.rgwadmin4j;
 
 import org.twonote.rgwadmin4j.model.*;
-import org.twonote.rgwadmin4j.model.usage.GetUsageResponse;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/** Created by petertc on 3/14/17. */
+/**
+ * Radosgw administrator
+ *
+ * <p>Administer the Ceph Object Storage (a.k.a. Radosgw) service with user management, access
+ * controls, quotas and usage tracking among other features.
+ *
+ * <p>Note that to some operations needs proper configurations on radosgw, and require that the
+ * requester holds special administrative capabilities.
+ *
+ * <p>Created by petertc on 3/14/17.
+ */
 public interface RgwAdminClient {
   /**
    * Remove usage information for specified user. With no dates specified, removes all usage
@@ -48,21 +57,21 @@ public interface RgwAdminClient {
    *
    * <p>See {@link #getUsage(Map)}
    */
-  Optional<GetUsageResponse> getUserUsage(String userId);
+  Optional<UsageInfo> getUserUsage(String userId);
 
   /**
    * Request bandwidth usage information for specified user.
    *
    * <p>See {@link #getUsage(Map)}
    */
-  Optional<GetUsageResponse> getUserUsage(String userId, Map<String, String> parameters);
+  Optional<UsageInfo> getUserUsage(String userId, Map<String, String> parameters);
 
   /**
    * Request bandwidth usage information.
    *
    * <p>See {@link #getUsage(Map)}
    */
-  Optional<GetUsageResponse> getUsage();
+  Optional<UsageInfo> getUsage();
 
   /**
    * Request bandwidth usage information.
@@ -88,7 +97,7 @@ public interface RgwAdminClient {
    * @param parameters optional parameters to filter the query result.
    * @return Request bandwidth usage information.
    */
-  Optional<GetUsageResponse> getUsage(Map<String, String> parameters);
+  Optional<UsageInfo> getUsage(Map<String, String> parameters);
 
   /**
    * Add an administrative capability to a specified user.
@@ -349,7 +358,7 @@ public interface RgwAdminClient {
    * @param userId The user to retrieve bucket information for.
    * @return The desired bucket information.
    */
-  List<GetBucketInfoResponse> listBucketInfo(String userId);
+  List<BucketInfo> listBucketInfo(String userId);
 
   /**
    * Get information about a bucket.
@@ -357,7 +366,7 @@ public interface RgwAdminClient {
    * @param bucketName The bucket to return info on.
    * @return The desired bucket information.
    */
-  Optional<GetBucketInfoResponse> getBucketInfo(String bucketName);
+  Optional<BucketInfo> getBucketInfo(String bucketName);
 
   /**
    * Create a new user.
@@ -427,7 +436,7 @@ public interface RgwAdminClient {
    * @param userId The user ID to be modified.
    * @param parameters
    */
-  void modifyUser(String userId, Map<String, String> parameters);
+  User modifyUser(String userId, Map<String, String> parameters);
 
   /**
    * Suspend a user
@@ -441,7 +450,7 @@ public interface RgwAdminClient {
    * Suspend or resume a user
    *
    * @param userId The user ID to be suspended or resumed.
-   * @param suspend switch suspended or resumed.
+   * @param suspend Set true to suspend the user, and vice versa.
    */
   void suspendUser(String userId, boolean suspend);
 

@@ -5,6 +5,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
+/** Represents the user information. */
 public class User {
 
   @SerializedName("user_id")

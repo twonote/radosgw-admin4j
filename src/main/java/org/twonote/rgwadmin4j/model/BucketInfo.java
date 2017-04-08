@@ -3,7 +3,8 @@ package org.twonote.rgwadmin4j.model;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class GetBucketInfoResponse {
+/** Represents the bucket information. */
+public class BucketInfo {
   /*
    {
     "bucket":"testgetbucketinfo",
@@ -177,5 +178,90 @@ public class GetBucketInfoResponse {
 
   public void setBucketQuota(Quota bucketQuota) {
     this.bucketQuota = bucketQuota;
+  }
+
+  /** Bucket stats information. */
+  public static class Usage {
+    @SerializedName("rgw.main")
+    private RgwMain rgwMain;
+
+    public RgwMain getRgwMain() {
+      return rgwMain;
+    }
+
+    public void setRgwMain(RgwMain rgwMain) {
+      this.rgwMain = rgwMain;
+    }
+
+    public static class RgwMain {
+      /**
+       * size : 122880 size_actual : 122880 size_utilized : 122880 size_kb : 120 size_kb_actual :
+       * 120 size_kb_utilized : 120 num_objects : 3
+       */
+      private long size;
+
+      private long size_actual;
+      private long size_utilized;
+      private long size_kb;
+      private long size_kb_actual;
+      private long size_kb_utilized;
+      private long num_objects;
+
+      public long getSize() {
+        return size;
+      }
+
+      public void setSize(long size) {
+        this.size = size;
+      }
+
+      public long getSize_actual() {
+        return size_actual;
+      }
+
+      public void setSize_actual(long size_actual) {
+        this.size_actual = size_actual;
+      }
+
+      public long getSize_utilized() {
+        return size_utilized;
+      }
+
+      public void setSize_utilized(long size_utilized) {
+        this.size_utilized = size_utilized;
+      }
+
+      public long getSize_kb() {
+        return size_kb;
+      }
+
+      public void setSize_kb(long size_kb) {
+        this.size_kb = size_kb;
+      }
+
+      public long getSize_kb_actual() {
+        return size_kb_actual;
+      }
+
+      public void setSize_kb_actual(long size_kb_actual) {
+        this.size_kb_actual = size_kb_actual;
+      }
+
+      public long getSize_kb_utilized() {
+        return size_kb_utilized;
+      }
+
+      public void setSize_kb_utilized(long size_kb_utilized) {
+        this.size_kb_utilized = size_kb_utilized;
+      }
+
+      public long getNum_objects() {
+        return num_objects;
+      }
+
+      public void setNum_objects(long num_objects) {
+        this.num_objects = num_objects;
+      }
+    }
   }
 }

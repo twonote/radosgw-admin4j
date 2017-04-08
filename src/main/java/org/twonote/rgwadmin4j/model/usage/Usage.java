@@ -5,10 +5,10 @@ public class Usage {
   /** category : create_bucket bytes_sent : 171 bytes_received : 0 ops : 9 successful_ops : 9 */
   private String category;
 
-  private int bytes_sent;
-  private int bytes_received;
-  private int ops;
-  private int successful_ops;
+  private long bytes_sent;
+  private long bytes_received;
+  private long ops;
+  private long successful_ops;
 
   public String getCategory() {
     return category;
@@ -18,35 +18,35 @@ public class Usage {
     this.category = category;
   }
 
-  public int getBytes_sent() {
+  public long getBytes_sent() {
     return bytes_sent;
   }
 
-  public void setBytes_sent(int bytes_sent) {
+  public void setBytes_sent(long bytes_sent) {
     this.bytes_sent = bytes_sent;
   }
 
-  public int getBytes_received() {
+  public long getBytes_received() {
     return bytes_received;
   }
 
-  public void setBytes_received(int bytes_received) {
+  public void setBytes_received(long bytes_received) {
     this.bytes_received = bytes_received;
   }
 
-  public int getOps() {
+  public long getOps() {
     return ops;
   }
 
-  public void setOps(int ops) {
+  public void setOps(long ops) {
     this.ops = ops;
   }
 
-  public int getSuccessful_ops() {
+  public long getSuccessful_ops() {
     return successful_ops;
   }
 
-  public void setSuccessful_ops(int successful_ops) {
+  public void setSuccessful_ops(long successful_ops) {
     this.successful_ops = successful_ops;
   }
 }

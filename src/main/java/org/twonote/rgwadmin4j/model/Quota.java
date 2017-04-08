@@ -3,19 +3,20 @@ package org.twonote.rgwadmin4j.model;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+/** Represents the user quota. */
 public class Quota {
 
   @SerializedName("enabled")
   @Expose
   private Boolean enabled;
-  // FIXME: byte or kb?
+
   @SerializedName("max_size_kb")
   @Expose
-  private Integer maxSizeKb;
+  private Long maxSizeKb;
 
   @SerializedName("max_objects")
   @Expose
-  private Integer maxObjects;
+  private Long maxObjects;
 
   public Boolean getEnabled() {
     return enabled;
@@ -25,19 +26,19 @@ public class Quota {
     this.enabled = enabled;
   }
 
-  public Integer getMaxSizeKb() {
+  public Long getMaxSizeKb() {
     return maxSizeKb;
   }
 
-  public void setMaxSizeKb(Integer maxSizeKb) {
+  public void setMaxSizeKb(Long maxSizeKb) {
     this.maxSizeKb = maxSizeKb;
   }
 
-  public Integer getMaxObjects() {
+  public Long getMaxObjects() {
     return maxObjects;
   }
 
-  public void setMaxObjects(Integer maxObjects) {
+  public void setMaxObjects(Long maxObjects) {
     this.maxObjects = maxObjects;
   }
 }

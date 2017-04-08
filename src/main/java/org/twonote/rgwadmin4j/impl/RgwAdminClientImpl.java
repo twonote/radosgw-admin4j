@@ -9,22 +9,31 @@ import okhttp3.*;
 import org.twonote.rgwadmin4j.RgwAdminClient;
 import org.twonote.rgwadmin4j.RgwAdminException;
 import org.twonote.rgwadmin4j.model.*;
-import org.twonote.rgwadmin4j.model.usage.GetUsageResponse;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.*;
 
-/** Created by petertc on 2/16/17. */
+/**
+ * Radosgw administrator implementation
+ *
+ * <p>Created by petertc on 2/16/17.
+ */
 public class RgwAdminClientImpl implements RgwAdminClient {
   private static final Gson gson = new Gson();
-  private static final Type MAP_TYPE = new TypeToken<Map<String, Object>>() {}.getType();
 
   private static final RequestBody emptyBody = RequestBody.create(null, new byte[] {});
 
   private final String endpoint;
   private final OkHttpClient client;
 
+  /**
+   * Create a Radosgw administrator implementation
+   *
+   * @param accessKey Access key of the admin who have proper administrative capabilities.
+   * @param secretKey Secret key of the admin who have proper administrative capabilities.
+   * @param endpoint Radosgw admin API endpoint, e.g., http://127.0.0.1:80/admin
+   */
   public RgwAdminClientImpl(String accessKey, String secretKey, String endpoint) {
     this.client =
         new OkHttpClient().newBuilder().addInterceptor(new S3Auth(accessKey, secretKey)).build();
@@ -64,12 +73,12 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public Optional<GetUsageResponse> getUserUsage(String userId) {
+  public Optional<UsageInfo> getUserUsage(String userId) {
     return getUserUsage(userId, null);
   }
 
   @Override
-  public Optional<GetUsageResponse> getUserUsage(String userId, Map<String, String> parameters) {
+  public Optional<UsageInfo> getUserUsage(String userId, Map<String, String> parameters) {
     if (parameters == null) {
       parameters = new HashMap<>();
     }
@@ -78,12 +87,12 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public Optional<GetUsageResponse> getUsage() {
+  public Optional<UsageInfo> getUsage() {
     return getUsage(null);
   }
 
   @Override
-  public Optional<GetUsageResponse> getUsage(Map<String, String> parameters) {
+  public Optional<UsageInfo> getUsage(Map<String, String> parameters) {
     HttpUrl.Builder urlBuilder = HttpUrl.parse(endpoint).newBuilder().addPathSegment("usage");
 
     appendParameters(parameters, urlBuilder);
@@ -91,7 +100,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
     Request request = new Request.Builder().get().url(urlBuilder.build()).build();
 
     String resp = safeCall(request);
-    return Optional.ofNullable(gson.fromJson(resp, GetUsageResponse.class));
+    return Optional.ofNullable(gson.fromJson(resp, UsageInfo.class));
   }
 
   @Override
@@ -401,11 +410,11 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public List<GetBucketInfoResponse> listBucketInfo(String userId) {
+  public List<BucketInfo> listBucketInfo(String userId) {
     return _getBucketInfo(ImmutableMap.of("uid", userId, "stats", "True"));
   }
 
-  private List<GetBucketInfoResponse> _getBucketInfo(Map<String, String> parameters) {
+  private List<BucketInfo> _getBucketInfo(Map<String, String> parameters) {
     HttpUrl.Builder urlBuilder = HttpUrl.parse(endpoint).newBuilder().addPathSegment("bucket");
 
     appendParameters(parameters, urlBuilder);
@@ -416,11 +425,11 @@ public class RgwAdminClientImpl implements RgwAdminClient {
 
     // ugly part...
     if (parameters.containsKey("uid")) {
-      Type type = new TypeToken<List<GetBucketInfoResponse>>() {}.getType();
+      Type type = new TypeToken<List<BucketInfo>>() {}.getType();
       return gson.fromJson(resp, type);
     } else if (parameters.containsKey("bucket")) {
-      GetBucketInfoResponse response = gson.fromJson(resp, GetBucketInfoResponse.class);
-      List<GetBucketInfoResponse> ret = new ArrayList<>();
+      BucketInfo response = gson.fromJson(resp, BucketInfo.class);
+      List<BucketInfo> ret = new ArrayList<>();
       if (response != null) {
         ret.add(response);
       }
@@ -431,8 +440,8 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public Optional<GetBucketInfoResponse> getBucketInfo(String bucketName) {
-    List<GetBucketInfoResponse> responses =
+  public Optional<BucketInfo> getBucketInfo(String bucketName) {
+    List<BucketInfo> responses =
         _getBucketInfo(ImmutableMap.of("bucket", bucketName, "stats", "True"));
     if (responses.size() == 0) {
       return Optional.empty();
@@ -508,7 +517,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public void modifyUser(String userId, Map<String, String> parameters) {
+  public User modifyUser(String userId, Map<String, String> parameters) {
     HttpUrl.Builder urlBuilder =
         HttpUrl.parse(endpoint)
             .newBuilder()
@@ -521,7 +530,8 @@ public class RgwAdminClientImpl implements RgwAdminClient {
 
     Request request = new Request.Builder().post(emptyBody).url(urlBuilder.build()).build();
 
-    safeCall(request);
+    String resp = safeCall(request);
+    return gson.fromJson(resp, User.class);
   }
 
   @Override
