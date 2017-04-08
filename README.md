@@ -15,7 +15,7 @@ You can obtain radosgw-admim4j from Maven Central using the following identifier
 
 ## Usage
 ```
-RgwAdminClient RGW_ADMIN_CLIENT = new RgwAdminClientImpl(accessKey, secretKey, s3Endpoint);
+RgwAdminClient RGW_ADMIN_CLIENT = new RgwAdminClientImpl(accessKey, secretKey, adminEndpoint);
 
 // create user
 CreateUserResponse response = RGW_ADMIN_CLIENT.createUser(userId);
@@ -44,6 +44,9 @@ RGW_ADMIN_CLIENT.suspendUser(userId);
 
 // Remove user
 RGW_ADMIN_CLIENT.removeUser(userId);
+
+//...please check more operations in java doc!
+
 ```
 ## Setup radosgw and do integration test
 Since this artifact is a client of radosgw, you also need one ready to use radosgw instance and one radosgw account with admin capabilities.
