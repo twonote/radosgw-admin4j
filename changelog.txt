@@ -1,3 +1,6 @@
+0.0.6 (2017-04-09)
+- Tape out the interface
+
 0.0.5 (2017-04-06)
 - Remove object
 - Get policy
