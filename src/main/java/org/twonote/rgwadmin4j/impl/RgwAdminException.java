@@ -1,4 +1,4 @@
-package org.twonote.rgwadmin4j;
+package org.twonote.rgwadmin4j.impl;
 
 /**
  * Represents Radosgw admin errors

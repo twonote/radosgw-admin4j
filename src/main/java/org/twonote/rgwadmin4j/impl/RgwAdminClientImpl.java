@@ -7,7 +7,6 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import okhttp3.*;
 import org.twonote.rgwadmin4j.RgwAdminClient;
-import org.twonote.rgwadmin4j.RgwAdminException;
 import org.twonote.rgwadmin4j.model.*;
 
 import java.io.IOException;

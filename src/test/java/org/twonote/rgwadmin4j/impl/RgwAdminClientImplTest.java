@@ -19,7 +19,6 @@ import org.javaswift.joss.model.Container;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.twonote.rgwadmin4j.RgwAdminException;
 import org.twonote.rgwadmin4j.model.*;
 
 import java.io.*;
