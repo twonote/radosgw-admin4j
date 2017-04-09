@@ -13,40 +13,41 @@ A Ceph Object Storage Admin SDK / Client Library for Java
 You can obtain radosgw-admim4j from Maven Central using the following identifier:
 * [io.github.twonote.radosgw-admin4j:0.0.5](https://search.maven.org/#artifactdetails%7Cio.github.twonote%7Cradosgw-admin4j%7C0.0.5%7Cjar)
 
-## Usage
+## Usage example
 
-Please check more operations in [java doc](https://twonote.github.io/radosgw-admin4j/apidocs/index.html)!
+Please check more operations in [java doc](https://twonote.github.io/radosgw-admin4j/apidocs/index.html?org/twonote/rgwadmin4j/RgwAdminClient.html)!
 
 ```
-RgwAdminClient RGW_ADMIN_CLIENT = new RgwAdminClientImpl(accessKey, secretKey, adminEndpoint);
+String adminAccessKey, adminSecretKey, adminEndpoint, adminUserId, userId, bucketName;
+
+RgwAdminClient RGW_ADMIN_CLIENT = new RgwAdminClientImpl(adminAccessKey, adminSecretKey, adminEndpoint);
 
 // create user
-CreateUserResponse response = RGW_ADMIN_CLIENT.createUser(userId);
+User user = RGW_ADMIN_CLIENT.createUser(userId);
 
 // Get user info 
-GetUserInfoResponse response = RGW_ADMIN_CLIENT.getUserInfo(adminUserId).get();
+user = RGW_ADMIN_CLIENT.getUserInfo(user.getUserId()).get();
 
 // Allow the user owns more buckets
-RGW_ADMIN_CLIENT.modifyUser(userId, ImmutableMap.of("max-buckets", String.valueOf(Integer.MAX_VALUE)));
+RGW_ADMIN_CLIENT.modifyUser(user.getUserId(), ImmutableMap.of("max-buckets", String.valueOf(Integer.MAX_VALUE)));
 
 // create bucket by the new user
-AmazonS3 s3 = initS3(response.getKeys().get(0).getAccessKey(), response.getKeys().get(0).getSecretKey(), s3Endpoint);
-s3.createBucket(bucketName);
+// ...(skip)
 
 // get bucket info
-GetBucketInfoResponse _response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName).get();
+BucketInfo bucketInfo = RGW_ADMIN_CLIENT.getBucketInfo(bucketName).get();
 
-// Change bucket owner
-RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId, adminUserId);
+// Change bucket owner from the new user to the admin user
+RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketInfo.getId(), adminUserId);
 
 // Remove bucket
 RGW_ADMIN_CLIENT.removeBucket(bucketName);
 
 // Suspend user
-RGW_ADMIN_CLIENT.suspendUser(userId);
+RGW_ADMIN_CLIENT.suspendUser(user.getUserId(), ture);
 
 // Remove user
-RGW_ADMIN_CLIENT.removeUser(userId);
+RGW_ADMIN_CLIENT.removeUser(user.getUserId());
 
 ```
 ## Setup radosgw and do integration test
