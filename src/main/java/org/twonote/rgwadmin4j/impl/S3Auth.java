@@ -129,13 +129,23 @@ class S3Auth implements Interceptor {
       String resource,
       Map<String, String> metas) {
 
-    StringBuilder stringToSign = new StringBuilder(
-        httpVerb + "\n" + CharMatcher.whitespace().trimFrom(contentMD5) + "\n" + CharMatcher.whitespace()
-            .trimFrom(contentType) + "\n" + date + "\n");
+    StringBuilder stringToSign =
+        new StringBuilder(
+            httpVerb
+                + "\n"
+                + CharMatcher.whitespace().trimFrom(contentMD5)
+                + "\n"
+                + CharMatcher.whitespace().trimFrom(contentType)
+                + "\n"
+                + date
+                + "\n");
     if (metas != null) {
       for (Map.Entry<String, String> entity : metas.entrySet()) {
-        stringToSign.append(CharMatcher.whitespace().trimFrom(entity.getKey())).append(":")
-            .append(CharMatcher.whitespace().trimFrom(entity.getValue())).append("\n");
+        stringToSign
+            .append(CharMatcher.whitespace().trimFrom(entity.getKey()))
+            .append(":")
+            .append(CharMatcher.whitespace().trimFrom(entity.getValue()))
+            .append("\n");
       }
     }
     stringToSign.append(resource);

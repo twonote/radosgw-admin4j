@@ -143,7 +143,8 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public List<SubUser> createSubUser(String userId, String subUserId, Map<String, String> parameters) {
+  public List<SubUser> createSubUser(
+      String userId, String subUserId, Map<String, String> parameters) {
     HttpUrl.Builder urlBuilder =
         HttpUrl.parse(endpoint)
             .newBuilder()
@@ -169,7 +170,8 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public List<SubUser> modifySubUser(String userId, String subUserId, Map<String, String> parameters) {
+  public List<SubUser> modifySubUser(
+      String userId, String subUserId, Map<String, String> parameters) {
     HttpUrl.Builder urlBuilder =
         HttpUrl.parse(endpoint)
             .newBuilder()

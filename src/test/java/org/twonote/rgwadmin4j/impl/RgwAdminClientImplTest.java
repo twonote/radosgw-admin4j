@@ -21,7 +21,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.twonote.rgwadmin4j.model.*;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -545,31 +546,29 @@ public class RgwAdminClientImplTest {
     Thread.sleep(3000);
     RGW_ADMIN_CLIENT.removeBucket(bucketName);
 
-    testWithAUser( v-> {
-      String userId = "testremovebk" + UUID.randomUUID().toString();
+    testWithAUser(
+        v -> {
+          String userId = "testremovebk" + UUID.randomUUID().toString();
 
-        User response = RGW_ADMIN_CLIENT.createUser(userId);
-        AmazonS3 s3 =
-            initS3(
-                response.getKeys().get(0).getAccessKey(),
-                response.getKeys().get(0).getSecretKey(),
-                s3Endpoint);
-        s3.createBucket(bucketName);
+          User response = RGW_ADMIN_CLIENT.createUser(userId);
+          AmazonS3 s3 =
+              initS3(
+                  response.getKeys().get(0).getAccessKey(),
+                  response.getKeys().get(0).getSecretKey(),
+                  s3Endpoint);
+          s3.createBucket(bucketName);
 
-        ByteArrayInputStream input = new ByteArrayInputStream("Hello World!".getBytes());
-        s3.putObject(bucketName, "hello.txt", input, new ObjectMetadata());
+          ByteArrayInputStream input = new ByteArrayInputStream("Hello World!".getBytes());
+          s3.putObject(bucketName, "hello.txt", input, new ObjectMetadata());
 
-        RGW_ADMIN_CLIENT.removeBucket(bucketName);
+          RGW_ADMIN_CLIENT.removeBucket(bucketName);
 
-        try {
-          s3.headBucket(new HeadBucketRequest(bucketName));
-        } catch (Exception e) {
-          assertTrue("Not Found".equals(((AmazonS3Exception) e).getErrorMessage()));
-        }
-
-    });
-
-
+          try {
+            s3.headBucket(new HeadBucketRequest(bucketName));
+          } catch (Exception e) {
+            assertTrue("Not Found".equals(((AmazonS3Exception) e).getErrorMessage()));
+          }
+        });
   }
 
   @Test
@@ -601,43 +600,41 @@ public class RgwAdminClientImplTest {
 
   @Test
   public void linkBucket() throws Exception {
-    testWithAUser( v -> {
-      String userId = "linkbkusr" + UUID.randomUUID().toString();
-      String bucketName = "linkbkusrbk" + UUID.randomUUID().toString();
-        User response = RGW_ADMIN_CLIENT.createUser(userId);
-        AmazonS3 s3 =
-            initS3(
-                response.getKeys().get(0).getAccessKey(),
-                response.getKeys().get(0).getSecretKey(),
-                s3Endpoint);
-        s3.createBucket(bucketName);
+    testWithAUser(
+        v -> {
+          String userId = "linkbkusr" + UUID.randomUUID().toString();
+          String bucketName = "linkbkusrbk" + UUID.randomUUID().toString();
+          User response = RGW_ADMIN_CLIENT.createUser(userId);
+          AmazonS3 s3 =
+              initS3(
+                  response.getKeys().get(0).getAccessKey(),
+                  response.getKeys().get(0).getSecretKey(),
+                  s3Endpoint);
+          s3.createBucket(bucketName);
 
-        BucketInfo _response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName).get();
+          BucketInfo _response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName).get();
 
-        // basic
-        String bucketId = _response.getId();
-        RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId, adminUserId);
-        BucketInfo __response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName).get();
-        assertEquals(adminUserId, __response.getOwner());
+          // basic
+          String bucketId = _response.getId();
+          RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId, adminUserId);
+          BucketInfo __response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName).get();
+          assertEquals(adminUserId, __response.getOwner());
 
-        // execute again
-        // Ceph 9.2.x throw exception; ceph 10.2.2 returns 404 so no exception will show.
-        //            exception.expect(RuntimeException.class);
-        RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId, adminUserId);
+          // execute again
+          // Ceph 9.2.x throw exception; ceph 10.2.2 returns 404 so no exception will show.
+          //            exception.expect(RuntimeException.class);
+          RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId, adminUserId);
 
-        // bad argument
-        //            exception.expect(RuntimeException.class);
-        RGW_ADMIN_CLIENT.linkBucket(bucketName + "qq", bucketId, adminUserId);
+          // bad argument
+          //            exception.expect(RuntimeException.class);
+          RGW_ADMIN_CLIENT.linkBucket(bucketName + "qq", bucketId, adminUserId);
 
-        //            exception.expect(RuntimeException.class);
-        RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId, adminUserId + "qqq");
+          //            exception.expect(RuntimeException.class);
+          RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId, adminUserId + "qqq");
 
-        //            exception.expect(RuntimeException.class);
-        RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId + "qq", adminUserId);
-
-
-    });
-
+          //            exception.expect(RuntimeException.class);
+          RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId + "qq", adminUserId);
+        });
   }
 
   @Test
