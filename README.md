@@ -101,6 +101,9 @@ rgw usage max user shards = 1
 
 Done!
 
+# Contributing
+All contributions are welcome. Our code style is [Google java style](https://google.github.io/styleguide/javaguide.html) and use [google-java-format](https://github.com/google/google-java-format) to do code formatting. Nothing else special.
+
 # Legal
 Copyright 2016 [twonote](http://twonote.github.io/) & The "radosgw-admin4j" contributors.
 
