@@ -14,6 +14,9 @@ You can obtain radosgw-admim4j from Maven Central using the following identifier
 * [io.github.twonote.radosgw-admin4j:0.0.5](https://search.maven.org/#artifactdetails%7Cio.github.twonote%7Cradosgw-admin4j%7C0.0.5%7Cjar)
 
 ## Usage
+
+Please check more operations in [java doc](https://twonote.github.io/radosgw-admin4j/apidocs/index.html)!
+
 ```
 RgwAdminClient RGW_ADMIN_CLIENT = new RgwAdminClientImpl(accessKey, secretKey, adminEndpoint);
 
@@ -44,8 +47,6 @@ RGW_ADMIN_CLIENT.suspendUser(userId);
 
 // Remove user
 RGW_ADMIN_CLIENT.removeUser(userId);
-
-//...please check more operations in java doc!
 
 ```
 ## Setup radosgw and do integration test
