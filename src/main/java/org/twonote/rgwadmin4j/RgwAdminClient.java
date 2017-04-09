@@ -1,13 +1,23 @@
 package org.twonote.rgwadmin4j;
 
 import org.twonote.rgwadmin4j.model.*;
-import org.twonote.rgwadmin4j.model.usage.GetUsageResponse;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/** Created by petertc on 3/14/17. */
+/**
+ * Radosgw administrator
+ *
+ * <p>Administer the Ceph Object Storage (a.k.a. Radosgw) service with user management, access
+ * controls, quotas and usage tracking among other features.
+ *
+ * <p>Note that to some operations needs proper configurations on radosgw, and require that the
+ * requester holds special administrative capabilities.
+ *
+ * <p>Created by petertc on 3/14/17.
+ */
+@SuppressWarnings("SameParameterValue")
 public interface RgwAdminClient {
   /**
    * Remove usage information for specified user. With no dates specified, removes all usage
@@ -48,21 +58,21 @@ public interface RgwAdminClient {
    *
    * <p>See {@link #getUsage(Map)}
    */
-  Optional<GetUsageResponse> getUserUsage(String userId);
+  Optional<UsageInfo> getUserUsage(String userId);
 
   /**
    * Request bandwidth usage information for specified user.
    *
    * <p>See {@link #getUsage(Map)}
    */
-  Optional<GetUsageResponse> getUserUsage(String userId, Map<String, String> parameters);
+  Optional<UsageInfo> getUserUsage(String userId, Map<String, String> parameters);
 
   /**
    * Request bandwidth usage information.
    *
    * <p>See {@link #getUsage(Map)}
    */
-  Optional<GetUsageResponse> getUsage();
+  Optional<UsageInfo> getUsage();
 
   /**
    * Request bandwidth usage information.
@@ -88,32 +98,29 @@ public interface RgwAdminClient {
    * @param parameters optional parameters to filter the query result.
    * @return Request bandwidth usage information.
    */
-  Optional<GetUsageResponse> getUsage(Map<String, String> parameters);
+  Optional<UsageInfo> getUsage(Map<String, String> parameters);
 
   /**
    * Add an administrative capability to a specified user.
    *
-   * <p>The capability is in forms of [users|buckets|metadata|usage|zone]=[*|read|write|read, write]
-   *
    * <p>Note that you can get the capability by {@link #getUserInfo(String)}
    *
-   * @param uid The user ID to add an administrative capability to.
-   * @param userCaps The administrative capability to add to the user. Example: usage=read,write
+   * @param userId The user ID to add an administrative capability to.
+   * @param userCaps The administrative capability to add to the user.
+   * @return The user's capabilities after the operation.
    */
-  void addUserCapability(String uid, String userCaps);
+  List<Cap> addUserCapability(String userId, List<Cap> userCaps);
 
   /**
    * Remove an administrative capability from a specified user.
    *
-   * <p>The capability is in forms of [users|buckets|metadata|usage|zone]=[*|read|write|read, write]
-   *
    * <p>Note that you can get the capability by {@link #getUserInfo(String)}
    *
-   * @param uid The user ID to remove an administrative capability from.
-   * @param userCaps The administrative capabilities to remove from the user. Example:
-   *     usage=read,write
+   * @param userId The user ID to remove an administrative capability from.
+   * @param userCaps The administrative capabilities to remove from the user.
+   * @return The user's capabilities after the operation.
    */
-  void removeUserCapability(String uid, String userCaps);
+  List<Cap> removeUserCapability(String userId, List<Cap> userCaps);
 
   /**
    * Create a new subuser
@@ -136,12 +143,12 @@ public interface RgwAdminClient {
    *
    * <p>Note that to create subuser for S3, you need ceph v11.2.0-kraken or above.
    *
-   * @param uid The user ID under which a subuser is to be created.
+   * @param userId The user ID under which a subuser is to be created.
    * @param subUserId Specify the subuser ID to be created.
    * @param parameters The subuser parameters.
-   * @return The subuser information.
+   * @return Subusers associated with the user account.
    */
-  List<SubUser> createSubUser(String uid, String subUserId, Map<String, String> parameters);
+  List<SubUser> createSubUser(String userId, String subUserId, Map<String, String> parameters);
 
   /**
    * Create a new subuser for Swift use.
@@ -151,11 +158,11 @@ public interface RgwAdminClient {
    * <p>Note that you can get subuser (swift) keys and other information by {@link
    * #getUserInfo(String)}
    *
-   * @param uid
-   * @param subUserId
-   * @return
+   * @param userId the specified user.
+   * @param subUserId the specified sub-user.
+   * @return Subusers associated with the user account.
    */
-  List<SubUser> createSubUserForSwift(String uid, String subUserId);
+  List<SubUser> createSubUserForSwift(String userId, String subUserId);
 
   /**
    * Modify an existing subuser.
@@ -169,69 +176,120 @@ public interface RgwAdminClient {
    * <li>generate-secret: Generate the secret key. Default: False
    * </ul>
    *
-   * @param uid The user ID under which a subuser is to be created.
+   * @param userId The user ID under which a subuser is to be created.
    * @param subUserId Specify the subuser ID to be created.
    * @param parameters The subuser parameters.
-   * @return The subuser information.
+   * @return Subusers associated with the user account.
    */
-  List<SubUser> modifySubUser(String uid, String subUserId, Map<String, String> parameters);
+  List<SubUser> modifySubUser(String userId, String subUserId, Map<String, String> parameters);
 
   /**
    * Remove an existing subuser.
    *
    * <p>Note that the operation also removes keys belonging to the subuser.
    *
-   * @param uid The user ID under which the subuser is to be removed.
+   * @param userId The user ID under which the subuser is to be removed.
    * @param subUserId The subuser ID to be removed.
    */
-  void removeSubUser(String uid, String subUserId);
+  void removeSubUser(String userId, String subUserId);
 
   /**
-   * Create a new key.
+   * Create a new S3 key pair for the specified user.
    *
-   * <p>If a subuser is specified then by default created keys will be swift type. If only one of
-   * access-key or secret-key is provided the committed key will be automatically generated, that is
-   * if only secret-key is specified then access-key will be automatically generated. By default, a
-   * generated key is added to the keyring without replacing an existing key pair. If access-key is
-   * specified and refers to an existing key owned by the user then it will be modified. The
-   * response is a container listing all keys of the same type as the key created. Note that when
-   * creating a swift key, specifying the option access-key will have no effect. Additionally, only
-   * one swift key may be held by each user or subuser.
-   *
-   * <p>Available parameters are:
-   *
-   * <ul>
-   * <li>subuser: The subuser ID to receive the new key.
-   * <li>key-type: Key type to be generated, options are: swift, s3 (default).
-   * <li>access-key: Specify the access key.
-   * <li>secret-key: Specify the secret key.
-   * </ul>
-   *
-   * @param uid The user ID to receive the new key.
-   * @param parameters Create key options.
-   * @return Create key response.
+   * @param userId the specified user.
+   * @param accessKey S3 access key
+   * @param secretKey S3 secret key
+   * @return Keys of type created associated with this user account.
    */
-  List<CreateKeyResponse> createKey(String uid, Map<String, String> parameters);
+  List<Key> createKey(String userId, String accessKey, String secretKey);
 
   /**
-   * Create a new key.
+   * Create a new S3 key pair for the specified user.
    *
-   * <p>The S3 key will be automatically generated for the user. If you want to specify the key,
-   * create swift key for the subuser or do other customizations, please use {@link
-   * #createKey(String, Map)}
+   * <p>The S3 access key pair will be automatically generated for the user. If you want to specify
+   * the key, please use {@link #createKey(String, String, String)}
    *
-   * @param uid The user ID to receive the new key.
-   * @return Create key response.
+   * @param userId the specified user.
+   * @return Keys of type created associated with this user account.
    */
-  List<CreateKeyResponse> createKey(String uid);
+  List<Key> createKey(String userId);
 
   /**
-   * Remove an existing key.
+   * Remove an existing S3 key pair from the specified user.
    *
+   * @param userId The specified user.
    * @param accessKey The access key belonging to the key pair to remove.
-   * @param keyType Key type to be removed, options are: swift, s3.
    */
-  void removeKey(String accessKey, String keyType);
+  void removeKey(String userId, String accessKey);
+
+  /**
+   * Create a new S3 key pair for the specified sub user.
+   *
+   * @param userId The specified user.
+   * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
+   *     foo:bar.
+   * @param accessKey S3 access key.
+   * @param secretKey S3 secret key.
+   * @return Keys of type created associated with this user account.
+   */
+  List<Key> createKeyForSubUser(
+      String userId, String subUserId, String accessKey, String secretKey);
+
+  /**
+   * Create a new S3 key pair for the specified sub user.
+   *
+   * <p>The S3 access key pair will be automatically generated for the user. If you want to specify
+   * the key, please use {@link #createKeyForSubUser(String, String, String, String)}
+   *
+   * @param userId the specified user.
+   * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
+   *     foo:bar.
+   * @return Keys of type created associated with this user account.
+   */
+  List<Key> createKeyForSubUser(String userId, String subUserId);
+
+  /**
+   * Remove an existing S3 key pair from the specified sub user.
+   *
+   * @param userId the specified user.
+   * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
+   *     foo:bar.
+   * @param accessKey The access key belonging to the key pair to remove.
+   */
+  void removeKeyFromSubUser(String userId, String subUserId, String accessKey);
+
+  /**
+   * Create a new swift secret for the specified sub user.
+   *
+   * @param userId The specified user.
+   * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
+   *     foo:bar.
+   * @param secret The specified swift secret.
+   * @return Keys of type created associated with this user account.
+   */
+  List<Key> createSecretForSubUser(String userId, String subUserId, String secret);
+
+  /**
+   * Create a new swift secret for the specified sub user.
+   *
+   * <p>The secret will be automatically generated for the user. If you want to specify it, please
+   * use {@link #createSecretForSubUser(String, String, String)}
+   *
+   * @param userId The specified user.
+   * @param subUserId The specified sub user. Should not contain user id, i.e., bar instead of
+   *     foo:bar.
+   * @return Keys of type created associated with this user account.
+   */
+  List<Key> createSecretForSubUser(String userId, String subUserId);
+
+  /**
+   * Remove the secret from the specified sub user.
+   *
+   * @param userId the specified user.
+   * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
+   *     foo:bar.
+   */
+  void removeSecretFromSubUser(String userId, String subUserId);
 
   /**
    * Delete an existing bucket.
@@ -285,10 +343,25 @@ public interface RgwAdminClient {
    * @param bucketName The bucket to return info on.
    * @param isCheckObjects Check multipart object accounting. Example: True [False]
    * @param isFix Also fix the bucket index when checking. Example: False [False]
+   * @return Status of bucket index.
    */
   Optional<String> checkBucketIndex(String bucketName, boolean isCheckObjects, boolean isFix);
 
-  // TODO: list bucket info by user id
+  /**
+   * List buckets belong to a user.
+   *
+   * @param userId The bucket owner we interested.
+   * @return Bucket list.
+   */
+  List<String> listBucket(String userId);
+
+  /**
+   * Get information about buckets.
+   *
+   * @param userId The user to retrieve bucket information for.
+   * @return The desired bucket information.
+   */
+  List<BucketInfo> listBucketInfo(String userId);
 
   /**
    * Get information about a bucket.
@@ -296,7 +369,7 @@ public interface RgwAdminClient {
    * @param bucketName The bucket to return info on.
    * @return The desired bucket information.
    */
-  Optional<GetBucketInfoResponse> getBucketInfo(String bucketName);
+  Optional<BucketInfo> getBucketInfo(String bucketName);
 
   /**
    * Create a new user.
@@ -338,8 +411,6 @@ public interface RgwAdminClient {
    */
   User createUser(String userId, Map<String, String> parameters);
 
-  // TODO: list users
-
   /**
    * Get user information.
    *
@@ -366,9 +437,10 @@ public interface RgwAdminClient {
    * </ul>
    *
    * @param userId The user ID to be modified.
-   * @param parameters
+   * @param parameters Optional parameters.
+   * @return The user information.
    */
-  void modifyUser(String userId, Map<String, String> parameters);
+  User modifyUser(String userId, Map<String, String> parameters);
 
   /**
    * Suspend a user
@@ -382,7 +454,7 @@ public interface RgwAdminClient {
    * Suspend or resume a user
    *
    * @param userId The user ID to be suspended or resumed.
-   * @param suspend switch suspended or resumed.
+   * @param suspend Set true to suspend the user, and vice versa.
    */
   void suspendUser(String userId, boolean suspend);
 
@@ -425,7 +497,59 @@ public interface RgwAdminClient {
   void removeObject(String bucketName, String objectKey);
 
   /**
-   * Read the policy of an object or bucket.
+   * Read the policy of an object.
+   *
+   * <p>Note that the term "policy" here is not stand for "S3 bucket policy". Instead, it represents
+   * S3 Access Control Policy (ACP).
+   *
+   * <p>We return json string instead of the concrete model here due to the server returns the
+   * internal data structure which is not well defined. For example:
+   *
+   * <pre>
+   * {
+   *    "acl":{
+   *       "acl_user_map":[
+   *          {
+   *             "user":"rgwAdmin4jTest-6d6a2645-0219-4e49-8493-0bdc8cb00e19",
+   *             "acl":15
+   *          }
+   *       ],
+   *       "acl_group_map":[
+   *       ],
+   *       "grant_map":[
+   *          {
+   *             "id":"rgwAdmin4jTest-6d6a2645-0219-4e49-8493-0bdc8cb00e19",
+   *             "grant":{
+   *                "type":{
+   *                   "type":0
+   *                },
+   *                "id":"rgwAdmin4jTest-6d6a2645-0219-4e49-8493-0bdc8cb00e19",
+   *                "email":"",
+   *                "permission":{
+   *                   "flags":15
+   *                },
+   *                "name":"rgwAdmin4jTest-6d6a2645-0219-4e49-8493-0bdc8cb00e19",
+   *                "group":0,
+   *                "url_spec":""
+   *             }
+   *          }
+   *       ]
+   *    },
+   *    "owner":{
+   *       "id":"rgwAdmin4jTest-6d6a2645-0219-4e49-8493-0bdc8cb00e19",
+   *       "display_name":"rgwAdmin4jTest-6d6a2645-0219-4e49-8493-0bdc8cb00e19"
+   *    }
+   * }
+   * </pre>
+   *
+   * @param bucketName The bucket to which the object belong to.
+   * @param objectKey The object to read the policy from.
+   * @return If successful, returns the policy.
+   */
+  Optional<String> getObjectPolicy(String bucketName, String objectKey);
+
+  /**
+   * Read the policy of an bucket.
    *
    * <p>Note that the term "policy" here is not stand for "S3 bucket policy". Instead, it represents
    * S3 Access Control Policy (ACP).
@@ -471,9 +595,7 @@ public interface RgwAdminClient {
    * </pre>
    *
    * @param bucketName The bucket to read the policy from.
-   * @param objectKey The object to read the policy from. Set to null if you want to get policy of
-   *     bucket.
-   * @return If successful, returns the object or bucket policy.
+   * @return If successful, returns the policy.
    */
-  Optional<String> getPolicy(String bucketName, String objectKey);
+  Optional<String> getBucketPolicy(String bucketName);
 }

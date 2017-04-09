@@ -5,8 +5,6 @@ import com.google.common.collect.ImmutableSet;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -39,17 +37,16 @@ import java.util.Set;
  * <p>Inspired by https://github.com/tax/python-requests-aws Created by hrchu on 2017/3/22.
  */
 class S3Auth implements Interceptor {
-  private static final Logger LOG = LoggerFactory.getLogger(S3Auth.class);
 
   private final String accessKey;
   private final String secretKey;
 
   /*
-  The subresources that must be included when constructing the CanonicalizedResource Element are acl, lifecycle,
+  The subResources that must be included when constructing the CanonicalizedResource Element are acl, lifecycle,
   location, logging, notification, partNumber, policy, requestPayment, torrent, uploadId, uploads, versionId,
   versioning, versions, and website.
    */
-  Set<String> subresources =
+  private final Set<String> subResources =
       ImmutableSet.of(
           "acl",
           "lifecycle",
@@ -90,7 +87,7 @@ class S3Auth implements Interceptor {
   }
 
   private static String encodeBase64(byte[] data) {
-    String base64 = new String(Base64.getEncoder().encodeToString(data));
+    String base64 = Base64.getEncoder().encodeToString(data);
     if (base64.endsWith("\r\n")) base64 = base64.substring(0, base64.length() - 2);
     if (base64.endsWith("\n")) base64 = base64.substring(0, base64.length() - 1);
 
@@ -106,7 +103,7 @@ class S3Auth implements Interceptor {
 
     try {
       String subresource = request.url().queryParameterName(0);
-      if (subresources.contains(subresource)) {
+      if (subResources.contains(subresource)) {
         resource += "?" + subresource;
       }
     } catch (Exception e) {
@@ -132,31 +129,32 @@ class S3Auth implements Interceptor {
       String resource,
       Map<String, String> metas) {
 
-    String stringToSign =
-        httpVerb
-            + "\n"
-            + CharMatcher.whitespace().trimFrom(contentMD5)
-            + "\n"
-            + CharMatcher.whitespace().trimFrom(contentType)
-            + "\n"
-            + date
-            + "\n";
+    StringBuilder stringToSign =
+        new StringBuilder(
+            httpVerb
+                + "\n"
+                + CharMatcher.whitespace().trimFrom(contentMD5)
+                + "\n"
+                + CharMatcher.whitespace().trimFrom(contentType)
+                + "\n"
+                + date
+                + "\n");
     if (metas != null) {
       for (Map.Entry<String, String> entity : metas.entrySet()) {
-        stringToSign +=
-            CharMatcher.whitespace().trimFrom(entity.getKey())
-                + ":"
-                + CharMatcher.whitespace().trimFrom(entity.getValue())
-                + "\n";
+        stringToSign
+            .append(CharMatcher.whitespace().trimFrom(entity.getKey()))
+            .append(":")
+            .append(CharMatcher.whitespace().trimFrom(entity.getValue()))
+            .append("\n");
       }
     }
-    stringToSign += resource;
+    stringToSign.append(resource);
     try {
       Mac mac = Mac.getInstance("HmacSHA1");
       byte[] keyBytes = secretKey.getBytes("UTF8");
       SecretKeySpec signingKey = new SecretKeySpec(keyBytes, "HmacSHA1");
       mac.init(signingKey);
-      byte[] signBytes = mac.doFinal(stringToSign.getBytes("UTF8"));
+      byte[] signBytes = mac.doFinal(stringToSign.toString().getBytes("UTF8"));
       String signature = encodeBase64(signBytes);
       return "AWS" + " " + accessKey + ":" + signature;
     } catch (Exception e) {

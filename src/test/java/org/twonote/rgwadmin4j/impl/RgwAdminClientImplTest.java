@@ -19,17 +19,18 @@ import org.javaswift.joss.model.Container;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.twonote.rgwadmin4j.RgwAdminException;
 import org.twonote.rgwadmin4j.model.*;
-import org.twonote.rgwadmin4j.model.usage.GetUsageResponse;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
 
 import static org.junit.Assert.*;
 
+@SuppressWarnings("ConstantConditions")
 public class RgwAdminClientImplTest {
+
   private static RgwAdminClientImpl RGW_ADMIN_CLIENT;
   private static String adminUserId;
   private static String accessKey;
@@ -86,8 +87,9 @@ public class RgwAdminClientImplTest {
       System.exit(0);
     }
     try {
+      //noinspection ResultOfMethodCallIgnored
       RGW_ADMIN_CLIENT.getUserInfo(adminUserId).get();
-    } catch (Exception e) {
+    } catch (NoSuchElementException | RgwAdminException e) {
       System.out.println(
           "Cannot make communication with radosgw admin endpoint: " + e.getLocalizedMessage());
       System.exit(0);
@@ -110,32 +112,12 @@ public class RgwAdminClientImplTest {
     swiftEndpoint = s3Endpoint + "/auth/1.0";
   }
 
-  /**
-   * Creates a temporary file with text data to demonstrate uploading a file to Amazon S3
-   *
-   * @return A newly created temporary file with text data.
-   * @throws IOException
-   */
-  private static File createSampleFile() throws IOException {
-    File file = File.createTempFile("aws-java-sdk-", ".txt");
-    file.deleteOnExit();
-
-    Writer writer = new OutputStreamWriter(new FileOutputStream(file));
-    writer.write("abcdefghijklmnopqrstuvwxyz\n");
-    writer.write("01234567890112345678901234\n");
-    writer.write("!@#$%^&*()-=[]{};':',.<>/?\n");
-    writer.write("01234567890112345678901234\n");
-    writer.write("abcdefghijklmnopqrstuvwxyz\n");
-    writer.close();
-
-    return file;
-  }
-
   private static AmazonS3 initS3(String accessKey, String secretKey, String endPoint) {
     AWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
     ClientConfiguration clientConfig = new ClientConfiguration();
     clientConfig.setProtocol(Protocol.HTTP);
     clientConfig.withSignerOverride("S3SignerType");
+    //noinspection deprecation
     AmazonS3 s3 = new AmazonS3Client(credentials, clientConfig);
     s3.setEndpoint(endPoint);
     return s3;
@@ -157,6 +139,199 @@ public class RgwAdminClientImplTest {
     }
   }
 
+  private static void testWithASubUser(Consumer<User> test) {
+    String subUserId = UUID.randomUUID().toString();
+    testWithAUser(
+        v -> {
+          RGW_ADMIN_CLIENT.createSubUser(v.getUserId(), subUserId, null);
+          User user = RGW_ADMIN_CLIENT.getUserInfo(v.getUserId()).get();
+          test.accept(user);
+        });
+  }
+
+  @Test
+  public void createKey() throws Exception {
+    testWithAUser(
+        v -> {
+          List<Key> response;
+
+          // basic
+          response = RGW_ADMIN_CLIENT.createKey(v.getUserId());
+          assertEquals(2, response.size());
+          assertEquals(2, RGW_ADMIN_CLIENT.getUserInfo(v.getUserId()).get().getKeys().size());
+
+          // specify the key
+          String accessKey = v.getUserId() + "-accessKey";
+          String secretKey = v.getUserId() + "-secretKey";
+          response = RGW_ADMIN_CLIENT.createKey(v.getUserId(), accessKey, secretKey);
+          assertTrue(
+              response
+                  .stream()
+                  .anyMatch(
+                      v1 ->
+                          accessKey.equals(v1.getAccessKey())
+                              && secretKey.equals(v1.getSecretKey())));
+
+          // user not exist
+          try {
+            RGW_ADMIN_CLIENT.createKey(UUID.randomUUID().toString());
+          } catch (RgwAdminException e) {
+            assertEquals("InvalidArgument", e.getMessage());
+          }
+        });
+  }
+
+  @Test
+  public void removeKey() throws Exception {
+    testWithAUser(
+        v -> {
+          String accessKey = v.getKeys().get(0).getAccessKey();
+
+          // basic
+          RGW_ADMIN_CLIENT.removeKey(v.getUserId(), accessKey);
+          assertEquals(0, RGW_ADMIN_CLIENT.getUserInfo(v.getUserId()).get().getKeys().size());
+
+          // key not exist
+          try {
+            RGW_ADMIN_CLIENT.removeKey(v.getUserId(), UUID.randomUUID().toString());
+          } catch (RgwAdminException e) {
+            assertEquals(
+                403, e.status()); // ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
+          }
+
+          // user not exist
+          try {
+            RGW_ADMIN_CLIENT.removeKey(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+          } catch (RgwAdminException e) {
+            assertEquals(
+                400, e.status()); // ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
+          }
+        });
+  }
+
+  @Test
+  public void createKeyForSubUser() throws Exception {
+    testWithASubUser(
+        v -> {
+          List<Key> response;
+
+          // basic
+          String absSubUserId = v.getSubusers().get(0).getId(); // In forms of "foo:bar"
+          String userId = absSubUserId.split(":")[0];
+          String subUserId = absSubUserId.split(":")[1];
+          response = RGW_ADMIN_CLIENT.createKeyForSubUser(userId, subUserId);
+          assertTrue(response.stream().anyMatch(vv -> absSubUserId.equals(vv.getUser())));
+
+          // specify the key
+          String accessKey = v.getUserId() + "-accessKey";
+          String secretKey = v.getUserId() + "-secretKey";
+          response = RGW_ADMIN_CLIENT.createKeyForSubUser(userId, subUserId, accessKey, secretKey);
+          assertTrue(
+              response
+                  .stream()
+                  .anyMatch(
+                      v1 ->
+                          absSubUserId.equals(v1.getUser())
+                              && accessKey.equals(v1.getAccessKey())
+                              && secretKey.equals(v1.getSecretKey())));
+
+          // sub user not exist
+          // Ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
+          // Create a orphan key without user in
+          RGW_ADMIN_CLIENT.createKeyForSubUser(userId, "XXXXXXX");
+        });
+  }
+
+  @Test
+  public void removeKeyFromSubUser() throws Exception {
+    testWithASubUser(
+        v -> {
+          String absSubUserId = v.getSubusers().get(0).getId(); // In forms of "foo:bar"
+          String userId = absSubUserId.split(":")[0];
+          String subUserId = absSubUserId.split(":")[1];
+
+          List<Key> response = RGW_ADMIN_CLIENT.createKeyForSubUser(userId, subUserId);
+          Key keyToDelete =
+              response.stream().filter(vv -> absSubUserId.equals(vv.getUser())).findFirst().get();
+
+          // basic
+          RGW_ADMIN_CLIENT.removeKeyFromSubUser(userId, subUserId, keyToDelete.getAccessKey());
+          assertFalse(
+              RGW_ADMIN_CLIENT
+                  .getUserInfo(userId)
+                  .get()
+                  .getKeys()
+                  .stream()
+                  .anyMatch(
+                      k ->
+                          keyToDelete
+                              .getAccessKey()
+                              .equals(k.getAccessKey()))); // Should not contain this key anymore
+
+          // key not exist
+          try {
+            RGW_ADMIN_CLIENT.removeKeyFromSubUser(userId, subUserId, UUID.randomUUID().toString());
+          } catch (RgwAdminException e) {
+            // ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
+            assertEquals("InvalidAccessKeyId", e.getMessage());
+            assertEquals(403, e.status());
+          }
+        });
+  }
+
+  @Test
+  public void createSecretForSubUser() throws Exception {
+    testWithASubUser(
+        v -> {
+          List<Key> response;
+
+          // basic
+          String absSubUserId = v.getSubusers().get(0).getId(); // In forms of "foo:bar"
+          String userId = absSubUserId.split(":")[0];
+          String subUserId = absSubUserId.split(":")[1];
+          response = RGW_ADMIN_CLIENT.createSecretForSubUser(userId, subUserId);
+          assertTrue(response.stream().anyMatch(vv -> absSubUserId.equals(vv.getUser())));
+
+          // specify the key
+          String secret = v.getUserId() + "-secret";
+          response = RGW_ADMIN_CLIENT.createSecretForSubUser(userId, subUserId, secret);
+          assertTrue(
+              response
+                  .stream()
+                  .anyMatch(
+                      v1 -> absSubUserId.equals(v1.getUser()) && secret.equals(v1.getSecretKey())));
+
+          // sub user not exist
+          // Create a orphan key without user in ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
+          RGW_ADMIN_CLIENT.createSecretForSubUser(userId, subUserId);
+        });
+  }
+
+  @Test
+  public void removeSecretFromSubUser() throws Exception {
+    testWithASubUser(
+        v -> {
+          String absSubUserId = v.getSubusers().get(0).getId(); // In forms of "foo:bar"
+          String userId = absSubUserId.split(":")[0];
+          String subUserId = absSubUserId.split(":")[1];
+
+          RGW_ADMIN_CLIENT.createSecretForSubUser(userId, subUserId);
+
+          // basic
+          RGW_ADMIN_CLIENT.removeSecretFromSubUser(userId, subUserId);
+          assertFalse(
+              RGW_ADMIN_CLIENT
+                  .getUserInfo(userId)
+                  .get()
+                  .getSwiftKeys()
+                  .stream()
+                  .anyMatch(
+                      k ->
+                          absSubUserId.equals(
+                              k.getUser()))); // The sub user should not have swift key/secret
+        });
+  }
+
   @Test
   @Ignore("See trimUsage()")
   public void trimUserUsage() throws Exception {}
@@ -169,9 +344,9 @@ public class RgwAdminClientImplTest {
 
           String userId = v.getUserId();
 
-          GetUsageResponse response;
+          UsageInfo response;
           response = RGW_ADMIN_CLIENT.getUserUsage(userId).get();
-          if (!response.getSummary().stream().anyMatch(vv -> userId.equals(vv.getUser()))) {
+          if (response.getSummary().stream().noneMatch(vv -> userId.equals(vv.getUser()))) {
             fail("No usage log corresponding to the given user id...need more sleep?");
           }
 
@@ -204,15 +379,15 @@ public class RgwAdminClientImplTest {
           // Do something to let usage log generated.
           doSomething(v);
 
-          GetUsageResponse response;
+          UsageInfo response;
 
           response = RGW_ADMIN_CLIENT.getUsage(null).get();
-          if (!response.getSummary().stream().anyMatch(vv -> userId.equals(vv.getUser()))) {
+          if (response.getSummary().stream().noneMatch(vv -> userId.equals(vv.getUser()))) {
             fail("No usage log corresponding to the given user id...need more sleep?");
           }
 
           response = RGW_ADMIN_CLIENT.getUserUsage(userId, null).get();
-          if (!response.getSummary().stream().anyMatch(vv -> userId.equals(vv.getUser()))) {
+          if (response.getSummary().stream().noneMatch(vv -> userId.equals(vv.getUser()))) {
             fail("No usage log corresponding to the given user id...need more sleep?");
           }
         });
@@ -305,52 +480,6 @@ public class RgwAdminClientImplTest {
   }
 
   @Test
-  public void createKey() throws Exception {
-    testWithAUser(
-        v -> {
-          List<CreateKeyResponse> response;
-
-          // basic
-          response = RGW_ADMIN_CLIENT.createKey(v.getUserId());
-          assertEquals(2, response.size());
-          assertEquals(2, RGW_ADMIN_CLIENT.getUserInfo(v.getUserId()).get().getKeys().size());
-
-          // specify the key
-          Map<String, String> paras = ImmutableMap.of("access-key", UUID.randomUUID().toString());
-          response = RGW_ADMIN_CLIENT.createKey(v.getUserId(), paras);
-          assertTrue(
-              response.stream().anyMatch(v1 -> paras.get("access-key").equals(v1.getAccess_key())));
-
-          // user not exist
-          try {
-            RGW_ADMIN_CLIENT.createKey(UUID.randomUUID().toString());
-          } catch (RgwAdminException e) {
-            assertEquals("InvalidArgument", e.getMessage());
-          }
-        });
-  }
-
-  @Test
-  public void removeKey() throws Exception {
-    testWithAUser(
-        v -> {
-          String accessKey = v.getKeys().get(0).getAccessKey();
-
-          // basic
-          RGW_ADMIN_CLIENT.removeKey(accessKey, "s3");
-          assertEquals(0, RGW_ADMIN_CLIENT.getUserInfo(v.getUserId()).get().getKeys().size());
-
-          // not exist
-          try {
-            RGW_ADMIN_CLIENT.removeKey(accessKey, "s3");
-          } catch (RgwAdminException e) {
-            assertEquals(
-                403, e.status()); // ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
-          }
-        });
-  }
-
-  @Test
   public void checkBucketIndex() throws Exception {
     testWithAUser(
         (v) -> {
@@ -370,117 +499,76 @@ public class RgwAdminClientImplTest {
         });
   }
 
-  @Ignore
+  @Ignore("See getAndSetUserQuota()")
   @Test
   public void getUserQuota() throws Exception {}
 
-  @Ignore
+  @Ignore("See getAndSetUserQuota()")
   @Test
   public void setUserQuota() throws Exception {}
 
   @Test
-  public void addUserCapability() throws Exception {
-    String userId = "test" + UUID.randomUUID().toString();
-    String userCaps = "usage=read,write;user=write";
+  @Ignore("See userCapability()")
+  public void addUserCapability() throws Exception {}
 
-    // user not exist
-    try {
-      RGW_ADMIN_CLIENT.addUserCapability(userId, userCaps);
-    } catch (RuntimeException e) {
-      // 400
-    }
+  @Test
+  public void userCapability() throws Exception {
+    testWithASubUser(
+        v -> {
+          String userId = v.getUserId();
+          List<Cap> userCaps =
+              Arrays.asList(
+                  new Cap(Cap.Type.USAGE, Cap.Perm.READ_WRITE),
+                  new Cap(Cap.Type.USERS, Cap.Perm.WRITE));
+          List<Cap> retUserCaps;
 
-    try {
-      RGW_ADMIN_CLIENT.createUser(userId);
+          // add
+          retUserCaps = RGW_ADMIN_CLIENT.addUserCapability(userId, userCaps);
+          assertEquals(userCaps, retUserCaps);
 
-      // basic
-      RGW_ADMIN_CLIENT.addUserCapability(userId, userCaps);
-      User response = RGW_ADMIN_CLIENT.getUserInfo(userId).get();
-      assertEquals("usage", response.getCaps().get(0).get("type"));
-      assertEquals("*", response.getCaps().get(0).get("perm"));
-      assertEquals("user", response.getCaps().get(1).get("type"));
-      assertEquals("write", response.getCaps().get(1).get("perm"));
-
-      // do it again
-      RGW_ADMIN_CLIENT.addUserCapability(userId, userCaps);
-
-    } finally {
-      try {
-        RGW_ADMIN_CLIENT.removeUser(userId);
-      } catch (Exception e) {
-      }
-    }
+          // remove
+          List<Cap> toRemove = userCaps.subList(0, 1);
+          List<Cap> toRemain = userCaps.subList(1, 2);
+          retUserCaps = RGW_ADMIN_CLIENT.removeUserCapability(userId, toRemove);
+          assertEquals(toRemain, retUserCaps);
+        });
   }
 
   @Test
-  public void removeUserCapability() throws Exception {
-    String userId = "test" + UUID.randomUUID().toString();
-    String userCaps = "usage=read";
-
-    // user not exist
-    try {
-      RGW_ADMIN_CLIENT.removeUserCapability(userId, userCaps);
-    } catch (RuntimeException e) {
-      // 400
-    }
-
-    try {
-      RGW_ADMIN_CLIENT.createUser(userId);
-
-      // cap not exist
-      RGW_ADMIN_CLIENT.removeUserCapability(userId, userCaps);
-
-      // basic
-      RGW_ADMIN_CLIENT.addUserCapability(userId, userCaps);
-      RGW_ADMIN_CLIENT.removeUserCapability(userId, userCaps);
-      User response = RGW_ADMIN_CLIENT.getUserInfo(userId).get();
-      assertEquals(0, response.getCaps().size());
-
-      // do it again
-      RGW_ADMIN_CLIENT.removeUserCapability(userId, userCaps);
-    } finally {
-      try {
-        RGW_ADMIN_CLIENT.removeUser(userId);
-      } catch (Exception e) {
-      }
-    }
-  }
+  @Ignore("See userCapability()")
+  public void removeUserCapability() throws Exception {}
 
   @Test
   public void removeBucket() throws Exception {
-    String userId = "testremovebk" + UUID.randomUUID().toString();
     String bucketName = "testremovebkbk" + UUID.randomUUID().toString();
 
     // remove bucket not exist
     Thread.sleep(3000);
     RGW_ADMIN_CLIENT.removeBucket(bucketName);
 
-    try {
-      User response = RGW_ADMIN_CLIENT.createUser(userId);
-      AmazonS3 s3 =
-          initS3(
-              response.getKeys().get(0).getAccessKey(),
-              response.getKeys().get(0).getSecretKey(),
-              s3Endpoint);
-      s3.createBucket(bucketName);
+    testWithAUser(
+        v -> {
+          String userId = "testremovebk" + UUID.randomUUID().toString();
 
-      ByteArrayInputStream input = new ByteArrayInputStream("Hello World!".getBytes());
-      s3.putObject(bucketName, "hello.txt", input, new ObjectMetadata());
+          User response = RGW_ADMIN_CLIENT.createUser(userId);
+          AmazonS3 s3 =
+              initS3(
+                  response.getKeys().get(0).getAccessKey(),
+                  response.getKeys().get(0).getSecretKey(),
+                  s3Endpoint);
+          s3.createBucket(bucketName);
 
-      RGW_ADMIN_CLIENT.removeBucket(bucketName);
+          ByteArrayInputStream input = new ByteArrayInputStream("Hello World!".getBytes());
+          s3.putObject(bucketName, "hello.txt", input, new ObjectMetadata());
 
-      try {
-        s3.headBucket(new HeadBucketRequest(bucketName));
-      } catch (Exception e) {
-        assertTrue("Not Found".equals(((AmazonS3Exception) e).getErrorMessage()));
-      }
-    } finally {
-      try {
-        RGW_ADMIN_CLIENT.removeUser(userId);
-      } catch (Exception e) {
+          RGW_ADMIN_CLIENT.removeBucket(bucketName);
 
-      }
-    }
+          try {
+            s3.headBucket(new HeadBucketRequest(bucketName));
+          } catch (Exception e) {
+            assertTrue("Not Found".equals(((AmazonS3Exception) e).getErrorMessage()));
+          }
+        });
   }
 
   @Test
@@ -512,82 +600,86 @@ public class RgwAdminClientImplTest {
 
   @Test
   public void linkBucket() throws Exception {
-    String userId = "linkbkusr" + UUID.randomUUID().toString();
-    String bucketName = "linkbkusrbk" + UUID.randomUUID().toString();
-    try {
-      User response = RGW_ADMIN_CLIENT.createUser(userId);
-      AmazonS3 s3 =
-          initS3(
-              response.getKeys().get(0).getAccessKey(),
-              response.getKeys().get(0).getSecretKey(),
-              s3Endpoint);
-      s3.createBucket(bucketName);
+    testWithAUser(
+        v -> {
+          String userId = "linkbkusr" + UUID.randomUUID().toString();
+          String bucketName = "linkbkusrbk" + UUID.randomUUID().toString();
+          User response = RGW_ADMIN_CLIENT.createUser(userId);
+          AmazonS3 s3 =
+              initS3(
+                  response.getKeys().get(0).getAccessKey(),
+                  response.getKeys().get(0).getSecretKey(),
+                  s3Endpoint);
+          s3.createBucket(bucketName);
 
-      GetBucketInfoResponse _response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName).get();
+          BucketInfo _response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName).get();
 
-      // basic
-      String bucketId = _response.getId();
-      RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId, adminUserId);
-      GetBucketInfoResponse __response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName).get();
-      assertEquals(adminUserId, __response.getOwner());
+          // basic
+          String bucketId = _response.getId();
+          RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId, adminUserId);
+          BucketInfo __response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName).get();
+          assertEquals(adminUserId, __response.getOwner());
 
-      // execute again
-      // Ceph 9.2.x throw exception; ceph 10.2.2 returns 404 so no exception will show.
-      //            exception.expect(RuntimeException.class);
-      RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId, adminUserId);
+          // execute again
+          // Ceph 9.2.x throw exception; ceph 10.2.2 returns 404 so no exception will show.
+          //            exception.expect(RuntimeException.class);
+          RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId, adminUserId);
 
-      // bad argument
-      //            exception.expect(RuntimeException.class);
-      RGW_ADMIN_CLIENT.linkBucket(bucketName + "qq", bucketId, adminUserId);
+          // bad argument
+          //            exception.expect(RuntimeException.class);
+          RGW_ADMIN_CLIENT.linkBucket(bucketName + "qq", bucketId, adminUserId);
 
-      //            exception.expect(RuntimeException.class);
-      RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId, adminUserId + "qqq");
+          //            exception.expect(RuntimeException.class);
+          RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId, adminUserId + "qqq");
 
-      //            exception.expect(RuntimeException.class);
-      RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId + "qq", adminUserId);
+          //            exception.expect(RuntimeException.class);
+          RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId + "qq", adminUserId);
+        });
+  }
 
-    } finally {
-      AmazonS3 adminS3 = initS3(accessKey, secretKey, s3Endpoint);
-      try {
-        adminS3.deleteBucket(bucketName);
-      } catch (Exception e) {
+  @Test
+  public void listBucketInfo() throws Exception {
+    testWithASubUser(
+        v -> {
+          AmazonS3 s3 =
+              initS3(
+                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
+          for (int i = 0; i < 3; i++) {
+            s3.createBucket(UUID.randomUUID().toString().toLowerCase());
+          }
+          List<BucketInfo> response = RGW_ADMIN_CLIENT.listBucketInfo(v.getUserId());
+          assertEquals(3, response.size());
+        });
+  }
 
-      }
-      try {
-        RGW_ADMIN_CLIENT.removeUser(userId);
-      } catch (Exception e) {
-
-      }
-    }
+  @Test
+  public void listBucket() throws Exception {
+    testWithASubUser(
+        v -> {
+          AmazonS3 s3 =
+              initS3(
+                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
+          for (int i = 0; i < 3; i++) {
+            s3.createBucket(UUID.randomUUID().toString().toLowerCase());
+          }
+          List<String> response = RGW_ADMIN_CLIENT.listBucket(v.getUserId());
+          assertEquals(3, response.size());
+        });
   }
 
   @Test
   public void getBucketInfo() throws Exception {
-    String userId = "testgetbucketinfouserx";
-    String bucketName = "testgetbucketinfo";
+    testWithASubUser(
+        v -> {
+          AmazonS3 s3 =
+              initS3(
+                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
+          String bucketName = UUID.randomUUID().toString().toLowerCase();
+          s3.createBucket(bucketName);
 
-    // not exist
-    assertFalse(RGW_ADMIN_CLIENT.getBucketInfo(bucketName).isPresent());
-
-    try {
-      User response = RGW_ADMIN_CLIENT.createUser(userId);
-      AmazonS3 s3 =
-          initS3(
-              response.getKeys().get(0).getAccessKey(),
-              response.getKeys().get(0).getSecretKey(),
-              s3Endpoint);
-      s3.createBucket(bucketName);
-
-      GetBucketInfoResponse _response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName).get();
-      assertNotNull(_response.getId());
-
-    } finally {
-      try {
-        RGW_ADMIN_CLIENT.removeUser(userId);
-      } catch (Exception e) {
-
-      }
-    }
+          Optional<BucketInfo> response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName);
+          assertTrue(response.isPresent());
+        });
   }
 
   @Test
@@ -651,10 +743,10 @@ public class RgwAdminClientImplTest {
     User response = RGW_ADMIN_CLIENT.getUserInfo(adminUserId).get();
     assertEquals(Integer.valueOf(0), response.getSuspended());
     assertEquals(adminUserId, response.getUserId());
-    List<Map<String, String>> caps =
+    List<Cap> caps =
         Arrays.asList(
-            ImmutableMap.of("type", "users", "perm", "*"),
-            ImmutableMap.of("type", "buckets", "perm", "*"));
+            new Cap(Cap.Type.USERS, Cap.Perm.READ_WRITE),
+            new Cap(Cap.Type.BUCKETS, Cap.Perm.READ_WRITE));
     assertTrue(response.getCaps().containsAll(caps));
 
     // not exist
@@ -663,18 +755,21 @@ public class RgwAdminClientImplTest {
 
   @Test
   public void suspendUser() throws Exception {
-    String userId = "bobx" + UUID.randomUUID().toString();
-    try {
-      RGW_ADMIN_CLIENT.createUser(userId);
-      RGW_ADMIN_CLIENT.suspendUser(userId);
-      User response = RGW_ADMIN_CLIENT.getUserInfo(userId).get();
-      assertEquals(Integer.valueOf(1), response.getSuspended());
-    } finally {
-      RGW_ADMIN_CLIENT.removeUser(userId);
-    }
+    testWithASubUser(
+        v -> {
+          String userId = v.getUserId();
+          User response;
 
-    // not exist
-    RGW_ADMIN_CLIENT.suspendUser(UUID.randomUUID().toString());
+          // suspend
+          RGW_ADMIN_CLIENT.suspendUser(userId, true);
+          response = RGW_ADMIN_CLIENT.getUserInfo(userId).get();
+          assertEquals(Integer.valueOf(1), response.getSuspended());
+
+          // resume
+          RGW_ADMIN_CLIENT.suspendUser(userId, false);
+          response = RGW_ADMIN_CLIENT.getUserInfo(userId).get();
+          assertEquals(Integer.valueOf(0), response.getSuspended());
+        });
   }
 
   @Test
@@ -757,7 +852,7 @@ public class RgwAdminClientImplTest {
           // default false
           quota = RGW_ADMIN_CLIENT.getUserQuota(userId).get();
           assertEquals(false, quota.getEnabled());
-          assertEquals(Integer.valueOf(-1), quota.getMaxObjects());
+          assertEquals(Long.valueOf(-1), quota.getMaxObjects());
           assertTrue(
               quota.getMaxSizeKb() == -1 // jewel
                   || quota.getMaxSizeKb() == 0 // kraken
@@ -767,8 +862,8 @@ public class RgwAdminClientImplTest {
           RGW_ADMIN_CLIENT.setUserQuota(userId, 1, 1);
           quota = RGW_ADMIN_CLIENT.getUserQuota(userId).get();
           assertEquals(true, quota.getEnabled());
-          assertEquals(Integer.valueOf(1), quota.getMaxObjects());
-          assertEquals(Integer.valueOf(1), quota.getMaxSizeKb());
+          assertEquals(Long.valueOf(1), quota.getMaxObjects());
+          assertEquals(Long.valueOf(1), quota.getMaxSizeKb());
         });
 
     // not exist
@@ -783,7 +878,7 @@ public class RgwAdminClientImplTest {
   }
 
   @Test
-  public void getPolicy() throws Exception {
+  public void getObjectPolicy() throws Exception {
     testWithAUser(
         (v) -> {
           String userId = v.getUserId();
@@ -794,7 +889,22 @@ public class RgwAdminClientImplTest {
           String objectKey = userId.toLowerCase();
           s3.createBucket(bucketName);
           s3.putObject(bucketName, objectKey, "qqq");
-          String resp = RGW_ADMIN_CLIENT.getPolicy(bucketName, objectKey).get();
+          String resp = RGW_ADMIN_CLIENT.getObjectPolicy(bucketName, objectKey).get();
+          assertFalse(Strings.isNullOrEmpty(resp));
+        });
+  }
+
+  @Test
+  public void getBucketPolicy() throws Exception {
+    testWithAUser(
+        (v) -> {
+          String userId = v.getUserId();
+          AmazonS3 s3 =
+              initS3(
+                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
+          String bucketName = userId.toLowerCase();
+          s3.createBucket(bucketName);
+          String resp = RGW_ADMIN_CLIENT.getBucketPolicy(bucketName).get();
           assertFalse(Strings.isNullOrEmpty(resp));
         });
   }

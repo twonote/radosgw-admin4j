@@ -1,32 +1,38 @@
 package org.twonote.rgwadmin4j.impl;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import okhttp3.*;
 import org.twonote.rgwadmin4j.RgwAdminClient;
-import org.twonote.rgwadmin4j.RgwAdminException;
 import org.twonote.rgwadmin4j.model.*;
-import org.twonote.rgwadmin4j.model.usage.GetUsageResponse;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
-/** Created by petertc on 2/16/17. */
+/**
+ * Radosgw administrator implementation
+ *
+ * <p>Created by petertc on 2/16/17.
+ */
 public class RgwAdminClientImpl implements RgwAdminClient {
   private static final Gson gson = new Gson();
-  private static final Type MAP_TYPE = new TypeToken<Map<String, Object>>() {}.getType();
 
   private static final RequestBody emptyBody = RequestBody.create(null, new byte[] {});
 
   private final String endpoint;
   private final OkHttpClient client;
 
+  /**
+   * Create a Radosgw administrator implementation
+   *
+   * @param accessKey Access key of the admin who have proper administrative capabilities.
+   * @param secretKey Secret key of the admin who have proper administrative capabilities.
+   * @param endpoint Radosgw admin API endpoint, e.g., http://127.0.0.1:80/admin
+   */
   public RgwAdminClientImpl(String accessKey, String secretKey, String endpoint) {
     this.client =
         new OkHttpClient().newBuilder().addInterceptor(new S3Auth(accessKey, secretKey)).build();
@@ -35,7 +41,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
 
   private static void appendParameters(Map<String, String> parameters, HttpUrl.Builder urlBuilder) {
     if (parameters != null) {
-      parameters.forEach((k, v) -> urlBuilder.addQueryParameter(k, v));
+      parameters.forEach(urlBuilder::addQueryParameter);
     }
   }
 
@@ -66,12 +72,12 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public Optional<GetUsageResponse> getUserUsage(String userId) {
+  public Optional<UsageInfo> getUserUsage(String userId) {
     return getUserUsage(userId, null);
   }
 
   @Override
-  public Optional<GetUsageResponse> getUserUsage(String userId, Map<String, String> parameters) {
+  public Optional<UsageInfo> getUserUsage(String userId, Map<String, String> parameters) {
     if (parameters == null) {
       parameters = new HashMap<>();
     }
@@ -80,12 +86,12 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public Optional<GetUsageResponse> getUsage() {
+  public Optional<UsageInfo> getUsage() {
     return getUsage(null);
   }
 
   @Override
-  public Optional<GetUsageResponse> getUsage(Map<String, String> parameters) {
+  public Optional<UsageInfo> getUsage(Map<String, String> parameters) {
     HttpUrl.Builder urlBuilder = HttpUrl.parse(endpoint).newBuilder().addPathSegment("usage");
 
     appendParameters(parameters, urlBuilder);
@@ -93,11 +99,11 @@ public class RgwAdminClientImpl implements RgwAdminClient {
     Request request = new Request.Builder().get().url(urlBuilder.build()).build();
 
     String resp = safeCall(request);
-    return Optional.ofNullable(gson.fromJson(resp, GetUsageResponse.class));
+    return Optional.ofNullable(gson.fromJson(resp, UsageInfo.class));
   }
 
   @Override
-  public void addUserCapability(String uid, String userCaps) {
+  public List<Cap> addUserCapability(String userId, List<Cap> userCaps) {
     Request request =
         new Request.Builder()
             .put(emptyBody)
@@ -106,16 +112,18 @@ public class RgwAdminClientImpl implements RgwAdminClient {
                     .newBuilder()
                     .addPathSegment("user")
                     .query("caps")
-                    .addQueryParameter("uid", uid)
-                    .addQueryParameter("user-caps", userCaps)
+                    .addQueryParameter("uid", userId)
+                    .addQueryParameter("user-caps", Joiner.on(";").join(userCaps))
                     .build())
             .build();
 
-    safeCall(request);
+    String resp = safeCall(request);
+    Type type = new TypeToken<List<Cap>>() {}.getType();
+    return gson.fromJson(resp, type);
   }
 
   @Override
-  public void removeUserCapability(String uid, String userCaps) {
+  public List<Cap> removeUserCapability(String userId, List<Cap> userCaps) {
     Request request =
         new Request.Builder()
             .delete()
@@ -124,22 +132,25 @@ public class RgwAdminClientImpl implements RgwAdminClient {
                     .newBuilder()
                     .addPathSegment("user")
                     .query("caps")
-                    .addQueryParameter("uid", uid)
-                    .addQueryParameter("user-caps", userCaps)
+                    .addQueryParameter("uid", userId)
+                    .addQueryParameter("user-caps", Joiner.on(";").join(userCaps))
                     .build())
             .build();
 
-    safeCall(request);
+    String resp = safeCall(request);
+    Type type = new TypeToken<List<Cap>>() {}.getType();
+    return gson.fromJson(resp, type);
   }
 
   @Override
-  public List<SubUser> createSubUser(String uid, String subUserId, Map<String, String> parameters) {
+  public List<SubUser> createSubUser(
+      String userId, String subUserId, Map<String, String> parameters) {
     HttpUrl.Builder urlBuilder =
         HttpUrl.parse(endpoint)
             .newBuilder()
             .addPathSegment("user")
             .query("subuser")
-            .addQueryParameter("uid", uid)
+            .addQueryParameter("uid", userId)
             // TODO:
             .addQueryParameter("generate-secret", "true")
             .addQueryParameter("subuser", subUserId);
@@ -154,18 +165,19 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public List<SubUser> createSubUserForSwift(String uid, String subUserId) {
-    return createSubUser(uid, subUserId, ImmutableMap.of("access", "full"));
+  public List<SubUser> createSubUserForSwift(String userId, String subUserId) {
+    return createSubUser(userId, subUserId, ImmutableMap.of("access", "full"));
   }
 
   @Override
-  public List<SubUser> modifySubUser(String uid, String subUserId, Map<String, String> parameters) {
+  public List<SubUser> modifySubUser(
+      String userId, String subUserId, Map<String, String> parameters) {
     HttpUrl.Builder urlBuilder =
         HttpUrl.parse(endpoint)
             .newBuilder()
             .addPathSegment("user")
             .query("subuser")
-            .addQueryParameter("uid", uid)
+            .addQueryParameter("uid", userId)
             .addQueryParameter("subuser", subUserId);
 
     appendParameters(parameters, urlBuilder);
@@ -178,13 +190,13 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public void removeSubUser(String uid, String subUserId) {
+  public void removeSubUser(String userId, String subUserId) {
     HttpUrl.Builder urlBuilder =
         HttpUrl.parse(endpoint)
             .newBuilder()
             .addPathSegment("user")
             .query("subuser")
-            .addQueryParameter("uid", uid)
+            .addQueryParameter("uid", userId)
             .addQueryParameter("subuser", subUserId);
 
     Request request = new Request.Builder().delete().url(urlBuilder.build()).build();
@@ -192,8 +204,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
     safeCall(request);
   }
 
-  @Override
-  public List<CreateKeyResponse> createKey(String uid, Map<String, String> parameters) {
+  private List<Key> _createKey(String uid, Map<String, String> parameters) {
     HttpUrl.Builder urlBuilder =
         HttpUrl.parse(endpoint)
             .newBuilder()
@@ -206,31 +217,99 @@ public class RgwAdminClientImpl implements RgwAdminClient {
     Request request = new Request.Builder().put(emptyBody).url(urlBuilder.build()).build();
 
     String resp = safeCall(request);
-    Type type = new TypeToken<List<CreateKeyResponse>>() {}.getType();
+    Type type = new TypeToken<List<Key>>() {}.getType();
     return gson.fromJson(resp, type);
   }
 
-  @Override
-  public List<CreateKeyResponse> createKey(String uid) {
-    return createKey(uid, null);
+  private void _removeKey(String uid, Map<String, String> parameters) {
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("user")
+            .query("key")
+            .addQueryParameter("uid", uid);
+
+    appendParameters(parameters, urlBuilder);
+
+    Request request = new Request.Builder().delete().url(urlBuilder.build()).build();
+
+    safeCall(request);
   }
 
   @Override
-  public void removeKey(String accessKey, String keyType) {
-    Request request =
-        new Request.Builder()
-            .delete()
-            .url(
-                HttpUrl.parse(endpoint)
-                    .newBuilder()
-                    .addPathSegment("user")
-                    .query("key")
-                    .addQueryParameter("access-key", accessKey)
-                    .addQueryParameter("key-type", keyType)
-                    .build())
-            .build();
+  public List<Key> createKey(String userId, String accessKey, String secretKey) {
+    return _createKey(
+        userId,
+        ImmutableMap.of(
+            "access-key", accessKey,
+            "secret-key", secretKey));
+  }
 
-    safeCall(request);
+  @Override
+  public List<Key> createKey(String userId) {
+    return _createKey(userId, ImmutableMap.of("generate-key", "True"));
+  }
+
+  @Override
+  public void removeKey(String userId, String accessKey) {
+    _removeKey(userId, ImmutableMap.of("access-key", accessKey));
+  }
+
+  @Override
+  public List<Key> createKeyForSubUser(
+      String userId, String subUserId, String accessKey, String secretKey) {
+    return _createKey(
+        userId,
+        ImmutableMap.of(
+            "subuser", subUserId,
+            "access-key", accessKey,
+            "secret-key", secretKey,
+            "key-type", "s3"));
+  }
+
+  @Override
+  public List<Key> createKeyForSubUser(String userId, String subUserId) {
+    return _createKey(
+        userId,
+        ImmutableMap.of(
+            "subuser", subUserId,
+            "key-type", "s3",
+            "generate-key", "True"));
+  }
+
+  @Override
+  public void removeKeyFromSubUser(String userId, String subUserId, String accessKey) {
+    _removeKey(
+        userId,
+        ImmutableMap.of(
+            "subuser", subUserId,
+            "key-type", "s3",
+            "access-key", accessKey));
+  }
+
+  @Override
+  public List<Key> createSecretForSubUser(String userId, String subUserId, String secret) {
+    return _createKey(
+        userId,
+        ImmutableMap.of(
+            "subuser", subUserId,
+            "secret-key", secret,
+            "key-type", "swift"));
+  }
+
+  @Override
+  public List<Key> createSecretForSubUser(String userId, String subUserId) {
+    return _createKey(
+        userId,
+        ImmutableMap.of(
+            "subuser", subUserId,
+            "key-type", "swift",
+            "generate-key", "True"));
+  }
+
+  @Override
+  public void removeSecretFromSubUser(String userId, String subUserId) {
+    _removeKey(userId, ImmutableMap.of("subuser", subUserId, "key-type", "swift"));
   }
 
   /*
@@ -312,7 +391,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public Optional<GetBucketInfoResponse> getBucketInfo(String bucketName) {
+  public List<String> listBucket(String userId) {
     Request request =
         new Request.Builder()
             .get()
@@ -320,18 +399,63 @@ public class RgwAdminClientImpl implements RgwAdminClient {
                 HttpUrl.parse(endpoint)
                     .newBuilder()
                     .addPathSegment("bucket")
-                    .addQueryParameter("bucket", bucketName)
+                    .addQueryParameter("uid", userId)
+                    .addQueryParameter("stats", "False")
                     .build())
             .build();
 
     String resp = safeCall(request);
-    return Optional.ofNullable(gson.fromJson(resp, GetBucketInfoResponse.class));
+    Type type = new TypeToken<List<String>>() {}.getType();
+
+    return gson.fromJson(resp, type);
+  }
+
+  @Override
+  public List<BucketInfo> listBucketInfo(String userId) {
+    return _getBucketInfo(ImmutableMap.of("uid", userId, "stats", "True"));
+  }
+
+  private List<BucketInfo> _getBucketInfo(Map<String, String> parameters) {
+    HttpUrl.Builder urlBuilder = HttpUrl.parse(endpoint).newBuilder().addPathSegment("bucket");
+
+    appendParameters(parameters, urlBuilder);
+
+    Request request = new Request.Builder().get().url(urlBuilder.build()).build();
+
+    String resp = safeCall(request);
+
+    // ugly part...
+    if (parameters.containsKey("uid")) {
+      Type type = new TypeToken<List<BucketInfo>>() {}.getType();
+      return gson.fromJson(resp, type);
+    } else if (parameters.containsKey("bucket")) {
+      BucketInfo response = gson.fromJson(resp, BucketInfo.class);
+      List<BucketInfo> ret = new ArrayList<>();
+      if (response != null) {
+        ret.add(response);
+      }
+      return ret;
+    }
+
+    throw new RuntimeException("Parameters should have either uid or bucket");
+  }
+
+  @Override
+  public Optional<BucketInfo> getBucketInfo(String bucketName) {
+    List<BucketInfo> responses =
+        _getBucketInfo(ImmutableMap.of("bucket", bucketName, "stats", "True"));
+    if (responses.size() == 0) {
+      return Optional.empty();
+    } else if (responses.size() == 1) {
+      return Optional.of(responses.get(0));
+    }
+    throw new RuntimeException("Server should not return more than one bucket");
   }
 
   /**
    * Guarantee that the request is execute success and the connection is closed
    *
-   * @param request
+   * @param request request
    * @return resp body in str; null if no body or status code == 404
    * @throws RgwAdminException if resp code != (200||404)
    */
@@ -394,20 +518,19 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public void modifyUser(String userId, Map<String, String> parameters) {
+  public User modifyUser(String userId, Map<String, String> parameters) {
     HttpUrl.Builder urlBuilder =
         HttpUrl.parse(endpoint)
             .newBuilder()
             .addPathSegment("user")
             .addQueryParameter("uid", userId);
 
-    parameters
-        .entrySet()
-        .forEach(entry -> urlBuilder.addQueryParameter(entry.getKey(), entry.getValue()));
+    parameters.forEach(urlBuilder::addQueryParameter);
 
     Request request = new Request.Builder().post(emptyBody).url(urlBuilder.build()).build();
 
-    safeCall(request);
+    String resp = safeCall(request);
+    return gson.fromJson(resp, User.class);
   }
 
   @Override
@@ -494,7 +617,16 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public Optional<String> getPolicy(String bucketName, String objectKey) {
+  public Optional<String> getObjectPolicy(String bucketName, String objectKey) {
+    return _getPolicy(bucketName, objectKey);
+  }
+
+  @Override
+  public Optional<String> getBucketPolicy(String bucketName) {
+    return _getPolicy(bucketName, null);
+  }
+
+  private Optional<String> _getPolicy(String bucketName, String objectKey) {
     if (Strings.isNullOrEmpty(bucketName)) {
       throw new IllegalArgumentException("no bucketName");
     }
