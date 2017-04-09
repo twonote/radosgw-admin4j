@@ -17,6 +17,7 @@ import java.util.Optional;
  *
  * <p>Created by petertc on 3/14/17.
  */
+@SuppressWarnings("SameParameterValue")
 public interface RgwAdminClient {
   /**
    * Remove usage information for specified user. With no dates specified, removes all usage
@@ -104,22 +105,22 @@ public interface RgwAdminClient {
    *
    * <p>Note that you can get the capability by {@link #getUserInfo(String)}
    *
-   * @param uid The user ID to add an administrative capability to.
+   * @param userId The user ID to add an administrative capability to.
    * @param userCaps The administrative capability to add to the user.
-   * @return The user’s capabilities after the operation.
+   * @return The user's capabilities after the operation.
    */
-  List<Cap> addUserCapability(String uid, List<Cap> userCaps);
+  List<Cap> addUserCapability(String userId, List<Cap> userCaps);
 
   /**
    * Remove an administrative capability from a specified user.
    *
    * <p>Note that you can get the capability by {@link #getUserInfo(String)}
    *
-   * @param uid The user ID to remove an administrative capability from.
+   * @param userId The user ID to remove an administrative capability from.
    * @param userCaps The administrative capabilities to remove from the user.
-   * @return The user’s capabilities after the operation.
+   * @return The user's capabilities after the operation.
    */
-  List<Cap> removeUserCapability(String uid, List<Cap> userCaps);
+  List<Cap> removeUserCapability(String userId, List<Cap> userCaps);
 
   /**
    * Create a new subuser
@@ -142,12 +143,12 @@ public interface RgwAdminClient {
    *
    * <p>Note that to create subuser for S3, you need ceph v11.2.0-kraken or above.
    *
-   * @param uid The user ID under which a subuser is to be created.
+   * @param userId The user ID under which a subuser is to be created.
    * @param subUserId Specify the subuser ID to be created.
    * @param parameters The subuser parameters.
-   * @return The subuser information.
+   * @return Subusers associated with the user account.
    */
-  List<SubUser> createSubUser(String uid, String subUserId, Map<String, String> parameters);
+  List<SubUser> createSubUser(String userId, String subUserId, Map<String, String> parameters);
 
   /**
    * Create a new subuser for Swift use.
@@ -157,11 +158,11 @@ public interface RgwAdminClient {
    * <p>Note that you can get subuser (swift) keys and other information by {@link
    * #getUserInfo(String)}
    *
-   * @param uid
-   * @param subUserId
-   * @return
+   * @param userId the specified user.
+   * @param subUserId the specified sub-user.
+   * @return Subusers associated with the user account.
    */
-  List<SubUser> createSubUserForSwift(String uid, String subUserId);
+  List<SubUser> createSubUserForSwift(String userId, String subUserId);
 
   /**
    * Modify an existing subuser.
@@ -175,22 +176,22 @@ public interface RgwAdminClient {
    * <li>generate-secret: Generate the secret key. Default: False
    * </ul>
    *
-   * @param uid The user ID under which a subuser is to be created.
+   * @param userId The user ID under which a subuser is to be created.
    * @param subUserId Specify the subuser ID to be created.
    * @param parameters The subuser parameters.
-   * @return The subuser information.
+   * @return Subusers associated with the user account.
    */
-  List<SubUser> modifySubUser(String uid, String subUserId, Map<String, String> parameters);
+  List<SubUser> modifySubUser(String userId, String subUserId, Map<String, String> parameters);
 
   /**
    * Remove an existing subuser.
    *
    * <p>Note that the operation also removes keys belonging to the subuser.
    *
-   * @param uid The user ID under which the subuser is to be removed.
+   * @param userId The user ID under which the subuser is to be removed.
    * @param subUserId The subuser ID to be removed.
    */
-  void removeSubUser(String uid, String subUserId);
+  void removeSubUser(String userId, String subUserId);
 
   /**
    * Create a new S3 key pair for the specified user.
@@ -198,7 +199,7 @@ public interface RgwAdminClient {
    * @param userId the specified user.
    * @param accessKey S3 access key
    * @param secretKey S3 secret key
-   * @return
+   * @return Keys of type created associated with this user account.
    */
   List<Key> createKey(String userId, String accessKey, String secretKey);
 
@@ -209,13 +210,14 @@ public interface RgwAdminClient {
    * the key, please use {@link #createKey(String, String, String)}
    *
    * @param userId the specified user.
-   * @return
+   * @return Keys of type created associated with this user account.
    */
   List<Key> createKey(String userId);
 
   /**
    * Remove an existing S3 key pair from the specified user.
    *
+   * @param userId The specified user.
    * @param accessKey The access key belonging to the key pair to remove.
    */
   void removeKey(String userId, String accessKey);
@@ -223,12 +225,12 @@ public interface RgwAdminClient {
   /**
    * Create a new S3 key pair for the specified sub user.
    *
-   * @param userId the specified user.
+   * @param userId The specified user.
    * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
    *     foo:bar.
    * @param accessKey S3 access key.
    * @param secretKey S3 secret key.
-   * @return
+   * @return Keys of type created associated with this user account.
    */
   List<Key> createKeyForSubUser(
       String userId, String subUserId, String accessKey, String secretKey);
@@ -242,7 +244,7 @@ public interface RgwAdminClient {
    * @param userId the specified user.
    * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
    *     foo:bar.
-   * @return
+   * @return Keys of type created associated with this user account.
    */
   List<Key> createKeyForSubUser(String userId, String subUserId);
 
@@ -259,11 +261,11 @@ public interface RgwAdminClient {
   /**
    * Create a new swift secret for the specified sub user.
    *
-   * @param userId the specified user.
+   * @param userId The specified user.
    * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
    *     foo:bar.
-   * @param secret
-   * @return
+   * @param secret The specified swift secret.
+   * @return Keys of type created associated with this user account.
    */
   List<Key> createSecretForSubUser(String userId, String subUserId, String secret);
 
@@ -271,12 +273,12 @@ public interface RgwAdminClient {
    * Create a new swift secret for the specified sub user.
    *
    * <p>The secret will be automatically generated for the user. If you want to specify it, please
-   * use {@link #createSecretForSubUser(String, String)}
+   * use {@link #createSecretForSubUser(String, String, String)}
    *
-   * @param userId the specified user.
-   * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
+   * @param userId The specified user.
+   * @param subUserId The specified sub user. Should not contain user id, i.e., bar instead of
    *     foo:bar.
-   * @return
+   * @return Keys of type created associated with this user account.
    */
   List<Key> createSecretForSubUser(String userId, String subUserId);
 
@@ -341,6 +343,7 @@ public interface RgwAdminClient {
    * @param bucketName The bucket to return info on.
    * @param isCheckObjects Check multipart object accounting. Example: True [False]
    * @param isFix Also fix the bucket index when checking. Example: False [False]
+   * @return Status of bucket index.
    */
   Optional<String> checkBucketIndex(String bucketName, boolean isCheckObjects, boolean isFix);
 
@@ -434,7 +437,8 @@ public interface RgwAdminClient {
    * </ul>
    *
    * @param userId The user ID to be modified.
-   * @param parameters
+   * @param parameters Optional parameters.
+   * @return The user information.
    */
   User modifyUser(String userId, Map<String, String> parameters);
 

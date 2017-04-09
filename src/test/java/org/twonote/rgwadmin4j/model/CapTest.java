@@ -7,7 +7,7 @@ import static org.junit.Assert.assertEquals;
 
 /** Created by hrchu on 2017/4/8. */
 public class CapTest {
-  Gson gson = new Gson();
+  private final Gson gson = new Gson();
 
   @Test
   public void test() {

@@ -42,7 +42,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
 
   private static void appendParameters(Map<String, String> parameters, HttpUrl.Builder urlBuilder) {
     if (parameters != null) {
-      parameters.forEach((k, v) -> urlBuilder.addQueryParameter(k, v));
+      parameters.forEach(urlBuilder::addQueryParameter);
     }
   }
 
@@ -104,7 +104,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public List<Cap> addUserCapability(String uid, List<Cap> userCaps) {
+  public List<Cap> addUserCapability(String userId, List<Cap> userCaps) {
     Request request =
         new Request.Builder()
             .put(emptyBody)
@@ -113,7 +113,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
                     .newBuilder()
                     .addPathSegment("user")
                     .query("caps")
-                    .addQueryParameter("uid", uid)
+                    .addQueryParameter("uid", userId)
                     .addQueryParameter("user-caps", Joiner.on(";").join(userCaps))
                     .build())
             .build();
@@ -124,7 +124,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public List<Cap> removeUserCapability(String uid, List<Cap> userCaps) {
+  public List<Cap> removeUserCapability(String userId, List<Cap> userCaps) {
     Request request =
         new Request.Builder()
             .delete()
@@ -133,7 +133,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
                     .newBuilder()
                     .addPathSegment("user")
                     .query("caps")
-                    .addQueryParameter("uid", uid)
+                    .addQueryParameter("uid", userId)
                     .addQueryParameter("user-caps", Joiner.on(";").join(userCaps))
                     .build())
             .build();
@@ -144,13 +144,13 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public List<SubUser> createSubUser(String uid, String subUserId, Map<String, String> parameters) {
+  public List<SubUser> createSubUser(String userId, String subUserId, Map<String, String> parameters) {
     HttpUrl.Builder urlBuilder =
         HttpUrl.parse(endpoint)
             .newBuilder()
             .addPathSegment("user")
             .query("subuser")
-            .addQueryParameter("uid", uid)
+            .addQueryParameter("uid", userId)
             // TODO:
             .addQueryParameter("generate-secret", "true")
             .addQueryParameter("subuser", subUserId);
@@ -165,18 +165,18 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public List<SubUser> createSubUserForSwift(String uid, String subUserId) {
-    return createSubUser(uid, subUserId, ImmutableMap.of("access", "full"));
+  public List<SubUser> createSubUserForSwift(String userId, String subUserId) {
+    return createSubUser(userId, subUserId, ImmutableMap.of("access", "full"));
   }
 
   @Override
-  public List<SubUser> modifySubUser(String uid, String subUserId, Map<String, String> parameters) {
+  public List<SubUser> modifySubUser(String userId, String subUserId, Map<String, String> parameters) {
     HttpUrl.Builder urlBuilder =
         HttpUrl.parse(endpoint)
             .newBuilder()
             .addPathSegment("user")
             .query("subuser")
-            .addQueryParameter("uid", uid)
+            .addQueryParameter("uid", userId)
             .addQueryParameter("subuser", subUserId);
 
     appendParameters(parameters, urlBuilder);
@@ -189,13 +189,13 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   }
 
   @Override
-  public void removeSubUser(String uid, String subUserId) {
+  public void removeSubUser(String userId, String subUserId) {
     HttpUrl.Builder urlBuilder =
         HttpUrl.parse(endpoint)
             .newBuilder()
             .addPathSegment("user")
             .query("subuser")
-            .addQueryParameter("uid", uid)
+            .addQueryParameter("uid", userId)
             .addQueryParameter("subuser", subUserId);
 
     Request request = new Request.Builder().delete().url(urlBuilder.build()).build();
@@ -454,7 +454,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
   /**
    * Guarantee that the request is execute success and the connection is closed
    *
-   * @param request
+   * @param request request
    * @return resp body in str; null if no body or status code == 404
    * @throws RgwAdminException if resp code != (200||404)
    */
@@ -524,9 +524,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
             .addPathSegment("user")
             .addQueryParameter("uid", userId);
 
-    parameters
-        .entrySet()
-        .forEach(entry -> urlBuilder.addQueryParameter(entry.getKey(), entry.getValue()));
+    parameters.forEach(urlBuilder::addQueryParameter);
 
     Request request = new Request.Builder().post(emptyBody).url(urlBuilder.build()).build();
 

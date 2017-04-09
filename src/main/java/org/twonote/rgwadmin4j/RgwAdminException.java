@@ -5,6 +5,7 @@ package org.twonote.rgwadmin4j;
  *
  * <p>Created by petertc on 3/24/17.
  */
+@SuppressWarnings("SameParameterValue")
 public class RgwAdminException extends RuntimeException {
   private final int statusCode;
 

@@ -28,6 +28,7 @@ import java.util.function.Consumer;
 
 import static org.junit.Assert.*;
 
+@SuppressWarnings("ConstantConditions")
 public class RgwAdminClientImplTest {
 
   private static RgwAdminClientImpl RGW_ADMIN_CLIENT;
@@ -86,8 +87,9 @@ public class RgwAdminClientImplTest {
       System.exit(0);
     }
     try {
+      //noinspection ResultOfMethodCallIgnored
       RGW_ADMIN_CLIENT.getUserInfo(adminUserId).get();
-    } catch (Exception e) {
+    } catch (NoSuchElementException | RgwAdminException e) {
       System.out.println(
           "Cannot make communication with radosgw admin endpoint: " + e.getLocalizedMessage());
       System.exit(0);
@@ -110,32 +112,12 @@ public class RgwAdminClientImplTest {
     swiftEndpoint = s3Endpoint + "/auth/1.0";
   }
 
-  /**
-   * Creates a temporary file with text data to demonstrate uploading a file to Amazon S3
-   *
-   * @return A newly created temporary file with text data.
-   * @throws IOException
-   */
-  private static File createSampleFile() throws IOException {
-    File file = File.createTempFile("aws-java-sdk-", ".txt");
-    file.deleteOnExit();
-
-    Writer writer = new OutputStreamWriter(new FileOutputStream(file));
-    writer.write("abcdefghijklmnopqrstuvwxyz\n");
-    writer.write("01234567890112345678901234\n");
-    writer.write("!@#$%^&*()-=[]{};':',.<>/?\n");
-    writer.write("01234567890112345678901234\n");
-    writer.write("abcdefghijklmnopqrstuvwxyz\n");
-    writer.close();
-
-    return file;
-  }
-
   private static AmazonS3 initS3(String accessKey, String secretKey, String endPoint) {
     AWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
     ClientConfiguration clientConfig = new ClientConfiguration();
     clientConfig.setProtocol(Protocol.HTTP);
     clientConfig.withSignerOverride("S3SignerType");
+    //noinspection deprecation
     AmazonS3 s3 = new AmazonS3Client(credentials, clientConfig);
     s3.setEndpoint(endPoint);
     return s3;
@@ -238,7 +220,7 @@ public class RgwAdminClientImplTest {
           String userId = absSubUserId.split(":")[0];
           String subUserId = absSubUserId.split(":")[1];
           response = RGW_ADMIN_CLIENT.createKeyForSubUser(userId, subUserId);
-          response.stream().anyMatch(vv -> absSubUserId.equals(vv.getUser()));
+          assertTrue(response.stream().anyMatch(vv -> absSubUserId.equals(vv.getUser())));
 
           // specify the key
           String accessKey = v.getUserId() + "-accessKey";
@@ -308,7 +290,7 @@ public class RgwAdminClientImplTest {
           String userId = absSubUserId.split(":")[0];
           String subUserId = absSubUserId.split(":")[1];
           response = RGW_ADMIN_CLIENT.createSecretForSubUser(userId, subUserId);
-          response.stream().anyMatch(vv -> absSubUserId.equals(vv.getUser()));
+          assertTrue(response.stream().anyMatch(vv -> absSubUserId.equals(vv.getUser())));
 
           // specify the key
           String secret = v.getUserId() + "-secret";
@@ -364,7 +346,7 @@ public class RgwAdminClientImplTest {
 
           UsageInfo response;
           response = RGW_ADMIN_CLIENT.getUserUsage(userId).get();
-          if (!response.getSummary().stream().anyMatch(vv -> userId.equals(vv.getUser()))) {
+          if (response.getSummary().stream().noneMatch(vv -> userId.equals(vv.getUser()))) {
             fail("No usage log corresponding to the given user id...need more sleep?");
           }
 
@@ -400,12 +382,12 @@ public class RgwAdminClientImplTest {
           UsageInfo response;
 
           response = RGW_ADMIN_CLIENT.getUsage(null).get();
-          if (!response.getSummary().stream().anyMatch(vv -> userId.equals(vv.getUser()))) {
+          if (response.getSummary().stream().noneMatch(vv -> userId.equals(vv.getUser()))) {
             fail("No usage log corresponding to the given user id...need more sleep?");
           }
 
           response = RGW_ADMIN_CLIENT.getUserUsage(userId, null).get();
-          if (!response.getSummary().stream().anyMatch(vv -> userId.equals(vv.getUser()))) {
+          if (response.getSummary().stream().noneMatch(vv -> userId.equals(vv.getUser()))) {
             fail("No usage log corresponding to the given user id...need more sleep?");
           }
         });
@@ -558,39 +540,37 @@ public class RgwAdminClientImplTest {
 
   @Test
   public void removeBucket() throws Exception {
-    String userId = "testremovebk" + UUID.randomUUID().toString();
     String bucketName = "testremovebkbk" + UUID.randomUUID().toString();
 
     // remove bucket not exist
     Thread.sleep(3000);
     RGW_ADMIN_CLIENT.removeBucket(bucketName);
 
-    try {
-      User response = RGW_ADMIN_CLIENT.createUser(userId);
-      AmazonS3 s3 =
-          initS3(
-              response.getKeys().get(0).getAccessKey(),
-              response.getKeys().get(0).getSecretKey(),
-              s3Endpoint);
-      s3.createBucket(bucketName);
+    testWithAUser( v-> {
+      String userId = "testremovebk" + UUID.randomUUID().toString();
 
-      ByteArrayInputStream input = new ByteArrayInputStream("Hello World!".getBytes());
-      s3.putObject(bucketName, "hello.txt", input, new ObjectMetadata());
+        User response = RGW_ADMIN_CLIENT.createUser(userId);
+        AmazonS3 s3 =
+            initS3(
+                response.getKeys().get(0).getAccessKey(),
+                response.getKeys().get(0).getSecretKey(),
+                s3Endpoint);
+        s3.createBucket(bucketName);
 
-      RGW_ADMIN_CLIENT.removeBucket(bucketName);
+        ByteArrayInputStream input = new ByteArrayInputStream("Hello World!".getBytes());
+        s3.putObject(bucketName, "hello.txt", input, new ObjectMetadata());
 
-      try {
-        s3.headBucket(new HeadBucketRequest(bucketName));
-      } catch (Exception e) {
-        assertTrue("Not Found".equals(((AmazonS3Exception) e).getErrorMessage()));
-      }
-    } finally {
-      try {
-        RGW_ADMIN_CLIENT.removeUser(userId);
-      } catch (Exception e) {
+        RGW_ADMIN_CLIENT.removeBucket(bucketName);
 
-      }
-    }
+        try {
+          s3.headBucket(new HeadBucketRequest(bucketName));
+        } catch (Exception e) {
+          assertTrue("Not Found".equals(((AmazonS3Exception) e).getErrorMessage()));
+        }
+
+    });
+
+
   }
 
   @Test
@@ -622,53 +602,43 @@ public class RgwAdminClientImplTest {
 
   @Test
   public void linkBucket() throws Exception {
-    String userId = "linkbkusr" + UUID.randomUUID().toString();
-    String bucketName = "linkbkusrbk" + UUID.randomUUID().toString();
-    try {
-      User response = RGW_ADMIN_CLIENT.createUser(userId);
-      AmazonS3 s3 =
-          initS3(
-              response.getKeys().get(0).getAccessKey(),
-              response.getKeys().get(0).getSecretKey(),
-              s3Endpoint);
-      s3.createBucket(bucketName);
+    testWithAUser( v -> {
+      String userId = "linkbkusr" + UUID.randomUUID().toString();
+      String bucketName = "linkbkusrbk" + UUID.randomUUID().toString();
+        User response = RGW_ADMIN_CLIENT.createUser(userId);
+        AmazonS3 s3 =
+            initS3(
+                response.getKeys().get(0).getAccessKey(),
+                response.getKeys().get(0).getSecretKey(),
+                s3Endpoint);
+        s3.createBucket(bucketName);
 
-      BucketInfo _response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName).get();
+        BucketInfo _response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName).get();
 
-      // basic
-      String bucketId = _response.getId();
-      RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId, adminUserId);
-      BucketInfo __response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName).get();
-      assertEquals(adminUserId, __response.getOwner());
+        // basic
+        String bucketId = _response.getId();
+        RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId, adminUserId);
+        BucketInfo __response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName).get();
+        assertEquals(adminUserId, __response.getOwner());
 
-      // execute again
-      // Ceph 9.2.x throw exception; ceph 10.2.2 returns 404 so no exception will show.
-      //            exception.expect(RuntimeException.class);
-      RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId, adminUserId);
+        // execute again
+        // Ceph 9.2.x throw exception; ceph 10.2.2 returns 404 so no exception will show.
+        //            exception.expect(RuntimeException.class);
+        RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId, adminUserId);
 
-      // bad argument
-      //            exception.expect(RuntimeException.class);
-      RGW_ADMIN_CLIENT.linkBucket(bucketName + "qq", bucketId, adminUserId);
+        // bad argument
+        //            exception.expect(RuntimeException.class);
+        RGW_ADMIN_CLIENT.linkBucket(bucketName + "qq", bucketId, adminUserId);
 
-      //            exception.expect(RuntimeException.class);
-      RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId, adminUserId + "qqq");
+        //            exception.expect(RuntimeException.class);
+        RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId, adminUserId + "qqq");
 
-      //            exception.expect(RuntimeException.class);
-      RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId + "qq", adminUserId);
+        //            exception.expect(RuntimeException.class);
+        RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId + "qq", adminUserId);
 
-    } finally {
-      AmazonS3 adminS3 = initS3(accessKey, secretKey, s3Endpoint);
-      try {
-        adminS3.deleteBucket(bucketName);
-      } catch (Exception e) {
 
-      }
-      try {
-        RGW_ADMIN_CLIENT.removeUser(userId);
-      } catch (Exception e) {
+    });
 
-      }
-    }
   }
 
   @Test

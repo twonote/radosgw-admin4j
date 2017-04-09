@@ -9,12 +9,13 @@ import java.lang.reflect.Type;
 import java.util.Map;
 
 /** Created by petertc on 3/24/17. */
-public class ErrorUtils {
+class ErrorUtils {
   private static final Type mapType = new TypeToken<Map<String, String>>() {}.getType();
   private static final Gson gson = new Gson();
 
   static RgwAdminException parseError(Response response) {
     try {
+      //noinspection unchecked
       return new RgwAdminException(
           response.code(),
           ((Map<String, String>) gson.fromJson(response.body().string(), mapType)).get("Code"));

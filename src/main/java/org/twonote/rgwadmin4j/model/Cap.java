@@ -9,9 +9,9 @@ import com.google.gson.annotations.SerializedName;
  */
 public class Cap {
   /** type : usage perm : * */
-  private Type type;
+  private final Type type;
 
-  private Perm perm;
+  private final Perm perm;
 
   public Cap(Type type, Perm perm) {
     this.type = type;
@@ -29,7 +29,7 @@ public class Cap {
   /**
    * Format as the request parameter
    *
-   * @return
+   * @return foo=bar
    */
   @Override
   public String toString() {
@@ -38,13 +38,14 @@ public class Cap {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
 
     Cap cap = (Cap) o;
 
-    if (type != cap.type) return false;
-    return perm == cap.perm;
+    return type == cap.type && perm == cap.perm;
   }
 
   @Override

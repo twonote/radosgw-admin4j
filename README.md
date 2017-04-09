@@ -5,7 +5,7 @@ A Ceph Object Storage Admin SDK / Client Library for Java
 
 # Hightlight
 * **Fully support all [operations](http://docs.ceph.com/docs/master/radosgw/adminops/)** in the least Ceph version. (Jewel LTS/Kraken stable currently)
-* [Continuous Integration](https://travis-ci.org/twonote/radosgw-admin4j) and tests aganst the least Ceph version for quality and compatiabiliy
+* [Continuous Integration](https://travis-ci.org/twonote/radosgw-admin4j) and tests against the least Ceph version for quality and compatibility
 * Uses the [Maven](http://maven.apache.org/) build system, Java 8 is required.
 * **All contributions are welcome! Feel free here~**
 
