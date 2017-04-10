@@ -10,8 +10,47 @@ A Ceph Object Storage Admin SDK / Client Library for Java
 * **All contributions are welcome! Feel free here~**
 
 # Start using 
+
 You can obtain radosgw-admim4j from Maven Central using the following identifier:
 * [io.github.twonote.radosgw-admin4j:0.0.5](https://search.maven.org/#artifactdetails%7Cio.github.twonote%7Cradosgw-admin4j%7C0.0.5%7Cjar)
+
+## Configuration
+
+### Using plain-old-Java
+
+```
+RgwAdminClient RGW_ADMIN_CLIENT = new RgwAdminClientImpl(adminAccessKey, adminSecretKey, adminEndpoint);
+```
+
+### Using the Spring framework
+
+```
+@Configuration
+public class RgwAdminBeanConfig {
+  @Value("${radosgw.adminAccessKey}")
+  private String accessKey;
+
+  @Value("${radosgw.adminSecretKey}")
+  private String secretKey;
+
+  @Value("${radosgw.adminEndpoint}")
+  private String endpoint;
+
+  @Bean
+  RgwAdminClient init() {
+    return new RgwAdminClientImpl(accessKey, secretKey, endpoint);
+  }
+}
+```
+
+and your ```[project home]/src/main/resources/[...]/spring.yml``` will be (for example):
+
+```
+radosgw:
+  adminEndpoint: ${RADOSGW.ADMIN.ENDPOINT:http://127.0.0.1:8080/admin}
+  adminAccessKey: ${RADOSGW.ADMIN.ACCESSKEY:qqq}
+  adminSecretKey: ${RADOSGW.ADMIN.SECRETKEY:qqq
+```
 
 ## Usage example
 
