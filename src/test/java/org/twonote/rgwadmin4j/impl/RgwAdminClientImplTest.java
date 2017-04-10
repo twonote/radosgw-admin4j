@@ -19,6 +19,8 @@ import org.javaswift.joss.model.Container;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.twonote.rgwadmin4j.RgwAdminClient;
+import org.twonote.rgwadmin4j.RgwAdminClientBuilder;
 import org.twonote.rgwadmin4j.model.*;
 
 import java.io.ByteArrayInputStream;
@@ -31,7 +33,7 @@ import static org.junit.Assert.*;
 @SuppressWarnings("ConstantConditions")
 public class RgwAdminClientImplTest {
 
-  private static RgwAdminClientImpl RGW_ADMIN_CLIENT;
+  private static RgwAdminClient RGW_ADMIN_CLIENT;
   private static String adminUserId;
   private static String accessKey;
   private static String secretKey;
@@ -73,7 +75,14 @@ public class RgwAdminClientImplTest {
   @BeforeClass
   public static void init() throws IOException {
     initPros();
-    RGW_ADMIN_CLIENT = new RgwAdminClientImpl(accessKey, secretKey, adminEndpoint);
+
+    RGW_ADMIN_CLIENT =
+        new RgwAdminClientBuilder()
+            .accessKey(accessKey)
+            .secretKey(secretKey)
+            .endpoint(adminEndpoint)
+            .build();
+
     testRgwConnectivity();
   }
 
