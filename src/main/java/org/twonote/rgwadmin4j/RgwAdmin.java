@@ -18,7 +18,7 @@ import java.util.Optional;
  * <p>Created by petertc on 3/14/17.
  */
 @SuppressWarnings("SameParameterValue")
-public interface RgwAdminClient {
+public interface RgwAdmin {
   /**
    * Remove usage information for specified user. With no dates specified, removes all usage
    * information.

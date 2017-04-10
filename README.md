@@ -18,35 +18,40 @@ You can obtain radosgw-admim4j from Maven Central using the following identifier
 Please check more operations in [java doc](https://twonote.github.io/radosgw-admin4j/apidocs/index.html)!
 
 ```
-RgwAdminClient RGW_ADMIN_CLIENT = new RgwAdminClientImpl(accessKey, secretKey, adminEndpoint);
+RgwAdmin RGW_ADMIN =
+              new RgwAdminBuilder()
+                  .accessKey(accessKey)
+                  .secretKey(secretKey)
+                  .endpoint(adminEndpoint)
+                  .build();
 
 // create user
-CreateUserResponse response = RGW_ADMIN_CLIENT.createUser(userId);
+CreateUserResponse response = RGW_ADMIN.createUser(userId);
 
 // Get user info 
-GetUserInfoResponse response = RGW_ADMIN_CLIENT.getUserInfo(adminUserId).get();
+GetUserInfoResponse response = RGW_ADMIN.getUserInfo(adminUserId).get();
 
 // Allow the user owns more buckets
-RGW_ADMIN_CLIENT.modifyUser(userId, ImmutableMap.of("max-buckets", String.valueOf(Integer.MAX_VALUE)));
+RGW_ADMIN.modifyUser(userId, ImmutableMap.of("max-buckets", String.valueOf(Integer.MAX_VALUE)));
 
 // create bucket by the new user
 AmazonS3 s3 = initS3(response.getKeys().get(0).getAccessKey(), response.getKeys().get(0).getSecretKey(), s3Endpoint);
 s3.createBucket(bucketName);
 
 // get bucket info
-GetBucketInfoResponse _response = RGW_ADMIN_CLIENT.getBucketInfo(bucketName).get();
+GetBucketInfoResponse _response = RGW_ADMIN.getBucketInfo(bucketName).get();
 
 // Change bucket owner
-RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketId, adminUserId);
+RGW_ADMIN.linkBucket(bucketName, bucketId, adminUserId);
 
 // Remove bucket
-RGW_ADMIN_CLIENT.removeBucket(bucketName);
+RGW_ADMIN.removeBucket(bucketName);
 
 // Suspend user
-RGW_ADMIN_CLIENT.suspendUser(userId);
+RGW_ADMIN.suspendUser(userId);
 
 // Remove user
-RGW_ADMIN_CLIENT.removeUser(userId);
+RGW_ADMIN.removeUser(userId);
 
 ```
 ## Setup radosgw and do integration test

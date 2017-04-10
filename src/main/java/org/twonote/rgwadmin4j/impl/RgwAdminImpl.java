@@ -6,7 +6,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import okhttp3.*;
-import org.twonote.rgwadmin4j.RgwAdminClient;
+import org.twonote.rgwadmin4j.RgwAdmin;
 import org.twonote.rgwadmin4j.model.*;
 
 import java.io.IOException;
@@ -18,7 +18,7 @@ import java.util.*;
  *
  * <p>Created by petertc on 2/16/17.
  */
-public class RgwAdminClientImpl implements RgwAdminClient {
+public class RgwAdminImpl implements RgwAdmin {
   private static final Gson gson = new Gson();
 
   private static final RequestBody emptyBody = RequestBody.create(null, new byte[] {});
@@ -33,7 +33,7 @@ public class RgwAdminClientImpl implements RgwAdminClient {
    * @param secretKey Secret key of the admin who have proper administrative capabilities.
    * @param endpoint Radosgw admin API endpoint, e.g., http://127.0.0.1:80/admin
    */
-  public RgwAdminClientImpl(String accessKey, String secretKey, String endpoint) {
+  public RgwAdminImpl(String accessKey, String secretKey, String endpoint) {
     this.client =
         new OkHttpClient().newBuilder().addInterceptor(new S3Auth(accessKey, secretKey)).build();
     this.endpoint = endpoint;
