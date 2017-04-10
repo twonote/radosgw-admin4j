@@ -43,13 +43,13 @@ public class RgwAdminBeanConfig {
 }
 ```
 
-and your ```[project home]/src/main/resources/[...]/spring.yml``` will be (for example):
+and your ```[project home]/src/main/resources/[...]/spring.yml``` will contains (for example):
 
 ```
 radosgw:
   adminEndpoint: ${RADOSGW.ADMIN.ENDPOINT:http://127.0.0.1:8080/admin}
   adminAccessKey: ${RADOSGW.ADMIN.ACCESSKEY:qqq}
-  adminSecretKey: ${RADOSGW.ADMIN.SECRETKEY:qqq
+  adminSecretKey: ${RADOSGW.ADMIN.SECRETKEY:qqq}
 ```
 
 ## Usage example
