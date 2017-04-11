@@ -209,7 +209,7 @@ public class RgwAdminImplTest extends BaseTest {
   public void trimUsage() throws Exception {
     testWithAUser(
         v -> {
-          doSomething(v);
+          createSomeObjects(v);
 
           String userId = v.getUserId();
 
@@ -246,7 +246,7 @@ public class RgwAdminImplTest extends BaseTest {
           String userId = v.getUserId();
 
           // Do something to let usage log generated.
-          doSomething(v);
+          createSomeObjects(v);
 
           UsageInfo response;
 
@@ -319,7 +319,7 @@ public class RgwAdminImplTest extends BaseTest {
                   .filter(e -> fullSubUserId.equals(e.getUser()))
                   .findFirst()
                   .get();
-          AmazonS3 s3 = initS3(key.getAccessKey(), key.getSecretKey(), s3Endpoint);
+          AmazonS3 s3 = createS3(key.getAccessKey(), key.getSecretKey());
           s3.listBuckets();
           String bucketName = UUID.randomUUID().toString().toLowerCase();
           s3.createBucket(bucketName);
@@ -354,8 +354,8 @@ public class RgwAdminImplTest extends BaseTest {
         (v) -> {
           String userId = v.getUserId();
           AmazonS3 s3 =
-              initS3(
-                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
+              createS3(
+                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
           String bucketName = userId.toLowerCase();
 
           // not exist
@@ -421,10 +421,9 @@ public class RgwAdminImplTest extends BaseTest {
 
           User response = RGW_ADMIN.createUser(userId);
           AmazonS3 s3 =
-              initS3(
+              createS3(
                   response.getKeys().get(0).getAccessKey(),
-                  response.getKeys().get(0).getSecretKey(),
-                  s3Endpoint);
+                  response.getKeys().get(0).getSecretKey());
           s3.createBucket(bucketName);
 
           ByteArrayInputStream input = new ByteArrayInputStream("Hello World!".getBytes());
@@ -446,8 +445,8 @@ public class RgwAdminImplTest extends BaseTest {
         (v) -> {
           String userId = v.getUserId();
           AmazonS3 s3 =
-              initS3(
-                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
+              createS3(
+                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
           String bucketName = userId.toLowerCase();
 
           // not exist
@@ -475,10 +474,9 @@ public class RgwAdminImplTest extends BaseTest {
           String bucketName = "linkbkusrbk" + UUID.randomUUID().toString();
           User response = RGW_ADMIN.createUser(userId);
           AmazonS3 s3 =
-              initS3(
+              createS3(
                   response.getKeys().get(0).getAccessKey(),
-                  response.getKeys().get(0).getSecretKey(),
-                  s3Endpoint);
+                  response.getKeys().get(0).getSecretKey());
           s3.createBucket(bucketName);
 
           BucketInfo _response = RGW_ADMIN.getBucketInfo(bucketName).get();
@@ -511,8 +509,8 @@ public class RgwAdminImplTest extends BaseTest {
     testWithASubUser(
         v -> {
           AmazonS3 s3 =
-              initS3(
-                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
+              createS3(
+                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
           for (int i = 0; i < 3; i++) {
             s3.createBucket(UUID.randomUUID().toString().toLowerCase());
           }
@@ -526,8 +524,8 @@ public class RgwAdminImplTest extends BaseTest {
     testWithASubUser(
         v -> {
           AmazonS3 s3 =
-              initS3(
-                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
+              createS3(
+                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
           for (int i = 0; i < 3; i++) {
             s3.createBucket(UUID.randomUUID().toString().toLowerCase());
           }
@@ -541,8 +539,8 @@ public class RgwAdminImplTest extends BaseTest {
     testWithASubUser(
         v -> {
           AmazonS3 s3 =
-              initS3(
-                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
+              createS3(
+                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
           String bucketName = UUID.randomUUID().toString().toLowerCase();
           s3.createBucket(bucketName);
 
@@ -654,8 +652,8 @@ public class RgwAdminImplTest extends BaseTest {
           assertEquals(true, quota.getEnabled());
 
           AmazonS3 s3 =
-              initS3(
-                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
+              createS3(
+                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
           String bucketName = userId.toLowerCase();
           s3.createBucket(bucketName);
 
@@ -692,8 +690,8 @@ public class RgwAdminImplTest extends BaseTest {
           assertEquals(true, quota.getEnabled());
 
           AmazonS3 s3 =
-              initS3(
-                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
+              createS3(
+                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
           String bucketName = userId.toLowerCase();
           s3.createBucket(bucketName);
 
@@ -752,8 +750,8 @@ public class RgwAdminImplTest extends BaseTest {
         (v) -> {
           String userId = v.getUserId();
           AmazonS3 s3 =
-              initS3(
-                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
+              createS3(
+                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
           String bucketName = userId.toLowerCase();
           String objectKey = userId.toLowerCase();
           s3.createBucket(bucketName);
@@ -769,8 +767,8 @@ public class RgwAdminImplTest extends BaseTest {
         (v) -> {
           String userId = v.getUserId();
           AmazonS3 s3 =
-              initS3(
-                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
+              createS3(
+                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
           String bucketName = userId.toLowerCase();
           s3.createBucket(bucketName);
           String resp = RGW_ADMIN.getBucketPolicy(bucketName).get();
@@ -784,8 +782,8 @@ public class RgwAdminImplTest extends BaseTest {
         (v) -> {
           String userId = v.getUserId();
           AmazonS3 s3 =
-              initS3(
-                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
+              createS3(
+                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
           String bucketName = userId.toLowerCase();
           s3.createBucket(bucketName);
           String objectKey = userId.toLowerCase();

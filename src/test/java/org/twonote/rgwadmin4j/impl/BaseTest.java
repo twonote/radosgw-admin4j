@@ -6,6 +6,7 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.google.common.collect.ImmutableMap;
 import org.javaswift.joss.client.factory.AccountConfig;
 import org.javaswift.joss.client.factory.AccountFactory;
 import org.javaswift.joss.client.factory.AuthenticationMethod;
@@ -14,6 +15,7 @@ import org.javaswift.joss.model.Container;
 import org.junit.BeforeClass;
 import org.twonote.rgwadmin4j.RgwAdmin;
 import org.twonote.rgwadmin4j.RgwAdminBuilder;
+import org.twonote.rgwadmin4j.model.Key;
 import org.twonote.rgwadmin4j.model.User;
 
 import java.io.IOException;
@@ -36,15 +38,21 @@ public class BaseTest {
   protected static String swiftEndpoint;
   protected static String adminEndpoint;
 
-  protected static void doSomething(AmazonS3 s3) {
-    String userId = UUID.randomUUID().toString();
-    String bucketName = userId.toLowerCase();
+  protected static void createSomeObjects(Account account) {
+    Container container = account.getContainer("container-" + UUID.randomUUID().toString().toLowerCase());
+    container.create();
+    for (int i =0; i<3;i++) {
+      container.getObject("OBJECT-" + UUID.randomUUID()).uploadObject(createString(4096).getBytes());
+    }
+  }
+
+    protected static void createSomeObjects(AmazonS3 s3) {
+    String bucketName = "bucket-" + UUID.randomUUID().toString().toLowerCase();
     s3.createBucket(bucketName);
+      for (int i =0; i<3;i++) {
 
-    s3.putObject(bucketName, userId + "1", createString(40960));
-    s3.putObject(bucketName, userId + "2", createString(40960));
-    s3.putObject(bucketName, userId + "3", createString(40960));
-
+        s3.putObject(bucketName, "OBJECT-" + UUID.randomUUID(), createString(4096));
+      }
     // Usage data are generated in the async way, hope it will be available after wait.
     try {
       Thread.sleep(5000);
@@ -53,35 +61,24 @@ public class BaseTest {
     }
   }
 
-  protected static void doSomething(User v) {
-    String userId = v.getUserId();
-    // Do something to let usage log generated.
+  protected static void createSomeObjects(User v) {
     AmazonS3 s3 =
-        initS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey(), s3Endpoint);
-    String bucketName = userId.toLowerCase();
-    s3.createBucket(bucketName);
-
-    s3.putObject(bucketName, userId + "1", createString(40960));
-    s3.putObject(bucketName, userId + "2", createString(40960));
-    s3.putObject(bucketName, userId + "3", createString(40960));
-
-    // Usage data are generated in the async way, hope it will be available after wait.
-    try {
-      Thread.sleep(5000);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
+        createS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
+    createSomeObjects(s3);
   }
 
   protected static void testSwiftConnectivity(String username, String password) {
+    Account account = createSwift(username, password);
+    createSomeObjects(account);
+  }
+
+  protected static Account createSwift(String username, String password) {
     AccountConfig config = new AccountConfig();
     config.setUsername(username);
     config.setPassword(password);
     config.setAuthUrl(swiftEndpoint);
     config.setAuthenticationMethod(AuthenticationMethod.BASIC);
-    Account account = new AccountFactory(config).createAccount();
-    Container container = account.getContainer(UUID.randomUUID().toString().toLowerCase());
-    container.create();
+    return new AccountFactory(config).createAccount();
   }
 
   @BeforeClass
@@ -100,7 +97,7 @@ public class BaseTest {
 
   private static void testRgwConnectivity() {
     try {
-      AmazonS3 s3 = initS3(adminAccessKey, adminSecretKey, s3Endpoint);
+      AmazonS3 s3 = createS3(adminAccessKey, adminSecretKey);
       s3.listBuckets();
     } catch (Exception e) {
       System.out.println(
@@ -133,14 +130,18 @@ public class BaseTest {
     swiftEndpoint = s3Endpoint + "/auth/1.0";
   }
 
-  protected static AmazonS3 initS3(String accessKey, String secretKey, String endPoint) {
+  protected static AmazonS3 createS3(Key key) {
+    return createS3(key.getAccessKey(), key.getSecretKey());
+  }
+
+  protected static AmazonS3 createS3(String accessKey, String secretKey) {
     AWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
     ClientConfiguration clientConfig = new ClientConfiguration();
     clientConfig.setProtocol(Protocol.HTTP);
     clientConfig.withSignerOverride("S3SignerType");
     //noinspection deprecation
     AmazonS3 s3 = new AmazonS3Client(credentials, clientConfig);
-    s3.setEndpoint(endPoint);
+    s3.setEndpoint(s3Endpoint);
     return s3;
   }
 
@@ -155,7 +156,7 @@ public class BaseTest {
     try {
       User user = RGW_ADMIN.createUser(userId);
       AmazonS3 s3 =
-          initS3(user.getKeys().get(0).getAccessKey(), user.getKeys().get(0).getSecretKey(), s3Endpoint);
+          createS3(user.getKeys().get(0).getAccessKey(), user.getKeys().get(0).getSecretKey());
 
       test.accept(user, s3);
     } finally {
@@ -173,11 +174,16 @@ public class BaseTest {
     }
   }
 
+  /**
+   * Prepare a full control subuser for test
+   *
+   * @param test The test logic.
+   */
   protected static void testWithASubUser(Consumer<User> test) {
     String subUserId = UUID.randomUUID().toString();
     testWithAUser(
         v -> {
-          RGW_ADMIN.createSubUser(v.getUserId(), subUserId, null);
+          RGW_ADMIN.createSubUser(v.getUserId(), subUserId, ImmutableMap.of("access", "readwrite"));
           User user = RGW_ADMIN.getUserInfo(v.getUserId()).get();
           test.accept(user);
         });
