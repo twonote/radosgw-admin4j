@@ -6,8 +6,9 @@ import com.google.gson.annotations.SerializedName;
 /**
  * Represents the credential associated with a user or sub-user.
  *
- * <p>Note that the key may represents a S3 or a Swift credential, and have different forms.
- * S3 credential is composed of access key and secret key. On the other hand, Swift credential is a username/password pair.
+ * <p>Note that the key may represents a S3 or a Swift credential, and have different forms. S3
+ * credential is composed of access key and secret key. On the other hand, Swift credential is a
+ * username/password pair.
  */
 // TODO: divided into swift/s3 key
 public class Key {
@@ -64,6 +65,10 @@ public class Key {
     return secretKey;
   }
 
+  public void setSecretKey(String secretKey) {
+    this.secretKey = secretKey;
+  }
+
   /**
    * Determine the key represents S3 or swift credential.
    *
@@ -80,9 +85,5 @@ public class Key {
    */
   public boolean isS3Key() {
     return !isSwiftKey();
-  }
-
-  public void setSecretKey(String secretKey) {
-    this.secretKey = secretKey;
   }
 }

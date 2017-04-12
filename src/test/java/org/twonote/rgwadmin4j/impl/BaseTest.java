@@ -26,9 +26,7 @@ import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-/**
- * Created by hrchu on 2017/4/10.
- */
+/** Created by hrchu on 2017/4/10. */
 public class BaseTest {
   protected static RgwAdmin RGW_ADMIN;
   protected static String adminUserId;
@@ -39,20 +37,23 @@ public class BaseTest {
   protected static String adminEndpoint;
 
   protected static void createSomeObjects(Account account) {
-    Container container = account.getContainer("container-" + UUID.randomUUID().toString().toLowerCase());
+    Container container =
+        account.getContainer("container-" + UUID.randomUUID().toString().toLowerCase());
     container.create();
-    for (int i =0; i<3;i++) {
-      container.getObject("OBJECT-" + UUID.randomUUID()).uploadObject(createString(4096).getBytes());
+    for (int i = 0; i < 3; i++) {
+      container
+          .getObject("OBJECT-" + UUID.randomUUID())
+          .uploadObject(createString(4096).getBytes());
     }
   }
 
-    protected static void createSomeObjects(AmazonS3 s3) {
+  protected static void createSomeObjects(AmazonS3 s3) {
     String bucketName = "bucket-" + UUID.randomUUID().toString().toLowerCase();
     s3.createBucket(bucketName);
-      for (int i =0; i<3;i++) {
+    for (int i = 0; i < 3; i++) {
 
-        s3.putObject(bucketName, "OBJECT-" + UUID.randomUUID(), createString(4096));
-      }
+      s3.putObject(bucketName, "OBJECT-" + UUID.randomUUID(), createString(4096));
+    }
     // Usage data are generated in the async way, hope it will be available after wait.
     try {
       Thread.sleep(5000);
@@ -62,8 +63,7 @@ public class BaseTest {
   }
 
   protected static void createSomeObjects(User v) {
-    AmazonS3 s3 =
-        createS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
+    AmazonS3 s3 = createS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
     createSomeObjects(s3);
   }
 

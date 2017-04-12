@@ -4,7 +4,6 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.HeadBucketRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Ignore;
@@ -12,12 +11,34 @@ import org.junit.Test;
 import org.twonote.rgwadmin4j.model.*;
 
 import java.io.ByteArrayInputStream;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 
 @SuppressWarnings("ConstantConditions")
 public class RgwAdminImplTest extends BaseTest {
+  @Test
+  public void listSubUsers() throws Exception {
+    testWithASubUser(
+        u -> {
+          List<SubUser> subUsers = RGW_ADMIN.listSubUsers(u.getUserId());
+          assertEquals(subUsers, u.getSubusers());
+        });
+  }
+
+  @Test
+  public void getSubUserInfo() throws Exception {
+    testWithASubUser(
+        u -> {
+          Optional<SubUser> subUserInfo =
+              RGW_ADMIN.getSubUserInfo(
+                  u.getUserId(), u.getSubusers().get(0).getRelativeSubUserId());
+          assertEquals(u.getSubusers().get(0), subUserInfo.get());
+        });
+  }
 
   @Test
   public void createKey() throws Exception {
@@ -269,15 +290,17 @@ public class RgwAdminImplTest extends BaseTest {
 
   @Test
   public void setSubUserPermission() throws Exception {
-    testWithASubUser(su -> {
-      SubUser subUser = su.getSubusers().get(0);
-      SubUser.Permission permissionToSet = SubUser.Permission.READ;
-      List<SubUser> response = RGW_ADMIN
-          .setSubUserPermission(subUser.getParentUserId(), subUser.getRelativeSubUserId(), permissionToSet);
-      SubUser result = response.stream().filter(r -> subUser.getId().equals(r.getId())).findFirst().get();
-      assertEquals(permissionToSet, result.getPermission().get());
-
-    });
+    testWithASubUser(
+        su -> {
+          SubUser subUser = su.getSubusers().get(0);
+          SubUser.Permission permissionToSet = SubUser.Permission.READ;
+          List<SubUser> response =
+              RGW_ADMIN.setSubUserPermission(
+                  subUser.getParentUserId(), subUser.getRelativeSubUserId(), permissionToSet);
+          SubUser result =
+              response.stream().filter(r -> subUser.getId().equals(r.getId())).findFirst().get();
+          assertEquals(permissionToSet, result.getPermission().get());
+        });
   }
 
   @Test
@@ -289,8 +312,7 @@ public class RgwAdminImplTest extends BaseTest {
           List<SubUser> response = RGW_ADMIN.createSubUser(v.getUserId(), subUserId, null);
           assertFalse(response.get(0).getPermission().isPresent());
           response =
-              RGW_ADMIN.modifySubUser(
-                  v.getUserId(), subUserId, ImmutableMap.of("access", "full"));
+              RGW_ADMIN.modifySubUser(v.getUserId(), subUserId, ImmutableMap.of("access", "full"));
           assertEquals(SubUser.Permission.FULL, response.get(0).getPermission().get());
         });
   }
@@ -301,7 +323,7 @@ public class RgwAdminImplTest extends BaseTest {
         v -> {
           String subUserId = UUID.randomUUID().toString();
           // basic
-          RGW_ADMIN.createSubUserForSwift(v.getUserId(), subUserId);
+          RGW_ADMIN.createSubUser(v.getUserId(), subUserId, SubUser.Permission.FULL, KeyType.SWIFT);
           User response2 = RGW_ADMIN.getUserInfo(v.getUserId()).get();
           assertEquals(1, response2.getSwiftKeys().size());
           RGW_ADMIN.removeSubUser(v.getUserId(), subUserId);
@@ -312,23 +334,26 @@ public class RgwAdminImplTest extends BaseTest {
 
   @Test
   public void createSubUser() {
-    testWithAUser( u -> {
-      String userId = u.getUserId();
-      String subUserId = "SUB-" + UUID.randomUUID().toString();
-      String absSubUserId = String.join(":", userId, subUserId);
+    testWithAUser(
+        u -> {
+          String userId = u.getUserId();
+          String subUserId = "SUB-" + UUID.randomUUID().toString();
+          String absSubUserId = String.join(":", userId, subUserId);
 
-      // basic
-      SubUser.Permission permission = SubUser.Permission.FULL;
-      List<SubUser> response = RGW_ADMIN.createSubUser(userId, subUserId, permission, KeyType.SWIFT);
-      Optional<SubUser> result = response.stream().filter(su -> absSubUserId.equals(su.getId())).findFirst();
-      assertTrue(result.isPresent());
-      assertEquals(permission, result.get().getPermission().get());
-      Optional<Key> keyResponse = RGW_ADMIN.getUserInfo(userId).get().getSwiftKeys().stream()
-          .filter(k -> absSubUserId.equals(k.getUser())).findFirst();
-      assertTrue(keyResponse.isPresent());
-
-    });
-
+          // basic
+          SubUser.Permission permission = SubUser.Permission.FULL;
+          SubUser response = RGW_ADMIN.createSubUser(userId, subUserId, permission, KeyType.SWIFT);
+          assertEquals(permission, response.getPermission().get());
+          Optional<Key> keyResponse =
+              RGW_ADMIN
+                  .getUserInfo(userId)
+                  .get()
+                  .getSwiftKeys()
+                  .stream()
+                  .filter(k -> absSubUserId.equals(k.getUser()))
+                  .findFirst();
+          assertTrue(keyResponse.isPresent());
+        });
   }
 
   @Ignore("Works in v11.2.0-kraken or above.")
@@ -369,32 +394,12 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void createSubUserForSwift() throws Exception {
-    testWithAUser(
-        v -> {
-          String subUserId = UUID.randomUUID().toString();
-          // basic
-          List<SubUser> response = RGW_ADMIN.createSubUserForSwift(v.getUserId(), subUserId);
-          assertEquals(1, response.size());
-          assertEquals(v.getUserId() + ":" + subUserId, response.get(0).getId());
-          assertEquals(SubUser.Permission.FULL, response.get(0).getPermission().get());
-
-          // test subuser in swift
-          User response2 = RGW_ADMIN.getUserInfo(v.getUserId()).get();
-          String username = response2.getSwiftKeys().get(0).getUser();
-          String password = response2.getSwiftKeys().get(0).getSecretKey();
-          testSwiftConnectivity(username, password);
-        });
-  }
-
-  @Test
   public void checkBucketIndex() throws Exception {
     testWithAUser(
         (v) -> {
           String userId = v.getUserId();
           AmazonS3 s3 =
-              createS3(
-                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
+              createS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
           String bucketName = userId.toLowerCase();
 
           // not exist
@@ -485,8 +490,7 @@ public class RgwAdminImplTest extends BaseTest {
         (v) -> {
           String userId = v.getUserId();
           AmazonS3 s3 =
-              createS3(
-                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
+              createS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
           String bucketName = userId.toLowerCase();
 
           // not exist
@@ -549,8 +553,7 @@ public class RgwAdminImplTest extends BaseTest {
     testWithASubUser(
         v -> {
           AmazonS3 s3 =
-              createS3(
-                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
+              createS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
           for (int i = 0; i < 3; i++) {
             s3.createBucket(UUID.randomUUID().toString().toLowerCase());
           }
@@ -564,8 +567,7 @@ public class RgwAdminImplTest extends BaseTest {
     testWithASubUser(
         v -> {
           AmazonS3 s3 =
-              createS3(
-                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
+              createS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
           for (int i = 0; i < 3; i++) {
             s3.createBucket(UUID.randomUUID().toString().toLowerCase());
           }
@@ -579,8 +581,7 @@ public class RgwAdminImplTest extends BaseTest {
     testWithASubUser(
         v -> {
           AmazonS3 s3 =
-              createS3(
-                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
+              createS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
           String bucketName = UUID.randomUUID().toString().toLowerCase();
           s3.createBucket(bucketName);
 
@@ -595,8 +596,7 @@ public class RgwAdminImplTest extends BaseTest {
     RGW_ADMIN.createUser(userId);
 
     // basic
-    RGW_ADMIN.modifyUser(
-        userId, ImmutableMap.of("max-buckets", String.valueOf(Integer.MAX_VALUE)));
+    RGW_ADMIN.modifyUser(userId, ImmutableMap.of("max-buckets", String.valueOf(Integer.MAX_VALUE)));
     User response = RGW_ADMIN.getUserInfo(userId).get();
     assertEquals(Integer.valueOf(Integer.MAX_VALUE), response.getMaxBuckets());
 
@@ -605,8 +605,7 @@ public class RgwAdminImplTest extends BaseTest {
         userId + "qqqq", ImmutableMap.of("max-buckets", String.valueOf(Integer.MAX_VALUE)));
 
     // ignore call with wrong arguments
-    RGW_ADMIN.modifyUser(
-        userId, ImmutableMap.of("QQQQQ", String.valueOf(Integer.MAX_VALUE)));
+    RGW_ADMIN.modifyUser(userId, ImmutableMap.of("QQQQQ", String.valueOf(Integer.MAX_VALUE)));
     RGW_ADMIN.modifyUser(userId, ImmutableMap.of("max-buckets", "you-know-my-name"));
     assertEquals(Integer.valueOf(Integer.MAX_VALUE), response.getMaxBuckets());
   }
@@ -692,8 +691,7 @@ public class RgwAdminImplTest extends BaseTest {
           assertEquals(true, quota.getEnabled());
 
           AmazonS3 s3 =
-              createS3(
-                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
+              createS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
           String bucketName = userId.toLowerCase();
           s3.createBucket(bucketName);
 
@@ -730,8 +728,7 @@ public class RgwAdminImplTest extends BaseTest {
           assertEquals(true, quota.getEnabled());
 
           AmazonS3 s3 =
-              createS3(
-                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
+              createS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
           String bucketName = userId.toLowerCase();
           s3.createBucket(bucketName);
 
@@ -792,8 +789,7 @@ public class RgwAdminImplTest extends BaseTest {
         (v) -> {
           String userId = v.getUserId();
           AmazonS3 s3 =
-              createS3(
-                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
+              createS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
           String bucketName = userId.toLowerCase();
           String objectKey = userId.toLowerCase();
           s3.createBucket(bucketName);
@@ -809,8 +805,7 @@ public class RgwAdminImplTest extends BaseTest {
         (v) -> {
           String userId = v.getUserId();
           AmazonS3 s3 =
-              createS3(
-                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
+              createS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
           String bucketName = userId.toLowerCase();
           s3.createBucket(bucketName);
           String resp = RGW_ADMIN.getBucketPolicy(bucketName).get();
@@ -824,8 +819,7 @@ public class RgwAdminImplTest extends BaseTest {
         (v) -> {
           String userId = v.getUserId();
           AmazonS3 s3 =
-              createS3(
-                  v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
+              createS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
           String bucketName = userId.toLowerCase();
           s3.createBucket(bucketName);
           String objectKey = userId.toLowerCase();

@@ -155,35 +155,21 @@ public interface RgwAdmin {
   /**
    * Create a new sub-user
    *
-   * This method will create the sub-user with the automatic generated credential.
+   * <p>This method will create the sub-user with the automatic generated credential.
    *
    * <p>Note that you can get the sub-user credential and other information by {@link
    * #getUserInfo(String)}
    *
-   * @param userId  The user ID under which a subuser is to be created.
-   * @param subUserId Specify the subuser ID to be created. Should be in the relative form, i.e., does not contains the user id.
+   * @param userId The user ID under which a subuser is to be created.
+   * @param subUserId Specify the subuser ID to be created. Should be in the relative form, i.e.,
+   *     does not contains the user id.
    * @param permission The subuser permission.
    * @param keyType Key type to be generated.
-   * @return Subusers associated with the user account.
+   * @return The created subuser information.
    */
   // TODO: add a overload version of createSubUser that accepts user given credential after modeling the credential.
-  List<SubUser> createSubUser(String userId, String subUserId, SubUser.Permission permission, KeyType keyType);
-
-  /**
-   * Create a new subuser for Swift use.
-   *
-   * <p>Note that the subuser will has "full" control permission.
-   *
-   * <p>Note that you can get subuser (swift) keys and other information by {@link
-   * #getUserInfo(String)}
-   *
-   * @param userId the specified user.
-   * @param subUserId the specified sub-user.
-   * @return Subusers associated with the user account.
-   */
-  //TODO: remove
-  @Deprecated
-  List<SubUser> createSubUserForSwift(String userId, String subUserId);
+  SubUser createSubUser(
+      String userId, String subUserId, SubUser.Permission permission, KeyType keyType);
 
   /**
    * Modify an existing subuser.
@@ -208,12 +194,32 @@ public interface RgwAdmin {
   /**
    * Modify an existing subuser permission.
    *
+   * <p>Note that you can get the permission by {@link #getSubUserInfo(String, String)}
+   *
    * @param userId The user ID under which a subuser is to be created.
    * @param subUserId Specify the subuser ID to be created.
    * @param permission Specify the subuser permission.
    * @return Subusers associated with the user account.
    */
-  List<SubUser> setSubUserPermission(String userId, String subUserId, SubUser.Permission permission);
+  List<SubUser> setSubUserPermission(
+      String userId, String subUserId, SubUser.Permission permission);
+
+  /**
+   * Retrieve sub-users under a user
+   *
+   * @param userId The user ID under which subusers we interested to
+   * @return subusers
+   */
+  List<SubUser> listSubUsers(String userId);
+
+  /**
+   * Get sub-user information.
+   *
+   * @param userId The user ID.
+   * @param subUserId The subuser ID
+   * @return The subuser information.
+   */
+  Optional<SubUser> getSubUserInfo(String userId, String subUserId);
 
   /**
    * Remove an existing subuser.

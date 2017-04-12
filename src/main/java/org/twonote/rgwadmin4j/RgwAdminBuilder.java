@@ -6,8 +6,8 @@ import org.twonote.rgwadmin4j.impl.RgwAdminImpl;
 import java.util.Arrays;
 
 /**
- * Fluent builder for {@link RgwAdmin}. Use of the builder is preferred over using
- * constructors of the client class.
+ * Fluent builder for {@link RgwAdmin}. Use of the builder is preferred over using constructors of
+ * the client class.
  *
  * <p>Created by hrchu on 2017/4/10.
  */

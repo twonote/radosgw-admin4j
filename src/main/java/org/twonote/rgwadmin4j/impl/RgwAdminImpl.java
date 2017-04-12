@@ -45,6 +45,10 @@ public class RgwAdminImpl implements RgwAdmin {
     }
   }
 
+  private static String absSubUserId(String userId, String subUserId) {
+    return String.join(":", userId, subUserId);
+  }
+
   @Override
   public void trimUserUsage(String userId, Map<String, String> parameters) {
     if (parameters == null) {
@@ -165,14 +169,21 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
-  public List<SubUser> createSubUser(String userId, String subUserId, SubUser.Permission permission, KeyType keyType) {
-    return createSubUser(userId, subUserId, ImmutableMap.of("access", permission.toString(), "key-type", keyType.toString(),
-        "generate-secret", "True"));
-  }
-
-  @Override
-  public List<SubUser> createSubUserForSwift(String userId, String subUserId) {
-    return createSubUser(userId, subUserId, ImmutableMap.of("access", "full"));
+  public SubUser createSubUser(
+      String userId, String subUserId, SubUser.Permission permission, KeyType keyType) {
+    List<SubUser> subUser =
+        createSubUser(
+            userId,
+            subUserId,
+            ImmutableMap.of(
+                "access",
+                permission.toString(),
+                "key-type",
+                keyType.toString(),
+                "generate-secret",
+                "True"));
+    String absSubUserId = absSubUserId(userId, subUserId);
+    return subUser.stream().filter(u -> absSubUserId.equals(u.getId())).findFirst().get();
   }
 
   @Override
@@ -196,8 +207,26 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
-  public List<SubUser> setSubUserPermission(String userId, String subUserId, SubUser.Permission permission) {
+  public List<SubUser> setSubUserPermission(
+      String userId, String subUserId, SubUser.Permission permission) {
     return modifySubUser(userId, subUserId, ImmutableMap.of("access", permission.toString()));
+  }
+
+  @Override
+  public List<SubUser> listSubUsers(String userId) {
+    Optional<User> userInfo = getUserInfo(userId);
+    if (userInfo.isPresent()) {
+      return userInfo.get().getSubusers();
+    } else {
+      return new ArrayList<>();
+    }
+  }
+
+  @Override
+  public Optional<SubUser> getSubUserInfo(String userId, String subUserId) {
+    String absSubUserId = absSubUserId(userId, subUserId);
+    List<SubUser> subUsers = listSubUsers(userId);
+    return subUsers.stream().filter(u -> absSubUserId.equals(u.getId())).findFirst();
   }
 
   @Override

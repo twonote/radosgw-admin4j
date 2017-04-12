@@ -50,9 +50,25 @@ public class SubUser {
     this.permission = permission;
   }
 
-  /**
-   * Access permission for sub-user.
-   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    SubUser subUser = (SubUser) o;
+
+    if (id != null ? !id.equals(subUser.id) : subUser.id != null) return false;
+    return permission == subUser.permission;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = id != null ? id.hashCode() : 0;
+    result = 31 * result + (permission != null ? permission.hashCode() : 0);
+    return result;
+  }
+
+  /** Access permission for sub-user. */
   public enum Permission {
     @SerializedName("read")
     READ,
@@ -64,8 +80,8 @@ public class SubUser {
     READ_WRITE,
 
     @SerializedName(
-        value = "full",
-        alternate = {"full-control"}
+      value = "full",
+      alternate = {"full-control"}
     )
     FULL;
 
