@@ -165,6 +165,12 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
+  public List<SubUser> createSubUser(String userId, String subUserId, SubUser.Permission permission, KeyType keyType) {
+    return createSubUser(userId, subUserId, ImmutableMap.of("access", permission.toString(), "key-type", keyType.toString(),
+        "generate-secret", "True"));
+  }
+
+  @Override
   public List<SubUser> createSubUserForSwift(String userId, String subUserId) {
     return createSubUser(userId, subUserId, ImmutableMap.of("access", "full"));
   }

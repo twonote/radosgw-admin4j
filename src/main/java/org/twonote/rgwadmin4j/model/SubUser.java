@@ -15,6 +15,8 @@ public class SubUser {
   /**
    * Get sub-user ID
    *
+   * <p>Note that it will be in the absolute form, i.e., [USER_ID]:[SUB_USER_ID]
+   *
    * @return sub-user ID
    */
   public String getId() {

@@ -148,7 +148,26 @@ public interface RgwAdmin {
    * @param parameters The subuser parameters.
    * @return Subusers associated with the user account.
    */
+  @Deprecated
+  // TODO: remove
   List<SubUser> createSubUser(String userId, String subUserId, Map<String, String> parameters);
+
+  /**
+   * Create a new sub-user
+   *
+   * This method will create the sub-user with the automatic generated credential.
+   *
+   * <p>Note that you can get the sub-user credential and other information by {@link
+   * #getUserInfo(String)}
+   *
+   * @param userId  The user ID under which a subuser is to be created.
+   * @param subUserId Specify the subuser ID to be created. Should be in the relative form, i.e., does not contains the user id.
+   * @param permission The subuser permission.
+   * @param keyType Key type to be generated.
+   * @return Subusers associated with the user account.
+   */
+  // TODO: add a overload version of createSubUser that accepts user given credential after modeling the credential.
+  List<SubUser> createSubUser(String userId, String subUserId, SubUser.Permission permission, KeyType keyType);
 
   /**
    * Create a new subuser for Swift use.
@@ -162,6 +181,8 @@ public interface RgwAdmin {
    * @param subUserId the specified sub-user.
    * @return Subusers associated with the user account.
    */
+  //TODO: remove
+  @Deprecated
   List<SubUser> createSubUserForSwift(String userId, String subUserId);
 
   /**

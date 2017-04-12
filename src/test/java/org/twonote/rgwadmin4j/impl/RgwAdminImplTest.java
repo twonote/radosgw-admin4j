@@ -4,6 +4,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.HeadBucketRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Ignore;
@@ -296,9 +297,30 @@ public class RgwAdminImplTest extends BaseTest {
         });
   }
 
+  @Test
+  public void createSubUser() {
+    testWithAUser( u -> {
+      String userId = u.getUserId();
+      String subUserId = "SUB-" + UUID.randomUUID().toString();
+      String absSubUserId = String.join(":", userId, subUserId);
+
+      // basic
+      SubUser.Permission permission = SubUser.Permission.FULL;
+      List<SubUser> response = RGW_ADMIN.createSubUser(userId, subUserId, permission, KeyType.SWIFT);
+      Optional<SubUser> result = response.stream().filter(su -> absSubUserId.equals(su.getId())).findFirst();
+      assertTrue(result.isPresent());
+      assertEquals(permission, result.get().getPermission().get());
+      Optional<Key> keyResponse = RGW_ADMIN.getUserInfo(userId).get().getSwiftKeys().stream()
+          .filter(k -> absSubUserId.equals(k.getUser())).findFirst();
+      assertTrue(keyResponse.isPresent());
+
+    });
+
+  }
+
   @Ignore("Works in v11.2.0-kraken or above.")
   @Test
-  public void createSubUser() throws Exception {
+  public void _createSubUser() throws Exception {
     testWithAUser(
         v -> {
           String subUserId = UUID.randomUUID().toString();
