@@ -155,8 +155,6 @@ public class RgwAdminImpl implements RgwAdmin {
             .addPathSegment("user")
             .query("subuser")
             .addQueryParameter("uid", userId)
-            // TODO:
-            .addQueryParameter("generate-secret", "true")
             .addQueryParameter("subuser", subUserId);
 
     appendParameters(parameters, urlBuilder);
