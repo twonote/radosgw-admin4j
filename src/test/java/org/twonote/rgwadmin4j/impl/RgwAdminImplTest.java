@@ -44,6 +44,7 @@ public class RgwAdminImplTest extends BaseTest {
           // user not exist
           try {
             RGW_ADMIN.createKey(UUID.randomUUID().toString());
+            fail();
           } catch (RgwAdminException e) {
             assertEquals("InvalidArgument", e.getMessage());
           }
@@ -63,6 +64,7 @@ public class RgwAdminImplTest extends BaseTest {
           // key not exist
           try {
             RGW_ADMIN.removeKey(v.getUserId(), UUID.randomUUID().toString());
+            fail();
           } catch (RgwAdminException e) {
             assertEquals(
                 403, e.status()); // ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
@@ -71,6 +73,7 @@ public class RgwAdminImplTest extends BaseTest {
           // user not exist
           try {
             RGW_ADMIN.removeKey(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+            fail();
           } catch (RgwAdminException e) {
             assertEquals(
                 400, e.status()); // ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
@@ -140,6 +143,7 @@ public class RgwAdminImplTest extends BaseTest {
           // key not exist
           try {
             RGW_ADMIN.removeKeyFromSubUser(userId, subUserId, UUID.randomUUID().toString());
+            fail();
           } catch (RgwAdminException e) {
             // ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
             assertEquals("InvalidAccessKeyId", e.getMessage());
@@ -433,6 +437,7 @@ public class RgwAdminImplTest extends BaseTest {
 
           try {
             s3.headBucket(new HeadBucketRequest(bucketName));
+            fail();
           } catch (Exception e) {
             assertTrue("Not Found".equals(((AmazonS3Exception) e).getErrorMessage()));
           }
@@ -703,6 +708,7 @@ public class RgwAdminImplTest extends BaseTest {
           // not ok, since the total to used size exceed 12KiB +1
           try {
             s3.putObject(bucketName, userId + "4", createString(1));
+            fail();
           } catch (AmazonS3Exception e) {
             assertEquals("QuotaExceeded", e.getErrorCode());
           }
@@ -736,6 +742,7 @@ public class RgwAdminImplTest extends BaseTest {
     // not exist
     try {
       RGW_ADMIN.getUserQuota(UUID.randomUUID().toString());
+      fail();
     } catch (RgwAdminException e) {
       assertEquals(400, e.status());
       assertEquals("InvalidArgument", e.getMessage());
@@ -793,6 +800,7 @@ public class RgwAdminImplTest extends BaseTest {
           RGW_ADMIN.removeObject(bucketName, objectKey);
           try {
             s3.getObjectMetadata(bucketName, objectKey);
+            fail();
           } catch (AmazonS3Exception e) {
             assertEquals(404, e.getStatusCode());
           }
