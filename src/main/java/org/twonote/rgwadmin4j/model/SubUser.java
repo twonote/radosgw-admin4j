@@ -27,6 +27,14 @@ public class SubUser {
     this.id = id;
   }
 
+  public String getParentUserId() {
+    return id.split(":")[0];
+  }
+
+  public String getRelativeSubUserId() {
+    return id.split(":")[1];
+  }
+
   /**
    * Get access permission of the sub-user.
    *
