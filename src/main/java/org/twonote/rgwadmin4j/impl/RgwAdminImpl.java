@@ -196,6 +196,11 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
+  public List<SubUser> setSubUserPermission(String userId, String subUserId, SubUser.Permission permission) {
+    return modifySubUser(userId, subUserId, ImmutableMap.of("access", permission.toString()));
+  }
+
+  @Override
   public void removeSubUser(String userId, String subUserId) {
     HttpUrl.Builder urlBuilder =
         HttpUrl.parse(endpoint)

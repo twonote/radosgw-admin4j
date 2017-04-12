@@ -202,7 +202,18 @@ public interface RgwAdmin {
    * @param parameters The subuser parameters.
    * @return Subusers associated with the user account.
    */
+  @Deprecated
   List<SubUser> modifySubUser(String userId, String subUserId, Map<String, String> parameters);
+
+  /**
+   * Modify an existing subuser permission.
+   *
+   * @param userId The user ID under which a subuser is to be created.
+   * @param subUserId Specify the subuser ID to be created.
+   * @param permission Specify the subuser permission.
+   * @return Subusers associated with the user account.
+   */
+  List<SubUser> setSubUserPermission(String userId, String subUserId, SubUser.Permission permission);
 
   /**
    * Remove an existing subuser.

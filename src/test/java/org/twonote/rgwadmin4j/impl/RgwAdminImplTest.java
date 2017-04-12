@@ -268,6 +268,19 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
+  public void setSubUserPermission() throws Exception {
+    testWithASubUser(su -> {
+      SubUser subUser = su.getSubusers().get(0);
+      SubUser.Permission permissionToSet = SubUser.Permission.READ;
+      List<SubUser> response = RGW_ADMIN
+          .setSubUserPermission(subUser.getParentUserId(), subUser.getRelativeSubUserId(), permissionToSet);
+      SubUser result = response.stream().filter(r -> subUser.getId().equals(r.getId())).findFirst().get();
+      assertEquals(permissionToSet, result.getPermission().get());
+
+    });
+  }
+
+  @Test
   public void modifySubUser() throws Exception {
     testWithAUser(
         v -> {
