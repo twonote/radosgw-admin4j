@@ -273,11 +273,11 @@ public class RgwAdminImplTest extends BaseTest {
           String subUserId = UUID.randomUUID().toString();
           // basic
           List<SubUser> response = RGW_ADMIN.createSubUser(v.getUserId(), subUserId, null);
-          assertEquals("<none>", response.get(0).getPermissions());
+          assertFalse(response.get(0).getPermission().isPresent());
           response =
               RGW_ADMIN.modifySubUser(
                   v.getUserId(), subUserId, ImmutableMap.of("access", "full"));
-          assertEquals("full-control", response.get(0).getPermissions());
+          assertEquals(SubUser.Permission.FULL, response.get(0).getPermission().get());
         });
   }
 
@@ -309,7 +309,7 @@ public class RgwAdminImplTest extends BaseTest {
           assertEquals(1, response.size());
           String fullSubUserId = v.getUserId() + ":" + subUserId;
           assertEquals(fullSubUserId, response.get(0).getId());
-          assertEquals("full-control", response.get(0).getPermissions());
+          assertEquals(SubUser.Permission.FULL, response.get(0).getPermission().get());
 
           // exist in get user info response
           User response2 = RGW_ADMIN.getUserInfo(v.getUserId()).get();
@@ -342,7 +342,7 @@ public class RgwAdminImplTest extends BaseTest {
           List<SubUser> response = RGW_ADMIN.createSubUserForSwift(v.getUserId(), subUserId);
           assertEquals(1, response.size());
           assertEquals(v.getUserId() + ":" + subUserId, response.get(0).getId());
-          assertEquals("full-control", response.get(0).getPermissions());
+          assertEquals(SubUser.Permission.FULL, response.get(0).getPermission().get());
 
           // test subuser in swift
           User response2 = RGW_ADMIN.getUserInfo(v.getUserId()).get();
