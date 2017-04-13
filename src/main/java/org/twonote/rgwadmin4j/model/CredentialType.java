@@ -3,8 +3,8 @@ package org.twonote.rgwadmin4j.model;
 /**
  * Represents credential type.
  *
- * Created by hrchu on 2017/4/12.
- * */
+ * <p>Created by hrchu on 2017/4/12.
+ */
 public enum CredentialType {
   S3,
   SWIFT;

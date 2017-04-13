@@ -2,8 +2,6 @@ package org.twonote.rgwadmin4j.model;
 
 import com.google.gson.annotations.SerializedName;
 
-import java.util.Optional;
-
 /** Represents the sub-user information. */
 public class SubUser {
   /** id : rgwAdmin4jTest-6eed8682-c533-4364-bd36-684e3a9f32c7:qqqqq permissions : full-control */
@@ -95,7 +93,6 @@ public class SubUser {
       } else {
         return super.toString().toLowerCase();
       }
-
     }
   }
 }

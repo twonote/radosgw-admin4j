@@ -13,8 +13,6 @@ import org.javaswift.joss.client.factory.AuthenticationMethod;
 import org.javaswift.joss.model.Account;
 import org.javaswift.joss.model.Container;
 import org.junit.BeforeClass;
-import org.twonote.rgwadmin4j.RgwAdmin;
-import org.twonote.rgwadmin4j.RgwAdminBuilder;
 import org.twonote.rgwadmin4j.model.S3Credential;
 import org.twonote.rgwadmin4j.model.User;
 
@@ -63,7 +61,9 @@ public class BaseTest {
   }
 
   protected static void createSomeObjects(User v) {
-    AmazonS3 s3 = createS3(v.getS3Credentials().get(0).getAccessKey(), v.getS3Credentials().get(0).getSecretKey());
+    AmazonS3 s3 =
+        createS3(
+            v.getS3Credentials().get(0).getAccessKey(), v.getS3Credentials().get(0).getSecretKey());
     createSomeObjects(s3);
   }
 
@@ -88,7 +88,7 @@ public class BaseTest {
     RGW_ADMIN = new RgwAdminImpl(adminAccessKey, adminSecretKey, adminEndpoint);
 
     testS3Connectivity();
-//    testRgwAdminConnectivity();
+    //    testRgwAdminConnectivity();
   }
 
   private static void testS3Connectivity() {
@@ -108,7 +108,7 @@ public class BaseTest {
       RGW_ADMIN.getUserInfo(adminUserId).get();
     } catch (NoSuchElementException | RgwAdminException e) {
       System.out.println(
-              "Cannot make communication with radosgw admin endpoint: " + e.getLocalizedMessage());
+          "Cannot make communication with radosgw admin endpoint: " + e.getLocalizedMessage());
       System.exit(0);
     }
   }
@@ -155,7 +155,9 @@ public class BaseTest {
     try {
       User user = RGW_ADMIN.createUser(userId);
       AmazonS3 s3 =
-          createS3(user.getS3Credentials().get(0).getAccessKey(), user.getS3Credentials().get(0).getSecretKey());
+          createS3(
+              user.getS3Credentials().get(0).getAccessKey(),
+              user.getS3Credentials().get(0).getSecretKey());
 
       test.accept(user, s3);
     } finally {

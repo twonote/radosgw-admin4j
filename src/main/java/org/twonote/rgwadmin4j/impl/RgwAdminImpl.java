@@ -51,6 +51,10 @@ public class RgwAdminImpl implements RgwAdmin {
     return String.join(":", userId, subUserId);
   }
 
+  private static <T> Type setModelAndGetCorrespondingList2(Class<T> type) {
+    return new TypeToken<ArrayList<T>>() {}.where(new TypeParameter<T>() {}, type).getType();
+  }
+
   @Override
   public void trimUserUsage(String userId, Map<String, String> parameters) {
     if (parameters == null) {
@@ -170,7 +174,10 @@ public class RgwAdminImpl implements RgwAdmin {
 
   @Override
   public SubUser createSubUser(
-      String userId, String subUserId, SubUser.Permission permission, CredentialType credentialType) {
+      String userId,
+      String subUserId,
+      SubUser.Permission permission,
+      CredentialType credentialType) {
     List<SubUser> subUser =
         createSubUser(
             userId,
@@ -245,11 +252,11 @@ public class RgwAdminImpl implements RgwAdmin {
 
   private <T> List<T> _createKey(String uid, Map<String, String> parameters, Class<T> returnModel) {
     HttpUrl.Builder urlBuilder =
-            HttpUrl.parse(endpoint)
-                    .newBuilder()
-                    .addPathSegment("user")
-                    .query("key")
-                    .addQueryParameter("uid", uid);
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("user")
+            .query("key")
+            .addQueryParameter("uid", uid);
 
     appendParameters(parameters, urlBuilder);
 
@@ -259,13 +266,6 @@ public class RgwAdminImpl implements RgwAdmin {
     Type type = setModelAndGetCorrespondingList2(returnModel);
     return gson.fromJson(resp, type);
   }
-
-  private static <T> Type setModelAndGetCorrespondingList2(Class<T> type) {
-    return new TypeToken<ArrayList<T>>() {}
-            .where(new TypeParameter<T>() {}, type)
-            .getType();
-  }
-
 
   private List<S3Credential> _createKey(String uid, Map<String, String> parameters) {
     HttpUrl.Builder urlBuilder =
@@ -305,7 +305,8 @@ public class RgwAdminImpl implements RgwAdmin {
         userId,
         ImmutableMap.of(
             "access-key", accessKey,
-            "secret-key", secretKey), S3Credential.class);
+            "secret-key", secretKey),
+        S3Credential.class);
   }
 
   @Override
@@ -321,27 +322,37 @@ public class RgwAdminImpl implements RgwAdmin {
   @Override
   public List<S3Credential> addS3CredentialForSubUser(
       String userId, String subUserId, String accessKey, String secretKey) {
-    List<S3Credential> s3Credentials = _createKey(
+    List<S3Credential> s3Credentials =
+        _createKey(
             userId,
             ImmutableMap.of(
-                    "subuser", subUserId,
-                    "access-key", accessKey,
-                    "secret-key", secretKey,
-                    "key-type", "s3"), S3Credential.class);
+                "subuser", subUserId,
+                "access-key", accessKey,
+                "secret-key", secretKey,
+                "key-type", "s3"),
+            S3Credential.class);
 
-    return s3Credentials.stream().filter(k -> absSubUserId(userId, subUserId).equals(k.getUserId())).collect(Collectors.toList());
+    return s3Credentials
+        .stream()
+        .filter(k -> absSubUserId(userId, subUserId).equals(k.getUserId()))
+        .collect(Collectors.toList());
   }
 
   @Override
   public List<S3Credential> addS3CredentialForSubUser(String userId, String subUserId) {
-    List<S3Credential> s3Credentials = _createKey(
-        userId,
-        ImmutableMap.of(
-            "subuser", subUserId,
-            "key-type", "s3",
-            "generate-key", "True"), S3Credential.class);
+    List<S3Credential> s3Credentials =
+        _createKey(
+            userId,
+            ImmutableMap.of(
+                "subuser", subUserId,
+                "key-type", "s3",
+                "generate-key", "True"),
+            S3Credential.class);
 
-    return s3Credentials.stream().filter(k -> absSubUserId(userId, subUserId).equals(k.getUserId())).collect(Collectors.toList());
+    return s3Credentials
+        .stream()
+        .filter(k -> absSubUserId(userId, subUserId).equals(k.getUserId()))
+        .collect(Collectors.toList());
   }
 
   @Override
@@ -355,27 +366,38 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
-  public SwiftCredential addSwiftCredentialForSubUser(String userId, String subUserId, String password) {
-    List<SwiftCredential> swiftCredentials = _createKey(
+  public SwiftCredential addSwiftCredentialForSubUser(
+      String userId, String subUserId, String password) {
+    List<SwiftCredential> swiftCredentials =
+        _createKey(
             userId,
             ImmutableMap.of(
-                    "subuser", subUserId,
-                    "secret-key", password,
-                    "key-type", "swift"), SwiftCredential.class
-    );
-    return swiftCredentials.stream().filter(k -> absSubUserId(userId, subUserId).equals(k.getUserId())).collect(Collectors.toList()).get(0);
-
+                "subuser", subUserId,
+                "secret-key", password,
+                "key-type", "swift"),
+            SwiftCredential.class);
+    return swiftCredentials
+        .stream()
+        .filter(k -> absSubUserId(userId, subUserId).equals(k.getUserId()))
+        .collect(Collectors.toList())
+        .get(0);
   }
 
   @Override
   public SwiftCredential addSwiftCredentialForSubUser(String userId, String subUserId) {
-    List<SwiftCredential> swiftCredentials = _createKey(
+    List<SwiftCredential> swiftCredentials =
+        _createKey(
             userId,
             ImmutableMap.of(
-                    "subuser", subUserId,
-                    "key-type", "swift",
-                    "generate-key", "True"), SwiftCredential.class);
-    return swiftCredentials.stream().filter(k -> absSubUserId(userId, subUserId).equals(k.getUserId())).collect(Collectors.toList()).get(0);
+                "subuser", subUserId,
+                "key-type", "swift",
+                "generate-key", "True"),
+            SwiftCredential.class);
+    return swiftCredentials
+        .stream()
+        .filter(k -> absSubUserId(userId, subUserId).equals(k.getUserId()))
+        .collect(Collectors.toList())
+        .get(0);
   }
 
   @Override
@@ -577,7 +599,7 @@ public class RgwAdminImpl implements RgwAdmin {
         HttpUrl.parse(endpoint)
             .newBuilder()
             .addPathSegment("user")
-        .addQueryParameter("uid", userId);
+            .addQueryParameter("uid", userId);
 
     Request request = new Request.Builder().get().url(urlBuilder.build()).build();
 
@@ -585,34 +607,20 @@ public class RgwAdminImpl implements RgwAdmin {
     return Optional.ofNullable(gson.fromJson(resp, User.class));
   }
 
-  enum MetadataType {
-    USER("user"), BUCKET("bucket"), BUCKET_INSTANCE("bucket.instance");
-
-    String s;
-
-    MetadataType(String s) {
-      this.s = s;
-    }
-
-    @Override
-    public String toString() {
-      return s;
-    }
-  }
-
   /**
    * Retrieve keys in a given metadata type
    *
-   * <p></p>Equivalent to radosgw-admin metadata list --metadata-key bucket.instance
+   * <p>Equivalent to radosgw-admin metadata list --metadata-key bucket.instance
    *
    * @param metadataType Specify the metadata type.
    * @return A list of radosgw internal metadata keys in the given metadata type.
    */
   private List<String> listMetadata(MetadataType metadataType) {
     HttpUrl.Builder urlBuilder =
-            HttpUrl.parse(endpoint)
-                    .newBuilder()
-                    .addPathSegment("metadata").addPathSegment(metadataType.toString());
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("metadata")
+            .addPathSegment(metadataType.toString());
     Request request = new Request.Builder().get().url(urlBuilder.build()).build();
     String resp = safeCall(request);
     Type type = new TypeToken<List<String>>() {}.getType();
@@ -622,7 +630,7 @@ public class RgwAdminImpl implements RgwAdmin {
   /**
    * Retrieve radosgw internal metadata content.
    *
-   * <p></p>Equivalent to radosgw-admin metadata get --metadata-key bucket.instance:dsvdvdsv
+   * <p>Equivalent to radosgw-admin metadata get --metadata-key bucket.instance:dsvdvdsv
    *
    * @param metadataType Specify the metadata type.
    * @param key Specify the metadata key.
@@ -633,7 +641,7 @@ public class RgwAdminImpl implements RgwAdmin {
         HttpUrl.parse(endpoint)
             .newBuilder()
             .addPathSegment("metadata")
-        .addQueryParameter("key", String.join(":", metadataType.toString(), key));
+            .addQueryParameter("key", String.join(":", metadataType.toString(), key));
 
     Request request = new Request.Builder().get().url(urlBuilder.build()).build();
     String resp = safeCall(request);
@@ -653,7 +661,10 @@ public class RgwAdminImpl implements RgwAdmin {
   @Override
   public List<User> listUserInfo() {
     List<String> userIds = listMetadata(MetadataType.USER);
-    return userIds.stream().map(i -> getMetadata(MetadataType.USER, i, User.class)).collect(Collectors.toList());
+    return userIds
+        .stream()
+        .map(i -> getMetadata(MetadataType.USER, i, User.class))
+        .collect(Collectors.toList());
   }
 
   @Override
@@ -779,5 +790,22 @@ public class RgwAdminImpl implements RgwAdmin {
     Request request = new Request.Builder().get().url(urlBuilder.build()).build();
 
     return Optional.ofNullable(safeCall(request));
+  }
+
+  enum MetadataType {
+    USER("user"),
+    BUCKET("bucket"),
+    BUCKET_INSTANCE("bucket.instance");
+
+    String s;
+
+    MetadataType(String s) {
+      this.s = s;
+    }
+
+    @Override
+    public String toString() {
+      return s;
+    }
   }
 }

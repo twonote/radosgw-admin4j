@@ -131,7 +131,8 @@ public interface RgwAdmin {
    * <li>access-key: Specify access key.
    * <li>secret-key: Specify secret key.
    * <li>key-type: Key type to be generated, options are: swift (default), s3.
-   * <li>access: Set access permissions for sub-user, should be one of read, write, readwrite, full, "".
+   * <li>access: Set access permissions for sub-user, should be one of read, write, readwrite, full,
+   *     "".
    * <li>generate-secret: Generate the secret key. Default: False
    * </ul>
    *
@@ -171,7 +172,10 @@ public interface RgwAdmin {
    * @return The created subuser information.
    */
   SubUser createSubUser(
-      String userId, String subUserId, SubUser.Permission permission, CredentialType credentialType);
+      String userId,
+      String subUserId,
+      SubUser.Permission permission,
+      CredentialType credentialType);
 
   /**
    * Modify an existing subuser permission.
@@ -226,8 +230,8 @@ public interface RgwAdmin {
   /**
    * Create a new S3 credential pair for the specified user.
    *
-   * <p>The credential will be automatically generated for the user. If you want to specify
-   * the credential, please use {@link #addS3Credential(String, String, String)}
+   * <p>The credential will be automatically generated for the user. If you want to specify the
+   * credential, please use {@link #addS3Credential(String, String, String)}
    *
    * @param userId the specified user.
    * @return S3 credentials associated with this user account.
@@ -258,8 +262,8 @@ public interface RgwAdmin {
   /**
    * Create a new S3 credential for the specified sub user.
    *
-   * <p>The credential will be automatically generated for the user. If you want to specify
-   * the credential, please use {@link #addS3CredentialForSubUser(String, String, String, String)}
+   * <p>The credential will be automatically generated for the user. If you want to specify the
+   * credential, please use {@link #addS3CredentialForSubUser(String, String, String, String)}
    *
    * @param userId the specified user.
    * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
@@ -294,8 +298,8 @@ public interface RgwAdmin {
   /**
    * Create a new swift credential for the specified sub user.
    *
-   * <p>The credential will be automatically generated for the user. If you want to specify it, please
-   * use {@link #addSwiftCredentialForSubUser(String, String, String)}
+   * <p>The credential will be automatically generated for the user. If you want to specify it,
+   * please use {@link #addSwiftCredentialForSubUser(String, String, String)}
    *
    * <p>Tip: a subuser can have only one swift credential.
    *
