@@ -87,10 +87,11 @@ public class BaseTest {
 
     RGW_ADMIN = new RgwAdminImpl(adminAccessKey, adminSecretKey, adminEndpoint);
 
-    testRgwConnectivity();
+    testS3Connectivity();
+//    testRgwAdminConnectivity();
   }
 
-  private static void testRgwConnectivity() {
+  private static void testS3Connectivity() {
     try {
       AmazonS3 s3 = createS3(adminAccessKey, adminSecretKey);
       s3.listBuckets();
@@ -99,12 +100,15 @@ public class BaseTest {
           "Cannot make communication with radosgw S3 endpoint: " + e.getLocalizedMessage());
       System.exit(0);
     }
+  }
+
+  private static void testRgwAdminConnectivity() {
     try {
       //noinspection ResultOfMethodCallIgnored
       RGW_ADMIN.getUserInfo(adminUserId).get();
     } catch (NoSuchElementException | RgwAdminException e) {
       System.out.println(
-          "Cannot make communication with radosgw admin endpoint: " + e.getLocalizedMessage());
+              "Cannot make communication with radosgw admin endpoint: " + e.getLocalizedMessage());
       System.exit(0);
     }
   }
