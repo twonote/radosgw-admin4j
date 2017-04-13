@@ -28,7 +28,7 @@ import java.util.function.Consumer;
 
 /** Created by hrchu on 2017/4/10. */
 public class BaseTest {
-  protected static RgwAdmin RGW_ADMIN;
+  protected static RgwAdminImpl RGW_ADMIN;
   protected static String adminUserId;
   protected static String adminAccessKey;
   protected static String adminSecretKey;
@@ -85,12 +85,7 @@ public class BaseTest {
   public static void init() throws IOException {
     initPros();
 
-    RGW_ADMIN =
-        new RgwAdminBuilder()
-            .accessKey(adminAccessKey)
-            .secretKey(adminSecretKey)
-            .endpoint(adminEndpoint)
-            .build();
+    RGW_ADMIN = new RgwAdminImpl(adminAccessKey, adminSecretKey, adminEndpoint);
 
     testRgwConnectivity();
   }

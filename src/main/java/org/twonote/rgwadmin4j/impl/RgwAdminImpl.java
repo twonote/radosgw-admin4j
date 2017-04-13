@@ -170,7 +170,7 @@ public class RgwAdminImpl implements RgwAdmin {
 
   @Override
   public SubUser createSubUser(
-      String userId, String subUserId, SubUser.Permission permission, KeyType keyType) {
+      String userId, String subUserId, SubUser.Permission permission, CredentialType credentialType) {
     List<SubUser> subUser =
         createSubUser(
             userId,
@@ -179,14 +179,13 @@ public class RgwAdminImpl implements RgwAdmin {
                 "access",
                 permission.toString(),
                 "key-type",
-                keyType.toString(),
+                credentialType.toString(),
                 "generate-secret",
                 "True"));
     String absSubUserId = absSubUserId(userId, subUserId);
     return subUser.stream().filter(u -> absSubUserId.equals(u.getId())).findFirst().get();
   }
 
-  @Override
   public List<SubUser> modifySubUser(
       String userId, String subUserId, Map<String, String> parameters) {
     HttpUrl.Builder urlBuilder =
@@ -355,12 +354,12 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
-  public SwiftCredential addSwiftCredentialForSubUser(String userId, String subUserId, String secret) {
+  public SwiftCredential addSwiftCredentialForSubUser(String userId, String subUserId, String password) {
     List<SwiftCredential> swiftCredentials = _createKey(
             userId,
             ImmutableMap.of(
                     "subuser", subUserId,
-                    "secret-key", secret,
+                    "secret-key", password,
                     "key-type", "swift"), SwiftCredential.class
     );
     return swiftCredentials.stream().filter(k -> absSubUserId(userId, subUserId).equals(k.getUserId())).collect(Collectors.toList()).get(0);

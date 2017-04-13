@@ -42,8 +42,8 @@ public class SubUser {
    *
    * @return The permission.
    */
-  public Optional<Permission> getPermission() {
-    return Optional.ofNullable(permission);
+  public Permission getPermission() {
+    return permission;
   }
 
   public void setPermission(Permission permission) {
@@ -70,6 +70,9 @@ public class SubUser {
 
   /** Access permission for sub-user. */
   public enum Permission {
+    @SerializedName("<none>")
+    NONE,
+
     @SerializedName("read")
     READ,
 
@@ -87,7 +90,12 @@ public class SubUser {
 
     @Override
     public String toString() {
-      return super.toString().toLowerCase();
+      if (this.equals(NONE)) {
+        return "";
+      } else {
+        return super.toString().toLowerCase();
+      }
+
     }
   }
 }
