@@ -187,12 +187,12 @@ public interface RgwAdmin {
       String userId, String subUserId, SubUser.Permission permission);
 
   /**
-   * Retrieve sub-users under a user
+   * Retrieve the sub-user information under a user
    *
    * @param userId The user ID under which subusers we interested to
    * @return subusers
    */
-  List<SubUser> listSubUsers(String userId);
+  List<SubUser> listSubUserInfo(String userId);
 
   /**
    * Get sub-user information.
@@ -380,7 +380,7 @@ public interface RgwAdmin {
   List<String> listBucket(String userId);
 
   /**
-   * Get information about buckets.
+   * Get information about buckets under a given user.
    *
    * @param userId The user to retrieve bucket information for.
    * @return The desired bucket information.
@@ -442,6 +442,28 @@ public interface RgwAdmin {
    * @return The user information.
    */
   Optional<User> getUserInfo(String userId);
+
+  /**
+   * Get the user list
+   *
+   * @return Id of users in the system.
+   */
+  List<String> listUser();
+
+  /**
+   * Get the subuser list under a user
+   *
+   * @param userId The user ID under which subusers we interested to.
+   * @return Id of subusers under the given user.
+   */
+  List<String> listSubUser(String userId);
+
+  /**
+   * Get information about users exist in the system
+   *
+   * @return Information of users in the system.
+   */
+  List<User> listUserInfo();
 
   /**
    * Modify a user.

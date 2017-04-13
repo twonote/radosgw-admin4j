@@ -15,16 +15,41 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
 @SuppressWarnings("ConstantConditions")
 public class RgwAdminImplTest extends BaseTest {
   @Test
-  public void listSubUsers() throws Exception {
+  public void listSubUser() throws Exception {
+    testWithASubUser( s -> {
+      List<String> subUserIds = RGW_ADMIN.listSubUser(s.getUserId());
+      assertEquals(subUserIds, s.getSubusers().stream().map(SubUser::getId).collect(Collectors.toList()));
+    });
+  }
+
+  @Test
+  public void listUserInfo() throws Exception {
+    testWithAUser(u -> {
+      List<User> users = RGW_ADMIN.listUserInfo();
+      users.stream().anyMatch(v -> u.equals(v));
+    });
+  }
+
+  @Test
+  public void listUser() throws Exception {
+    testWithAUser( u -> {
+      List<String> userIds = RGW_ADMIN.listUser();
+      assertTrue(userIds.stream().anyMatch( k -> u.getUserId().equals(k)));
+    });
+  }
+
+  @Test
+  public void listSubUserInfo() throws Exception {
     testWithASubUser(
         u -> {
-          List<SubUser> subUsers = RGW_ADMIN.listSubUsers(u.getUserId());
+          List<SubUser> subUsers = RGW_ADMIN.listSubUserInfo(u.getUserId());
           assertEquals(subUsers, u.getSubusers());
         });
   }

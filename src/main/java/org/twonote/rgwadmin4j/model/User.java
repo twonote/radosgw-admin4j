@@ -115,4 +115,46 @@ public class User {
   public void setCaps(List<Cap> caps) {
     this.caps = caps;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
+
+    User user = (User) o;
+
+    if (userId != null ? !userId.equals(user.userId) : user.userId != null)
+      return false;
+    if (displayName != null ? !displayName.equals(user.displayName) : user.displayName != null)
+      return false;
+    if (email != null ? !email.equals(user.email) : user.email != null)
+      return false;
+    if (suspended != null ? !suspended.equals(user.suspended) : user.suspended != null)
+      return false;
+    if (maxBuckets != null ? !maxBuckets.equals(user.maxBuckets) : user.maxBuckets != null)
+      return false;
+    if (subusers != null ? !subusers.equals(user.subusers) : user.subusers != null)
+      return false;
+    if (s3Credentials != null ? !s3Credentials.equals(user.s3Credentials) : user.s3Credentials != null)
+      return false;
+    if (swiftCredentials != null ? !swiftCredentials.equals(user.swiftCredentials) : user.swiftCredentials != null)
+      return false;
+    return caps != null ? caps.equals(user.caps) : user.caps == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = userId != null ? userId.hashCode() : 0;
+    result = 31 * result + (displayName != null ? displayName.hashCode() : 0);
+    result = 31 * result + (email != null ? email.hashCode() : 0);
+    result = 31 * result + (suspended != null ? suspended.hashCode() : 0);
+    result = 31 * result + (maxBuckets != null ? maxBuckets.hashCode() : 0);
+    result = 31 * result + (subusers != null ? subusers.hashCode() : 0);
+    result = 31 * result + (s3Credentials != null ? s3Credentials.hashCode() : 0);
+    result = 31 * result + (swiftCredentials != null ? swiftCredentials.hashCode() : 0);
+    result = 31 * result + (caps != null ? caps.hashCode() : 0);
+    return result;
+  }
 }

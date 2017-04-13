@@ -62,7 +62,7 @@ You can refer the [Ceph official manual](http://docs.ceph.com/docs/master/start/
 ```
 $ sudo docker run -d --net=host -v /etc/ceph/:/etc/ceph/ -e MON_IP=127.0.0.1 -e CEPH_PUBLIC_NETWORK=127.0.0.0/24 -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e CEPH_DEMO_BUCKET=qqq --name rgw ceph/demo@sha256:7734ac78571ee0530724181c5b2db2e5a7ca0ff0e246c10c223d3ca9665c74ba
 $ sleep 10
-$ sudo docker exec -it rgw radosgw-admin --id admin caps add --caps="buckets=*;users=*;usage=*" --uid=qqq
+$ sudo docker exec -it rgw radosgw-admin --id admin caps add --caps="buckets=*;users=*;usage=*;metadata=*" --uid=qqq
 ```
 
 Check the setup succeeded by the following command:
@@ -87,7 +87,7 @@ First, you need an admin account. If you not yet have it, create the account wit
 ```
 $ radosgw-admin user create --uid=qqq --display-name="qqq"
 $ radosgw-admin key create --uid=qqq --key-type=s3 --access-key=qqq --secret-key=qqq
-$ radosgw-admin --id admin caps add --caps="buckets=*;users=*;usage=*" --uid=qqq
+$ radosgw-admin --id admin caps add --caps="buckets=*;users=*;usage=*;metadata=*" --uid=qqq
 ```
 
 Second, enter the key pair (qqq,qqq) and your radosgw endpoint to the [config file](https://github.com/twonote/radosgw-admin4j/blob/master/src/test/resources/rgwadmin.properties)

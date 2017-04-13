@@ -212,7 +212,7 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
-  public List<SubUser> listSubUsers(String userId) {
+  public List<SubUser> listSubUserInfo(String userId) {
     Optional<User> userInfo = getUserInfo(userId);
     if (userInfo.isPresent()) {
       return userInfo.get().getSubusers();
@@ -224,7 +224,7 @@ public class RgwAdminImpl implements RgwAdmin {
   @Override
   public Optional<SubUser> getSubUserInfo(String userId, String subUserId) {
     String absSubUserId = absSubUserId(userId, subUserId);
-    List<SubUser> subUsers = listSubUsers(userId);
+    List<SubUser> subUsers = listSubUserInfo(userId);
     return subUsers.stream().filter(u -> absSubUserId.equals(u.getId())).findFirst();
   }
 
@@ -265,6 +265,7 @@ public class RgwAdminImpl implements RgwAdmin {
             .where(new TypeParameter<T>() {}, type)
             .getType();
   }
+
 
   private List<S3Credential> _createKey(String uid, Map<String, String> parameters) {
     HttpUrl.Builder urlBuilder =
@@ -572,19 +573,87 @@ public class RgwAdminImpl implements RgwAdmin {
 
   @Override
   public Optional<User> getUserInfo(String userId) {
-    Request request =
-        new Request.Builder()
-            .get()
-            .url(
-                HttpUrl.parse(endpoint)
-                    .newBuilder()
-                    .addPathSegment("user")
-                    .addQueryParameter("uid", userId)
-                    .build())
-            .build();
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("user")
+        .addQueryParameter("uid", userId);
+
+    Request request = new Request.Builder().get().url(urlBuilder.build()).build();
 
     String resp = safeCall(request);
     return Optional.ofNullable(gson.fromJson(resp, User.class));
+  }
+
+  enum MetadataType {
+    USER("user"), BUCKET("bucket"), BUCKET_INSTANCE("bucket.instance");
+
+    String s;
+
+    MetadataType(String s) {
+      this.s = s;
+    }
+
+    @Override
+    public String toString() {
+      return s;
+    }
+  }
+
+  /**
+   * Retrieve keys in a given metadata type
+   *
+   * <p></p>Equivalent to radosgw-admin metadata list --metadata-key bucket.instance
+   *
+   * @param metadataType Specify the metadata type.
+   * @return A list of radosgw internal metadata keys in the given metadata type.
+   */
+  private List<String> listMetadata(MetadataType metadataType) {
+    HttpUrl.Builder urlBuilder =
+            HttpUrl.parse(endpoint)
+                    .newBuilder()
+                    .addPathSegment("metadata").addPathSegment(metadataType.toString());
+    Request request = new Request.Builder().get().url(urlBuilder.build()).build();
+    String resp = safeCall(request);
+    Type type = new TypeToken<List<String>>() {}.getType();
+    return gson.fromJson(resp, type);
+  }
+
+  /**
+   * Retrieve radosgw internal metadata content.
+   *
+   * <p></p>Equivalent to radosgw-admin metadata get --metadata-key bucket.instance:dsvdvdsv
+   *
+   * @param metadataType Specify the metadata type.
+   * @param key Specify the metadata key.
+   * @return Content of metadata in a json string.
+   */
+  private <T> T getMetadata(MetadataType metadataType, String key, Class<T> returnType) {
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("metadata")
+        .addQueryParameter("key", String.join(":", metadataType.toString(), key));
+
+    Request request = new Request.Builder().get().url(urlBuilder.build()).build();
+    String resp = safeCall(request);
+    return gson.fromJson(resp, returnType);
+  }
+
+  @Override
+  public List<String> listUser() {
+    return listMetadata(MetadataType.USER);
+  }
+
+  @Override
+  public List<String> listSubUser(String userId) {
+    return listSubUserInfo(userId).stream().map(s -> s.getId()).collect(Collectors.toList());
+  }
+
+  @Override
+  public List<User> listUserInfo() {
+    List<String> userIds = listMetadata(MetadataType.USER);
+    return userIds.stream().map(i -> getMetadata(MetadataType.USER, i, User.class)).collect(Collectors.toList());
   }
 
   @Override
