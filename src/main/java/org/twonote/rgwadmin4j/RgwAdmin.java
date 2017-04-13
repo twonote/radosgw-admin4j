@@ -467,14 +467,6 @@ public interface RgwAdmin {
   User modifyUser(String userId, Map<String, String> parameters);
 
   /**
-   * Suspend a user
-   *
-   * @param userId The user ID to be suspended.
-   */
-  @Deprecated
-  void suspendUser(String userId);
-
-  /**
    * Suspend or resume a user
    *
    * @param userId The user ID to be suspended or resumed.

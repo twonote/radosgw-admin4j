@@ -604,11 +604,6 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
-  public void suspendUser(String userId) {
-    modifyUser(userId, ImmutableMap.of("suspended", "true"));
-  }
-
-  @Override
   public void suspendUser(String userId, boolean suspend) {
     modifyUser(userId, ImmutableMap.of("suspended", Boolean.toString(suspend)));
   }
