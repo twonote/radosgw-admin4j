@@ -34,11 +34,11 @@ public class User {
 
   @SerializedName("keys")
   @Expose
-  private List<Key> keys = null;
+  private List<S3Credential> s3Credentials = null;
 
   @SerializedName("swift_keys")
   @Expose
-  private List<Key> swiftKeys = null;
+  private List<SwiftCredential> swiftCredentials = null;
 
   @SerializedName("caps")
   @Expose
@@ -92,20 +92,20 @@ public class User {
     this.subusers = subusers;
   }
 
-  public List<Key> getKeys() {
-    return keys;
+  public List<S3Credential> getS3Credentials() {
+    return s3Credentials;
   }
 
-  public void setKeys(List<Key> keys) {
-    this.keys = keys;
+  public void setS3Credentials(List<S3Credential> s3Credentials) {
+    this.s3Credentials = s3Credentials;
   }
 
-  public List<Key> getSwiftKeys() {
-    return swiftKeys;
+  public List<SwiftCredential> getSwiftCredentials() {
+    return swiftCredentials;
   }
 
-  public void setSwiftKeys(List<Key> swiftKeys) {
-    this.swiftKeys = swiftKeys;
+  public void setSwiftCredentials(List<SwiftCredential> swiftCredentials) {
+    this.swiftCredentials = swiftCredentials;
   }
 
   public List<Cap> getCaps() {

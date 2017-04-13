@@ -15,7 +15,7 @@ import org.javaswift.joss.model.Container;
 import org.junit.BeforeClass;
 import org.twonote.rgwadmin4j.RgwAdmin;
 import org.twonote.rgwadmin4j.RgwAdminBuilder;
-import org.twonote.rgwadmin4j.model.Key;
+import org.twonote.rgwadmin4j.model.S3Credential;
 import org.twonote.rgwadmin4j.model.User;
 
 import java.io.IOException;
@@ -63,7 +63,7 @@ public class BaseTest {
   }
 
   protected static void createSomeObjects(User v) {
-    AmazonS3 s3 = createS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
+    AmazonS3 s3 = createS3(v.getS3Credentials().get(0).getAccessKey(), v.getS3Credentials().get(0).getSecretKey());
     createSomeObjects(s3);
   }
 
@@ -130,7 +130,7 @@ public class BaseTest {
     swiftEndpoint = s3Endpoint + "/auth/1.0";
   }
 
-  protected static AmazonS3 createS3(Key key) {
+  protected static AmazonS3 createS3(S3Credential key) {
     return createS3(key.getAccessKey(), key.getSecretKey());
   }
 
@@ -156,7 +156,7 @@ public class BaseTest {
     try {
       User user = RGW_ADMIN.createUser(userId);
       AmazonS3 s3 =
-          createS3(user.getKeys().get(0).getAccessKey(), user.getKeys().get(0).getSecretKey());
+          createS3(user.getS3Credentials().get(0).getAccessKey(), user.getS3Credentials().get(0).getSecretKey());
 
       test.accept(user, s3);
     } finally {

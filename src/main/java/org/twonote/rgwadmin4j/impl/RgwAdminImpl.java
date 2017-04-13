@@ -3,6 +3,7 @@ package org.twonote.rgwadmin4j.impl;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import okhttp3.*;
@@ -12,6 +13,7 @@ import org.twonote.rgwadmin4j.model.*;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Radosgw administrator implementation
@@ -242,7 +244,30 @@ public class RgwAdminImpl implements RgwAdmin {
     safeCall(request);
   }
 
-  private List<Key> _createKey(String uid, Map<String, String> parameters) {
+  private <T> List<T> _createKey(String uid, Map<String, String> parameters, Class<T> returnModel) {
+    HttpUrl.Builder urlBuilder =
+            HttpUrl.parse(endpoint)
+                    .newBuilder()
+                    .addPathSegment("user")
+                    .query("key")
+                    .addQueryParameter("uid", uid);
+
+    appendParameters(parameters, urlBuilder);
+
+    Request request = new Request.Builder().put(emptyBody).url(urlBuilder.build()).build();
+
+    String resp = safeCall(request);
+    Type type = setModelAndGetCorrespondingList2(returnModel);
+    return gson.fromJson(resp, type);
+  }
+
+  private static <T> Type setModelAndGetCorrespondingList2(Class<T> type) {
+    return new TypeToken<ArrayList<T>>() {}
+            .where(new TypeParameter<T>() {}, type)
+            .getType();
+  }
+
+  private List<S3Credential> _createKey(String uid, Map<String, String> parameters) {
     HttpUrl.Builder urlBuilder =
         HttpUrl.parse(endpoint)
             .newBuilder()
@@ -255,7 +280,7 @@ public class RgwAdminImpl implements RgwAdmin {
     Request request = new Request.Builder().put(emptyBody).url(urlBuilder.build()).build();
 
     String resp = safeCall(request);
-    Type type = new TypeToken<List<Key>>() {}.getType();
+    Type type = new TypeToken<List<S3Credential>>() {}.getType();
     return gson.fromJson(resp, type);
   }
 
@@ -275,48 +300,52 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
-  public List<Key> createKey(String userId, String accessKey, String secretKey) {
+  public List<S3Credential> addS3Credential(String userId, String accessKey, String secretKey) {
     return _createKey(
         userId,
         ImmutableMap.of(
             "access-key", accessKey,
-            "secret-key", secretKey));
+            "secret-key", secretKey), S3Credential.class);
   }
 
   @Override
-  public List<Key> createKey(String userId) {
-    return _createKey(userId, ImmutableMap.of("generate-key", "True"));
+  public List<S3Credential> addS3Credential(String userId) {
+    return _createKey(userId, ImmutableMap.of("generate-key", "True"), S3Credential.class);
   }
 
   @Override
-  public void removeKey(String userId, String accessKey) {
+  public void removeS3Credential(String userId, String accessKey) {
     _removeKey(userId, ImmutableMap.of("access-key", accessKey));
   }
 
   @Override
-  public List<Key> createKeyForSubUser(
+  public List<S3Credential> addS3CredentialForSubUser(
       String userId, String subUserId, String accessKey, String secretKey) {
-    return _createKey(
-        userId,
-        ImmutableMap.of(
-            "subuser", subUserId,
-            "access-key", accessKey,
-            "secret-key", secretKey,
-            "key-type", "s3"));
+    List<S3Credential> s3Credentials = _createKey(
+            userId,
+            ImmutableMap.of(
+                    "subuser", subUserId,
+                    "access-key", accessKey,
+                    "secret-key", secretKey,
+                    "key-type", "s3"), S3Credential.class);
+
+    return s3Credentials.stream().filter(k -> absSubUserId(userId, subUserId).equals(k.getUserId())).collect(Collectors.toList());
   }
 
   @Override
-  public List<Key> createKeyForSubUser(String userId, String subUserId) {
-    return _createKey(
+  public List<S3Credential> addS3CredentialForSubUser(String userId, String subUserId) {
+    List<S3Credential> s3Credentials = _createKey(
         userId,
         ImmutableMap.of(
             "subuser", subUserId,
             "key-type", "s3",
-            "generate-key", "True"));
+            "generate-key", "True"), S3Credential.class);
+
+    return s3Credentials.stream().filter(k -> absSubUserId(userId, subUserId).equals(k.getUserId())).collect(Collectors.toList());
   }
 
   @Override
-  public void removeKeyFromSubUser(String userId, String subUserId, String accessKey) {
+  public void removeS3CredentialFromSubUser(String userId, String subUserId, String accessKey) {
     _removeKey(
         userId,
         ImmutableMap.of(
@@ -326,27 +355,31 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
-  public List<Key> createSecretForSubUser(String userId, String subUserId, String secret) {
-    return _createKey(
-        userId,
-        ImmutableMap.of(
-            "subuser", subUserId,
-            "secret-key", secret,
-            "key-type", "swift"));
+  public SwiftCredential addSwiftCredentialForSubUser(String userId, String subUserId, String secret) {
+    List<SwiftCredential> swiftCredentials = _createKey(
+            userId,
+            ImmutableMap.of(
+                    "subuser", subUserId,
+                    "secret-key", secret,
+                    "key-type", "swift"), SwiftCredential.class
+    );
+    return swiftCredentials.stream().filter(k -> absSubUserId(userId, subUserId).equals(k.getUserId())).collect(Collectors.toList()).get(0);
+
   }
 
   @Override
-  public List<Key> createSecretForSubUser(String userId, String subUserId) {
-    return _createKey(
-        userId,
-        ImmutableMap.of(
-            "subuser", subUserId,
-            "key-type", "swift",
-            "generate-key", "True"));
+  public SwiftCredential addSwiftCredentialForSubUser(String userId, String subUserId) {
+    List<SwiftCredential> swiftCredentials = _createKey(
+            userId,
+            ImmutableMap.of(
+                    "subuser", subUserId,
+                    "key-type", "swift",
+                    "generate-key", "True"), SwiftCredential.class);
+    return swiftCredentials.stream().filter(k -> absSubUserId(userId, subUserId).equals(k.getUserId())).collect(Collectors.toList()).get(0);
   }
 
   @Override
-  public void removeSecretFromSubUser(String userId, String subUserId) {
+  public void removeSwiftCredentialFromSubUser(String userId, String subUserId) {
     _removeKey(userId, ImmutableMap.of("subuser", subUserId, "key-type", "swift"));
   }
 

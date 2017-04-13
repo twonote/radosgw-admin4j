@@ -41,20 +41,20 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void createKey() throws Exception {
+  public void addS3Credential() throws Exception {
     testWithAUser(
         v -> {
-          List<Key> response;
+          List<S3Credential> response;
 
           // basic
-          response = RGW_ADMIN.createKey(v.getUserId());
+          response = RGW_ADMIN.addS3Credential(v.getUserId());
           assertEquals(2, response.size());
-          assertEquals(2, RGW_ADMIN.getUserInfo(v.getUserId()).get().getKeys().size());
+          assertEquals(2, RGW_ADMIN.getUserInfo(v.getUserId()).get().getS3Credentials().size());
 
           // specify the key
           String accessKey = v.getUserId() + "-adminAccessKey";
           String secretKey = v.getUserId() + "-adminSecretKey";
-          response = RGW_ADMIN.createKey(v.getUserId(), accessKey, secretKey);
+          response = RGW_ADMIN.addS3Credential(v.getUserId(), accessKey, secretKey);
           assertTrue(
               response
                   .stream()
@@ -65,7 +65,7 @@ public class RgwAdminImplTest extends BaseTest {
 
           // user not exist
           try {
-            RGW_ADMIN.createKey(UUID.randomUUID().toString());
+            RGW_ADMIN.addS3Credential(UUID.randomUUID().toString());
             fail();
           } catch (RgwAdminException e) {
             assertEquals("InvalidArgument", e.getMessage());
@@ -74,18 +74,18 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void removeKey() throws Exception {
+  public void removeS3Credential() throws Exception {
     testWithAUser(
         v -> {
-          String accessKey = v.getKeys().get(0).getAccessKey();
+          String accessKey = v.getS3Credentials().get(0).getAccessKey();
 
           // basic
-          RGW_ADMIN.removeKey(v.getUserId(), accessKey);
-          assertEquals(0, RGW_ADMIN.getUserInfo(v.getUserId()).get().getKeys().size());
+          RGW_ADMIN.removeS3Credential(v.getUserId(), accessKey);
+          assertEquals(0, RGW_ADMIN.getUserInfo(v.getUserId()).get().getS3Credentials().size());
 
           // key not exist
           try {
-            RGW_ADMIN.removeKey(v.getUserId(), UUID.randomUUID().toString());
+            RGW_ADMIN.removeS3Credential(v.getUserId(), UUID.randomUUID().toString());
             fail();
           } catch (RgwAdminException e) {
             assertEquals(
@@ -94,7 +94,7 @@ public class RgwAdminImplTest extends BaseTest {
 
           // user not exist
           try {
-            RGW_ADMIN.removeKey(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+            RGW_ADMIN.removeS3Credential(UUID.randomUUID().toString(), UUID.randomUUID().toString());
             fail();
           } catch (RgwAdminException e) {
             assertEquals(
@@ -104,57 +104,57 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void createKeyForSubUser() throws Exception {
+  public void addS3CredentialForSubUser() throws Exception {
     testWithASubUser(
         v -> {
-          List<Key> response;
+          List<S3Credential> response;
 
           // basic
           String absSubUserId = v.getSubusers().get(0).getId(); // In forms of "foo:bar"
           String userId = absSubUserId.split(":")[0];
           String subUserId = absSubUserId.split(":")[1];
-          response = RGW_ADMIN.createKeyForSubUser(userId, subUserId);
-          assertTrue(response.stream().anyMatch(vv -> absSubUserId.equals(vv.getUser())));
+          response = RGW_ADMIN.addS3CredentialForSubUser(userId, subUserId);
+          assertTrue(response.stream().anyMatch(vv -> absSubUserId.equals(vv.getUserId())));
 
           // specify the key
           String accessKey = v.getUserId() + "-adminAccessKey";
           String secretKey = v.getUserId() + "-adminSecretKey";
-          response = RGW_ADMIN.createKeyForSubUser(userId, subUserId, accessKey, secretKey);
+          response = RGW_ADMIN.addS3CredentialForSubUser(userId, subUserId, accessKey, secretKey);
           assertTrue(
               response
                   .stream()
                   .anyMatch(
                       v1 ->
-                          absSubUserId.equals(v1.getUser())
+                          absSubUserId.equals(v1.getUserId())
                               && accessKey.equals(v1.getAccessKey())
                               && secretKey.equals(v1.getSecretKey())));
 
           // sub user not exist
           // Ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
           // Create a orphan key without user in
-          RGW_ADMIN.createKeyForSubUser(userId, "XXXXXXX");
+          RGW_ADMIN.addS3CredentialForSubUser(userId, "XXXXXXX");
         });
   }
 
   @Test
-  public void removeKeyFromSubUser() throws Exception {
+  public void removeS3CredentialFromSubUser() throws Exception {
     testWithASubUser(
         v -> {
           String absSubUserId = v.getSubusers().get(0).getId(); // In forms of "foo:bar"
           String userId = absSubUserId.split(":")[0];
           String subUserId = absSubUserId.split(":")[1];
 
-          List<Key> response = RGW_ADMIN.createKeyForSubUser(userId, subUserId);
-          Key keyToDelete =
-              response.stream().filter(vv -> absSubUserId.equals(vv.getUser())).findFirst().get();
+          List<S3Credential> response = RGW_ADMIN.addS3CredentialForSubUser(userId, subUserId);
+          S3Credential keyToDelete =
+              response.stream().filter(vv -> absSubUserId.equals(vv.getUserId())).findFirst().get();
 
           // basic
-          RGW_ADMIN.removeKeyFromSubUser(userId, subUserId, keyToDelete.getAccessKey());
+          RGW_ADMIN.removeS3CredentialFromSubUser(userId, subUserId, keyToDelete.getAccessKey());
           assertFalse(
               RGW_ADMIN
                   .getUserInfo(userId)
                   .get()
-                  .getKeys()
+                  .getS3Credentials()
                   .stream()
                   .anyMatch(
                       k ->
@@ -164,7 +164,7 @@ public class RgwAdminImplTest extends BaseTest {
 
           // key not exist
           try {
-            RGW_ADMIN.removeKeyFromSubUser(userId, subUserId, UUID.randomUUID().toString());
+            RGW_ADMIN.removeS3CredentialFromSubUser(userId, subUserId, UUID.randomUUID().toString());
             fail();
           } catch (RgwAdminException e) {
             // ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
@@ -175,55 +175,56 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void createSecretForSubUser() throws Exception {
+  public void addSwiftCredentialForSubUser() throws Exception {
     testWithASubUser(
         v -> {
-          List<Key> response;
+          SwiftCredential swiftCredential;
 
           // basic
           String absSubUserId = v.getSubusers().get(0).getId(); // In forms of "foo:bar"
           String userId = absSubUserId.split(":")[0];
           String subUserId = absSubUserId.split(":")[1];
-          response = RGW_ADMIN.createSecretForSubUser(userId, subUserId);
-          assertTrue(response.stream().anyMatch(vv -> absSubUserId.equals(vv.getUser())));
+          swiftCredential = RGW_ADMIN.addSwiftCredentialForSubUser(userId, subUserId);
+          assertTrue(absSubUserId.equals(swiftCredential.getUserId()));
+          assertNotNull(swiftCredential.getUsername());
+          assertNotNull(swiftCredential.getPassword());
 
           // specify the key
-          String secret = v.getUserId() + "-secret";
-          response = RGW_ADMIN.createSecretForSubUser(userId, subUserId, secret);
-          assertTrue(
-              response
-                  .stream()
-                  .anyMatch(
-                      v1 -> absSubUserId.equals(v1.getUser()) && secret.equals(v1.getSecretKey())));
+          String password = v.getUserId() + "-secret";
+          swiftCredential = RGW_ADMIN.addSwiftCredentialForSubUser(userId, subUserId, password);
+          assertTrue(absSubUserId.equals(swiftCredential.getUserId()));
+          assertNotNull(swiftCredential.getUsername());
+          assertNotNull(swiftCredential.getPassword());
+          assertEquals(password, swiftCredential.getPassword());
 
           // sub user not exist
           // Create a orphan key without user in ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
-          RGW_ADMIN.createSecretForSubUser(userId, subUserId);
+          RGW_ADMIN.addSwiftCredentialForSubUser(userId, subUserId);
         });
   }
 
   @Test
-  public void removeSecretFromSubUser() throws Exception {
+  public void removeSwiftCredentialFromSubUser() throws Exception {
     testWithASubUser(
         v -> {
           String absSubUserId = v.getSubusers().get(0).getId(); // In forms of "foo:bar"
           String userId = absSubUserId.split(":")[0];
           String subUserId = absSubUserId.split(":")[1];
 
-          RGW_ADMIN.createSecretForSubUser(userId, subUserId);
+          RGW_ADMIN.addSwiftCredentialForSubUser(userId, subUserId);
 
           // basic
-          RGW_ADMIN.removeSecretFromSubUser(userId, subUserId);
+          RGW_ADMIN.removeSwiftCredentialFromSubUser(userId, subUserId);
           assertFalse(
               RGW_ADMIN
                   .getUserInfo(userId)
                   .get()
-                  .getSwiftKeys()
+                  .getSwiftCredentials()
                   .stream()
                   .anyMatch(
                       k ->
                           absSubUserId.equals(
-                              k.getUser()))); // The sub user should not have swift key/secret
+                              k.getUserId()))); // The sub user should not have swift key/secret
         });
   }
 
@@ -325,10 +326,10 @@ public class RgwAdminImplTest extends BaseTest {
           // basic
           RGW_ADMIN.createSubUser(v.getUserId(), subUserId, SubUser.Permission.FULL, KeyType.SWIFT);
           User response2 = RGW_ADMIN.getUserInfo(v.getUserId()).get();
-          assertEquals(1, response2.getSwiftKeys().size());
+          assertEquals(1, response2.getSwiftCredentials().size());
           RGW_ADMIN.removeSubUser(v.getUserId(), subUserId);
           response2 = RGW_ADMIN.getUserInfo(v.getUserId()).get();
-          assertEquals(0, response2.getSwiftKeys().size());
+          assertEquals(0, response2.getSwiftCredentials().size());
         });
   }
 
@@ -344,13 +345,13 @@ public class RgwAdminImplTest extends BaseTest {
           SubUser.Permission permission = SubUser.Permission.FULL;
           SubUser response = RGW_ADMIN.createSubUser(userId, subUserId, permission, KeyType.SWIFT);
           assertEquals(permission, response.getPermission().get());
-          Optional<Key> keyResponse =
+          Optional<SwiftCredential> keyResponse =
               RGW_ADMIN
                   .getUserInfo(userId)
                   .get()
-                  .getSwiftKeys()
+                  .getSwiftCredentials()
                   .stream()
-                  .filter(k -> absSubUserId.equals(k.getUser()))
+                  .filter(k -> absSubUserId.equals(k.getUserId()))
                   .findFirst();
           assertTrue(keyResponse.isPresent());
         });
@@ -376,11 +377,11 @@ public class RgwAdminImplTest extends BaseTest {
           assertEquals(fullSubUserId, response2.getSubusers().get(0).getId());
 
           // test subuser in s3
-          Key key =
+          S3Credential key =
               response2
-                  .getKeys()
+                  .getS3Credentials()
                   .stream()
-                  .filter(e -> fullSubUserId.equals(e.getUser()))
+                  .filter(e -> fullSubUserId.equals(e.getUserId()))
                   .findFirst()
                   .get();
           AmazonS3 s3 = createS3(key.getAccessKey(), key.getSecretKey());
@@ -399,7 +400,7 @@ public class RgwAdminImplTest extends BaseTest {
         (v) -> {
           String userId = v.getUserId();
           AmazonS3 s3 =
-              createS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
+              createS3(v.getS3Credentials().get(0).getAccessKey(), v.getS3Credentials().get(0).getSecretKey());
           String bucketName = userId.toLowerCase();
 
           // not exist
@@ -466,8 +467,8 @@ public class RgwAdminImplTest extends BaseTest {
           User response = RGW_ADMIN.createUser(userId);
           AmazonS3 s3 =
               createS3(
-                  response.getKeys().get(0).getAccessKey(),
-                  response.getKeys().get(0).getSecretKey());
+                  response.getS3Credentials().get(0).getAccessKey(),
+                  response.getS3Credentials().get(0).getSecretKey());
           s3.createBucket(bucketName);
 
           ByteArrayInputStream input = new ByteArrayInputStream("Hello World!".getBytes());
@@ -490,7 +491,7 @@ public class RgwAdminImplTest extends BaseTest {
         (v) -> {
           String userId = v.getUserId();
           AmazonS3 s3 =
-              createS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
+              createS3(v.getS3Credentials().get(0).getAccessKey(), v.getS3Credentials().get(0).getSecretKey());
           String bucketName = userId.toLowerCase();
 
           // not exist
@@ -519,8 +520,8 @@ public class RgwAdminImplTest extends BaseTest {
           User response = RGW_ADMIN.createUser(userId);
           AmazonS3 s3 =
               createS3(
-                  response.getKeys().get(0).getAccessKey(),
-                  response.getKeys().get(0).getSecretKey());
+                  response.getS3Credentials().get(0).getAccessKey(),
+                  response.getS3Credentials().get(0).getSecretKey());
           s3.createBucket(bucketName);
 
           BucketInfo _response = RGW_ADMIN.getBucketInfo(bucketName).get();
@@ -553,7 +554,7 @@ public class RgwAdminImplTest extends BaseTest {
     testWithASubUser(
         v -> {
           AmazonS3 s3 =
-              createS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
+              createS3(v.getS3Credentials().get(0).getAccessKey(), v.getS3Credentials().get(0).getSecretKey());
           for (int i = 0; i < 3; i++) {
             s3.createBucket(UUID.randomUUID().toString().toLowerCase());
           }
@@ -567,7 +568,7 @@ public class RgwAdminImplTest extends BaseTest {
     testWithASubUser(
         v -> {
           AmazonS3 s3 =
-              createS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
+              createS3(v.getS3Credentials().get(0).getAccessKey(), v.getS3Credentials().get(0).getSecretKey());
           for (int i = 0; i < 3; i++) {
             s3.createBucket(UUID.randomUUID().toString().toLowerCase());
           }
@@ -581,7 +582,7 @@ public class RgwAdminImplTest extends BaseTest {
     testWithASubUser(
         v -> {
           AmazonS3 s3 =
-              createS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
+              createS3(v.getS3Credentials().get(0).getAccessKey(), v.getS3Credentials().get(0).getSecretKey());
           String bucketName = UUID.randomUUID().toString().toLowerCase();
           s3.createBucket(bucketName);
 
@@ -629,8 +630,8 @@ public class RgwAdminImplTest extends BaseTest {
       // basic
       User response = RGW_ADMIN.createUser(userId);
       assertEquals(userId, response.getUserId());
-      assertNotNull(response.getKeys().get(0).getAccessKey());
-      assertNotNull(response.getKeys().get(0).getSecretKey());
+      assertNotNull(response.getS3Credentials().get(0).getAccessKey());
+      assertNotNull(response.getS3Credentials().get(0).getSecretKey());
       assertEquals(Integer.valueOf(0), response.getSuspended());
       assertEquals(Integer.valueOf(1000), response.getMaxBuckets());
 
@@ -691,7 +692,7 @@ public class RgwAdminImplTest extends BaseTest {
           assertEquals(true, quota.getEnabled());
 
           AmazonS3 s3 =
-              createS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
+              createS3(v.getS3Credentials().get(0).getAccessKey(), v.getS3Credentials().get(0).getSecretKey());
           String bucketName = userId.toLowerCase();
           s3.createBucket(bucketName);
 
@@ -728,7 +729,7 @@ public class RgwAdminImplTest extends BaseTest {
           assertEquals(true, quota.getEnabled());
 
           AmazonS3 s3 =
-              createS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
+              createS3(v.getS3Credentials().get(0).getAccessKey(), v.getS3Credentials().get(0).getSecretKey());
           String bucketName = userId.toLowerCase();
           s3.createBucket(bucketName);
 
@@ -789,7 +790,7 @@ public class RgwAdminImplTest extends BaseTest {
         (v) -> {
           String userId = v.getUserId();
           AmazonS3 s3 =
-              createS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
+              createS3(v.getS3Credentials().get(0).getAccessKey(), v.getS3Credentials().get(0).getSecretKey());
           String bucketName = userId.toLowerCase();
           String objectKey = userId.toLowerCase();
           s3.createBucket(bucketName);
@@ -805,7 +806,7 @@ public class RgwAdminImplTest extends BaseTest {
         (v) -> {
           String userId = v.getUserId();
           AmazonS3 s3 =
-              createS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
+              createS3(v.getS3Credentials().get(0).getAccessKey(), v.getS3Credentials().get(0).getSecretKey());
           String bucketName = userId.toLowerCase();
           s3.createBucket(bucketName);
           String resp = RGW_ADMIN.getBucketPolicy(bucketName).get();
@@ -819,7 +820,7 @@ public class RgwAdminImplTest extends BaseTest {
         (v) -> {
           String userId = v.getUserId();
           AmazonS3 s3 =
-              createS3(v.getKeys().get(0).getAccessKey(), v.getKeys().get(0).getSecretKey());
+              createS3(v.getS3Credentials().get(0).getAccessKey(), v.getS3Credentials().get(0).getSecretKey());
           String bucketName = userId.toLowerCase();
           s3.createBucket(bucketName);
           String objectKey = userId.toLowerCase();

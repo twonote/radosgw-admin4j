@@ -239,18 +239,18 @@ public interface RgwAdmin {
    * @param secretKey S3 secret key
    * @return Keys of type created associated with this user account.
    */
-  List<Key> createKey(String userId, String accessKey, String secretKey);
+  List<S3Credential> addS3Credential(String userId, String accessKey, String secretKey);
 
   /**
    * Create a new S3 key pair for the specified user.
    *
    * <p>The S3 access key pair will be automatically generated for the user. If you want to specify
-   * the key, please use {@link #createKey(String, String, String)}
+   * the key, please use {@link #addS3Credential(String, String, String)}
    *
    * @param userId the specified user.
    * @return Keys of type created associated with this user account.
    */
-  List<Key> createKey(String userId);
+  List<S3Credential> addS3Credential(String userId);
 
   /**
    * Remove an existing S3 key pair from the specified user.
@@ -258,7 +258,7 @@ public interface RgwAdmin {
    * @param userId The specified user.
    * @param accessKey The access key belonging to the key pair to remove.
    */
-  void removeKey(String userId, String accessKey);
+  void removeS3Credential(String userId, String accessKey);
 
   /**
    * Create a new S3 key pair for the specified sub user.
@@ -270,21 +270,21 @@ public interface RgwAdmin {
    * @param secretKey S3 secret key.
    * @return Keys of type created associated with this user account.
    */
-  List<Key> createKeyForSubUser(
+  List<S3Credential> addS3CredentialForSubUser(
       String userId, String subUserId, String accessKey, String secretKey);
 
   /**
    * Create a new S3 key pair for the specified sub user.
    *
    * <p>The S3 access key pair will be automatically generated for the user. If you want to specify
-   * the key, please use {@link #createKeyForSubUser(String, String, String, String)}
+   * the key, please use {@link #addS3CredentialForSubUser(String, String, String, String)}
    *
    * @param userId the specified user.
    * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
    *     foo:bar.
    * @return Keys of type created associated with this user account.
    */
-  List<Key> createKeyForSubUser(String userId, String subUserId);
+  List<S3Credential> addS3CredentialForSubUser(String userId, String subUserId);
 
   /**
    * Remove an existing S3 key pair from the specified sub user.
@@ -294,7 +294,7 @@ public interface RgwAdmin {
    *     foo:bar.
    * @param accessKey The access key belonging to the key pair to remove.
    */
-  void removeKeyFromSubUser(String userId, String subUserId, String accessKey);
+  void removeS3CredentialFromSubUser(String userId, String subUserId, String accessKey);
 
   /**
    * Create a new swift secret for the specified sub user.
@@ -305,20 +305,20 @@ public interface RgwAdmin {
    * @param secret The specified swift secret.
    * @return Keys of type created associated with this user account.
    */
-  List<Key> createSecretForSubUser(String userId, String subUserId, String secret);
+  SwiftCredential addSwiftCredentialForSubUser(String userId, String subUserId, String secret);
 
   /**
    * Create a new swift secret for the specified sub user.
    *
    * <p>The secret will be automatically generated for the user. If you want to specify it, please
-   * use {@link #createSecretForSubUser(String, String, String)}
+   * use {@link #addSwiftCredentialForSubUser(String, String, String)}
    *
    * @param userId The specified user.
    * @param subUserId The specified sub user. Should not contain user id, i.e., bar instead of
    *     foo:bar.
    * @return Keys of type created associated with this user account.
    */
-  List<Key> createSecretForSubUser(String userId, String subUserId);
+  SwiftCredential addSwiftCredentialForSubUser(String userId, String subUserId);
 
   /**
    * Remove the secret from the specified sub user.
@@ -327,7 +327,7 @@ public interface RgwAdmin {
    * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
    *     foo:bar.
    */
-  void removeSecretFromSubUser(String userId, String subUserId);
+  void removeSwiftCredentialFromSubUser(String userId, String subUserId);
 
   /**
    * Delete an existing bucket.
