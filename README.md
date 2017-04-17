@@ -34,11 +34,15 @@ public class RgwAdminBeanConfig {
   private String secretKey;
 
   @Value("${radosgw.adminEndpoint}")
-  private String endpoint;
+  private String adminEndpoint;
 
   @Bean
   RgwAdminClient init() {
-    return new RgwAdminClientImpl(accessKey, secretKey, endpoint);
+    return new RgwAdminBuilder()
+                  .accessKey(accessKey)
+                  .secretKey(secretKey)
+                  .endpoint(adminEndpoint)
+                  .build();  
   }
 }
 ```
@@ -57,38 +61,52 @@ radosgw:
 Please check more operations in [java doc](https://twonote.github.io/radosgw-admin4j/apidocs/index.html?org/twonote/rgwadmin4j/RgwAdminClient.html)!
 
 ```
-String adminAccessKey, adminSecretKey, adminEndpoint, adminUserId, userId, bucketName;
-
-RgwAdminClient RGW_ADMIN_CLIENT = new RgwAdminClientImpl(adminAccessKey, adminSecretKey, adminEndpoint);
+RgwAdmin RGW_ADMIN =
+              new RgwAdminBuilder()
+                  .accessKey(accessKey)
+                  .secretKey(secretKey)
+                  .endpoint(adminEndpoint)
+                  .build();
 
 // create user
-User user = RGW_ADMIN_CLIENT.createUser(userId);
+CreateUserResponse response = RGW_ADMIN.createUser(userId);
 
 // Get user info 
-user = RGW_ADMIN_CLIENT.getUserInfo(user.getUserId()).get();
+GetUserInfoResponse response = RGW_ADMIN.getUserInfo(adminUserId).get();
 
 // Allow the user owns more buckets
-RGW_ADMIN_CLIENT.modifyUser(user.getUserId(), ImmutableMap.of("max-buckets", String.valueOf(Integer.MAX_VALUE)));
+RGW_ADMIN.modifyUser(userId, ImmutableMap.of("max-buckets", String.valueOf(Integer.MAX_VALUE)));
 
 // create bucket by the new user
 // ...(skip)
 
 // get bucket info
-BucketInfo bucketInfo = RGW_ADMIN_CLIENT.getBucketInfo(bucketName).get();
+
+GetBucketInfoResponse _response = RGW_ADMIN.getBucketInfo(bucketName).get();
+
+// Change bucket owner
+RGW_ADMIN.linkBucket(bucketName, bucketId, adminUserId);
+
+BucketInfo bucketInfo = RGW_ADMIN.getBucketInfo(bucketName).get();
 
 // Change bucket owner from the new user to the admin user
-RGW_ADMIN_CLIENT.linkBucket(bucketName, bucketInfo.getId(), adminUserId);
+RGW_ADMIN.linkBucket(bucketName, bucketInfo.getId(), adminUserId);
 
 // Remove bucket
-RGW_ADMIN_CLIENT.removeBucket(bucketName);
+RGW_ADMIN.removeBucket(bucketName);
 
 // Suspend user
-RGW_ADMIN_CLIENT.suspendUser(user.getUserId(), ture);
+RGW_ADMIN.suspendUser(userId);
 
 // Remove user
-RGW_ADMIN_CLIENT.removeUser(user.getUserId());
+RGW_ADMIN.removeUser(userId);
 
+RGW_ADMIN.suspendUser(user.getUserId(), ture);
+
+// Remove user
+RGW_ADMIN.removeUser(user.getUserId());
 ```
+
 ## Setup radosgw and do integration test
 Since this artifact is a client of radosgw, you also need one ready to use radosgw instance and one radosgw account with admin capabilities.
 
@@ -97,7 +115,7 @@ You can refer the [Ceph official manual](http://docs.ceph.com/docs/master/start/
 ```
 $ sudo docker run -d --net=host -v /etc/ceph/:/etc/ceph/ -e MON_IP=127.0.0.1 -e CEPH_PUBLIC_NETWORK=127.0.0.0/24 -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e CEPH_DEMO_BUCKET=qqq --name rgw ceph/demo@sha256:7734ac78571ee0530724181c5b2db2e5a7ca0ff0e246c10c223d3ca9665c74ba
 $ sleep 10
-$ sudo docker exec -it rgw radosgw-admin --id admin caps add --caps="buckets=*;users=*;usage=*" --uid=qqq
+$ sudo docker exec -it rgw radosgw-admin --id admin caps add --caps="buckets=*;users=*;usage=*;metadata=*" --uid=qqq
 ```
 
 Check the setup succeeded by the following command:
@@ -122,7 +140,7 @@ First, you need an admin account. If you not yet have it, create the account wit
 ```
 $ radosgw-admin user create --uid=qqq --display-name="qqq"
 $ radosgw-admin key create --uid=qqq --key-type=s3 --access-key=qqq --secret-key=qqq
-$ radosgw-admin --id admin caps add --caps="buckets=*;users=*;usage=*" --uid=qqq
+$ radosgw-admin --id admin caps add --caps="buckets=*;users=*;usage=*;metadata=*" --uid=qqq
 ```
 
 Second, enter the key pair (qqq,qqq) and your radosgw endpoint to the [config file](https://github.com/twonote/radosgw-admin4j/blob/master/src/test/resources/rgwadmin.properties)

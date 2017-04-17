@@ -18,7 +18,7 @@ import java.util.Optional;
  * <p>Created by petertc on 3/14/17.
  */
 @SuppressWarnings("SameParameterValue")
-public interface RgwAdminClient {
+public interface RgwAdmin {
   /**
    * Remove usage information for specified user. With no dates specified, removes all usage
    * information.
@@ -125,23 +125,24 @@ public interface RgwAdminClient {
   /**
    * Create a new subuser
    *
-   * <p>Note that in general for a subuser to be useful, it must be granted permissions by
-   * specifying access. As with user creation if subuser is specified without secret, then a secret
-   * key will be automatically generated.
-   *
    * <p>Available parameters includes:
    *
    * <ul>
+   * <li>access-key: Specify access key.
    * <li>secret-key: Specify secret key.
    * <li>key-type: Key type to be generated, options are: swift (default), s3.
-   * <li>access: Set access permissions for sub-user, should be one of read, write, readwrite, full.
+   * <li>access: Set access permissions for sub-user, should be one of read, write, readwrite, full,
+   *     "".
    * <li>generate-secret: Generate the secret key. Default: False
    * </ul>
    *
-   * <p>Note that you can get subuser (swift) keys and other information by {@link
-   * #getUserInfo(String)}
+   * <p>Tips:
    *
-   * <p>Note that to create subuser for S3, you need ceph v11.2.0-kraken or above.
+   * <ol>
+   * <li>In general for a subuser to be useful, it must be granted permissions by specifying access.
+   * <li>You can get subuser credentials by {@link #getUserInfo(String)} after creation.
+   * <li>To create subuser for S3, you need ceph v11.2.0-kraken or above.
+   * </ol>
    *
    * @param userId The user ID under which a subuser is to be created.
    * @param subUserId Specify the subuser ID to be created.
@@ -151,42 +152,65 @@ public interface RgwAdminClient {
   List<SubUser> createSubUser(String userId, String subUserId, Map<String, String> parameters);
 
   /**
-   * Create a new subuser for Swift use.
+   * Create a new sub-user
    *
-   * <p>Note that the subuser will has "full" control permission.
+   * <p>This method will create the sub-user with the automatic generated credential.
    *
-   * <p>Note that you can get subuser (swift) keys and other information by {@link
-   * #getUserInfo(String)}
+   * <p>Tips:
    *
-   * @param userId the specified user.
-   * @param subUserId the specified sub-user.
-   * @return Subusers associated with the user account.
+   * <ol>
+   * <li>In general for a subuser to be useful, it must be granted permissions by specifying access.
+   * <li>You can get subuser credentials by {@link #getUserInfo(String)} after creation.
+   * <li>To create subuser for S3, you need ceph v11.2.0-kraken or above.
+   * </ol>
+   *
+   * @param userId The user ID under which a subuser is to be created.
+   * @param subUserId Specify the subuser ID to be created. Should be in the relative form, i.e.,
+   *     does not contains the user id.
+   * @param permission The subuser permission.
+   * @param credentialType Specify credential type to be generated.
+   * @return The created subuser information.
    */
-  List<SubUser> createSubUserForSwift(String userId, String subUserId);
+  SubUser createSubUser(
+      String userId,
+      String subUserId,
+      SubUser.Permission permission,
+      CredentialType credentialType);
 
   /**
-   * Modify an existing subuser.
+   * Modify an existing subuser permission.
    *
-   * <p>Available parameters includes:
-   *
-   * <ul>
-   * <li>secret-key: Specify secret key.
-   * <li>key-type: Key type to be generated, options are: swift (default), s3.
-   * <li>access: Set access permissions for sub-user, should be one of read, write, readwrite, full.
-   * <li>generate-secret: Generate the secret key. Default: False
-   * </ul>
+   * <p>Note that you can get the permission by {@link #getSubUserInfo(String, String)}
    *
    * @param userId The user ID under which a subuser is to be created.
    * @param subUserId Specify the subuser ID to be created.
-   * @param parameters The subuser parameters.
+   * @param permission Specify the subuser permission.
    * @return Subusers associated with the user account.
    */
-  List<SubUser> modifySubUser(String userId, String subUserId, Map<String, String> parameters);
+  List<SubUser> setSubUserPermission(
+      String userId, String subUserId, SubUser.Permission permission);
+
+  /**
+   * Retrieve the sub-user information under a user
+   *
+   * @param userId The user ID under which subusers we interested to
+   * @return subusers
+   */
+  List<SubUser> listSubUserInfo(String userId);
+
+  /**
+   * Get sub-user information.
+   *
+   * @param userId The user ID.
+   * @param subUserId The subuser ID
+   * @return The subuser information.
+   */
+  Optional<SubUser> getSubUserInfo(String userId, String subUserId);
 
   /**
    * Remove an existing subuser.
    *
-   * <p>Note that the operation also removes keys belonging to the subuser.
+   * <p>Note that the operation also removes credentials belonging to the subuser.
    *
    * @param userId The user ID under which the subuser is to be removed.
    * @param subUserId The subuser ID to be removed.
@@ -194,102 +218,106 @@ public interface RgwAdminClient {
   void removeSubUser(String userId, String subUserId);
 
   /**
-   * Create a new S3 key pair for the specified user.
+   * Create a new S3 credential for the specified user.
    *
    * @param userId the specified user.
    * @param accessKey S3 access key
    * @param secretKey S3 secret key
-   * @return Keys of type created associated with this user account.
+   * @return S3 credentials associated with this user account.
    */
-  List<Key> createKey(String userId, String accessKey, String secretKey);
+  List<S3Credential> createS3Credential(String userId, String accessKey, String secretKey);
 
   /**
-   * Create a new S3 key pair for the specified user.
+   * Create a new S3 credential pair for the specified user.
    *
-   * <p>The S3 access key pair will be automatically generated for the user. If you want to specify
-   * the key, please use {@link #createKey(String, String, String)}
+   * <p>The credential will be automatically generated for the user. If you want to specify the
+   * credential, please use {@link #createS3Credential(String, String, String)}
    *
    * @param userId the specified user.
-   * @return Keys of type created associated with this user account.
+   * @return S3 credentials associated with this user account.
    */
-  List<Key> createKey(String userId);
+  List<S3Credential> createS3Credential(String userId);
 
   /**
-   * Remove an existing S3 key pair from the specified user.
+   * Remove an existing S3 credential from the specified user.
    *
    * @param userId The specified user.
-   * @param accessKey The access key belonging to the key pair to remove.
+   * @param accessKey The access key belonging to the credential to remove.
    */
-  void removeKey(String userId, String accessKey);
+  void removeS3Credential(String userId, String accessKey);
 
   /**
-   * Create a new S3 key pair for the specified sub user.
+   * Create a new S3 credential for the specified subuser.
    *
    * @param userId The specified user.
    * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
    *     foo:bar.
    * @param accessKey S3 access key.
    * @param secretKey S3 secret key.
-   * @return Keys of type created associated with this user account.
+   * @return S3 credentials associated with this subuser account.
    */
-  List<Key> createKeyForSubUser(
+  List<S3Credential> createS3CredentialForSubUser(
       String userId, String subUserId, String accessKey, String secretKey);
 
   /**
-   * Create a new S3 key pair for the specified sub user.
+   * Create a new S3 credential for the specified sub user.
    *
-   * <p>The S3 access key pair will be automatically generated for the user. If you want to specify
-   * the key, please use {@link #createKeyForSubUser(String, String, String, String)}
-   *
-   * @param userId the specified user.
-   * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
-   *     foo:bar.
-   * @return Keys of type created associated with this user account.
-   */
-  List<Key> createKeyForSubUser(String userId, String subUserId);
-
-  /**
-   * Remove an existing S3 key pair from the specified sub user.
+   * <p>The credential will be automatically generated for the user. If you want to specify the
+   * credential, please use {@link #createS3CredentialForSubUser(String, String, String, String)}
    *
    * @param userId the specified user.
    * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
    *     foo:bar.
-   * @param accessKey The access key belonging to the key pair to remove.
+   * @return S3 credentials created associated with this subuser account.
    */
-  void removeKeyFromSubUser(String userId, String subUserId, String accessKey);
+  List<S3Credential> createS3CredentialForSubUser(String userId, String subUserId);
 
   /**
-   * Create a new swift secret for the specified sub user.
+   * Remove an existing S3 credential from the specified sub user.
+   *
+   * @param userId the specified user.
+   * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
+   *     foo:bar.
+   * @param accessKey The access key belonging to the credential to remove.
+   */
+  void removeS3CredentialFromSubUser(String userId, String subUserId, String accessKey);
+
+  /**
+   * Create a new swift credential for the specified sub user.
+   *
+   * <p>Tip: a subuser can have only one swift credential.
    *
    * @param userId The specified user.
    * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
    *     foo:bar.
-   * @param secret The specified swift secret.
-   * @return Keys of type created associated with this user account.
+   * @param password The specified swift password.
+   * @return The Swift credentials associated with this subuser account.
    */
-  List<Key> createSecretForSubUser(String userId, String subUserId, String secret);
+  SwiftCredential createSwiftCredentialForSubUser(String userId, String subUserId, String password);
 
   /**
-   * Create a new swift secret for the specified sub user.
+   * Create a new swift credential for the specified sub user.
    *
-   * <p>The secret will be automatically generated for the user. If you want to specify it, please
-   * use {@link #createSecretForSubUser(String, String, String)}
+   * <p>The credential will be automatically generated for the user. If you want to specify it,
+   * please use {@link #createSwiftCredentialForSubUser(String, String, String)}
+   *
+   * <p>Tip: a subuser can have only one swift credential.
    *
    * @param userId The specified user.
    * @param subUserId The specified sub user. Should not contain user id, i.e., bar instead of
    *     foo:bar.
-   * @return Keys of type created associated with this user account.
+   * @return The Swift credential associated with this subuser account.
    */
-  List<Key> createSecretForSubUser(String userId, String subUserId);
+  SwiftCredential createSwiftCredentialForSubUser(String userId, String subUserId);
 
   /**
-   * Remove the secret from the specified sub user.
+   * Remove the credential from the specified sub user.
    *
    * @param userId the specified user.
    * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
    *     foo:bar.
    */
-  void removeSecretFromSubUser(String userId, String subUserId);
+  void removeSwiftCredentialFromSubUser(String userId, String subUserId);
 
   /**
    * Delete an existing bucket.
@@ -356,7 +384,7 @@ public interface RgwAdminClient {
   List<String> listBucket(String userId);
 
   /**
-   * Get information about buckets.
+   * Get information about buckets under a given user.
    *
    * @param userId The user to retrieve bucket information for.
    * @return The desired bucket information.
@@ -420,6 +448,28 @@ public interface RgwAdminClient {
   Optional<User> getUserInfo(String userId);
 
   /**
+   * Get the user list
+   *
+   * @return Id of users in the system.
+   */
+  List<String> listUser();
+
+  /**
+   * Get the subuser list under a user
+   *
+   * @param userId The user ID under which subusers we interested to.
+   * @return Id of subusers under the given user.
+   */
+  List<String> listSubUser(String userId);
+
+  /**
+   * Get information about users exist in the system
+   *
+   * @return Information of users in the system.
+   */
+  List<User> listUserInfo();
+
+  /**
    * Modify a user.
    *
    * <p>Available parameters includes:
@@ -441,14 +491,6 @@ public interface RgwAdminClient {
    * @return The user information.
    */
   User modifyUser(String userId, Map<String, String> parameters);
-
-  /**
-   * Suspend a user
-   *
-   * @param userId The user ID to be suspended.
-   */
-  @Deprecated
-  void suspendUser(String userId);
 
   /**
    * Suspend or resume a user

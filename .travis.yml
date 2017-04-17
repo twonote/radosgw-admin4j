@@ -12,7 +12,7 @@ before_install:
 - sudo echo -e "[client.radosgw.gateway]\nrgw enable usage log = true\nrgw usage log tick interval = 1\nrgw usage log flush threshold = 1\nrgw usage max shards = 32\nrgw usage max user shards = 1\n" | sudo tee -a /etc/ceph/ceph.conf
 - docker restart rgw
 - sleep 30
-- docker exec -it rgw radosgw-admin --id admin caps add --caps="buckets=*;users=*;usage=*" --uid=qqq
+- docker exec -it rgw radosgw-admin --id admin caps add --caps="buckets=*;users=*;usage=*;metadata=*" --uid=qqq
 
 install: mvn install -Dgpg.skip=true
 
