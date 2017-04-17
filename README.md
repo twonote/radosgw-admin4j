@@ -10,12 +10,55 @@ A Ceph Object Storage Admin SDK / Client Library for Java
 * **All contributions are welcome! Feel free here~**
 
 # Start using 
+
 You can obtain radosgw-admim4j from Maven Central using the following identifier:
-* [io.github.twonote.radosgw-admin4j:0.0.5](https://search.maven.org/#artifactdetails%7Cio.github.twonote%7Cradosgw-admin4j%7C0.0.5%7Cjar)
+* [io.github.twonote.radosgw-admin4j:0.0.6](https://search.maven.org/#artifactdetails%7Cio.github.twonote%7Cradosgw-admin4j%7C0.0.6%7Cjar)
 
-## Usage
+## Configuration
 
-Please check more operations in [java doc](https://twonote.github.io/radosgw-admin4j/apidocs/index.html)!
+### Using plain-old-Java
+
+```
+RgwAdminClient RGW_ADMIN_CLIENT = new RgwAdminClientImpl(adminAccessKey, adminSecretKey, adminEndpoint);
+```
+
+### Using the Spring framework
+
+```
+@Configuration
+public class RgwAdminBeanConfig {
+  @Value("${radosgw.adminAccessKey}")
+  private String accessKey;
+
+  @Value("${radosgw.adminSecretKey}")
+  private String secretKey;
+
+  @Value("${radosgw.adminEndpoint}")
+  private String adminEndpoint;
+
+  @Bean
+  RgwAdminClient init() {
+    return new RgwAdminBuilder()
+                  .accessKey(accessKey)
+                  .secretKey(secretKey)
+                  .endpoint(adminEndpoint)
+                  .build();  
+  }
+}
+```
+
+and your ```[project home]/src/main/resources/[...]/spring.yml``` will contains (for example):
+
+```
+radosgw:
+  adminEndpoint: ${RADOSGW.ADMIN.ENDPOINT:http://127.0.0.1:8080/admin}
+  adminAccessKey: ${RADOSGW.ADMIN.ACCESSKEY:qqq}
+  adminSecretKey: ${RADOSGW.ADMIN.SECRETKEY:qqq}
+```
+
+## Usage example
+
+Please check more operations in [java doc](https://twonote.github.io/radosgw-admin4j/apidocs/index.html?org/twonote/rgwadmin4j/RgwAdminClient.html)!
 
 ```
 RgwAdmin RGW_ADMIN =
@@ -35,14 +78,19 @@ GetUserInfoResponse response = RGW_ADMIN.getUserInfo(adminUserId).get();
 RGW_ADMIN.modifyUser(userId, ImmutableMap.of("max-buckets", String.valueOf(Integer.MAX_VALUE)));
 
 // create bucket by the new user
-AmazonS3 s3 = initS3(response.getKeys().get(0).getAccessKey(), response.getKeys().get(0).getSecretKey(), s3Endpoint);
-s3.createBucket(bucketName);
+// ...(skip)
 
 // get bucket info
+
 GetBucketInfoResponse _response = RGW_ADMIN.getBucketInfo(bucketName).get();
 
 // Change bucket owner
 RGW_ADMIN.linkBucket(bucketName, bucketId, adminUserId);
+
+BucketInfo bucketInfo = RGW_ADMIN.getBucketInfo(bucketName).get();
+
+// Change bucket owner from the new user to the admin user
+RGW_ADMIN.linkBucket(bucketName, bucketInfo.getId(), adminUserId);
 
 // Remove bucket
 RGW_ADMIN.removeBucket(bucketName);
@@ -53,7 +101,12 @@ RGW_ADMIN.suspendUser(userId);
 // Remove user
 RGW_ADMIN.removeUser(userId);
 
+RGW_ADMIN.suspendUser(user.getUserId(), ture);
+
+// Remove user
+RGW_ADMIN.removeUser(user.getUserId());
 ```
+
 ## Setup radosgw and do integration test
 Since this artifact is a client of radosgw, you also need one ready to use radosgw instance and one radosgw account with admin capabilities.
 
