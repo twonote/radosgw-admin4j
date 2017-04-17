@@ -1,3 +1,7 @@
+0.1.0 (2017-04-17)
+- List user
+- Reform the interface
+
 0.0.6 (2017-04-09)
 - Tape out the interface
 
