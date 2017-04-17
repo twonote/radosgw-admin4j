@@ -225,18 +225,18 @@ public interface RgwAdmin {
    * @param secretKey S3 secret key
    * @return S3 credentials associated with this user account.
    */
-  List<S3Credential> addS3Credential(String userId, String accessKey, String secretKey);
+  List<S3Credential> createS3Credential(String userId, String accessKey, String secretKey);
 
   /**
    * Create a new S3 credential pair for the specified user.
    *
    * <p>The credential will be automatically generated for the user. If you want to specify the
-   * credential, please use {@link #addS3Credential(String, String, String)}
+   * credential, please use {@link #createS3Credential(String, String, String)}
    *
    * @param userId the specified user.
    * @return S3 credentials associated with this user account.
    */
-  List<S3Credential> addS3Credential(String userId);
+  List<S3Credential> createS3Credential(String userId);
 
   /**
    * Remove an existing S3 credential from the specified user.
@@ -256,21 +256,21 @@ public interface RgwAdmin {
    * @param secretKey S3 secret key.
    * @return S3 credentials associated with this subuser account.
    */
-  List<S3Credential> addS3CredentialForSubUser(
+  List<S3Credential> createS3CredentialForSubUser(
       String userId, String subUserId, String accessKey, String secretKey);
 
   /**
    * Create a new S3 credential for the specified sub user.
    *
    * <p>The credential will be automatically generated for the user. If you want to specify the
-   * credential, please use {@link #addS3CredentialForSubUser(String, String, String, String)}
+   * credential, please use {@link #createS3CredentialForSubUser(String, String, String, String)}
    *
    * @param userId the specified user.
    * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
    *     foo:bar.
    * @return S3 credentials created associated with this subuser account.
    */
-  List<S3Credential> addS3CredentialForSubUser(String userId, String subUserId);
+  List<S3Credential> createS3CredentialForSubUser(String userId, String subUserId);
 
   /**
    * Remove an existing S3 credential from the specified sub user.
@@ -293,13 +293,13 @@ public interface RgwAdmin {
    * @param password The specified swift password.
    * @return The Swift credentials associated with this subuser account.
    */
-  SwiftCredential addSwiftCredentialForSubUser(String userId, String subUserId, String password);
+  SwiftCredential createSwiftCredentialForSubUser(String userId, String subUserId, String password);
 
   /**
    * Create a new swift credential for the specified sub user.
    *
    * <p>The credential will be automatically generated for the user. If you want to specify it,
-   * please use {@link #addSwiftCredentialForSubUser(String, String, String)}
+   * please use {@link #createSwiftCredentialForSubUser(String, String, String)}
    *
    * <p>Tip: a subuser can have only one swift credential.
    *
@@ -308,7 +308,7 @@ public interface RgwAdmin {
    *     foo:bar.
    * @return The Swift credential associated with this subuser account.
    */
-  SwiftCredential addSwiftCredentialForSubUser(String userId, String subUserId);
+  SwiftCredential createSwiftCredentialForSubUser(String userId, String subUserId);
 
   /**
    * Remove the credential from the specified sub user.

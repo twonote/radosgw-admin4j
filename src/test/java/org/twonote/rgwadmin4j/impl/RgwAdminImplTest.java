@@ -71,20 +71,20 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void addS3Credential() throws Exception {
+  public void createS3Credential() throws Exception {
     testWithAUser(
         v -> {
           List<S3Credential> response;
 
           // basic
-          response = RGW_ADMIN.addS3Credential(v.getUserId());
+          response = RGW_ADMIN.createS3Credential(v.getUserId());
           assertEquals(2, response.size());
           assertEquals(2, RGW_ADMIN.getUserInfo(v.getUserId()).get().getS3Credentials().size());
 
           // specify the key
           String accessKey = v.getUserId() + "-adminAccessKey";
           String secretKey = v.getUserId() + "-adminSecretKey";
-          response = RGW_ADMIN.addS3Credential(v.getUserId(), accessKey, secretKey);
+          response = RGW_ADMIN.createS3Credential(v.getUserId(), accessKey, secretKey);
           assertTrue(
               response
                   .stream()
@@ -95,7 +95,7 @@ public class RgwAdminImplTest extends BaseTest {
 
           // user not exist
           try {
-            RGW_ADMIN.addS3Credential(UUID.randomUUID().toString());
+            RGW_ADMIN.createS3Credential(UUID.randomUUID().toString());
             fail();
           } catch (RgwAdminException e) {
             assertEquals("InvalidArgument", e.getMessage());
@@ -135,7 +135,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void addS3CredentialForSubUser() throws Exception {
+  public void createS3CredentialForSubUser() throws Exception {
     testWithASubUser(
         v -> {
           List<S3Credential> response;
@@ -144,13 +144,13 @@ public class RgwAdminImplTest extends BaseTest {
           String absSubUserId = v.getSubusers().get(0).getId(); // In forms of "foo:bar"
           String userId = absSubUserId.split(":")[0];
           String subUserId = absSubUserId.split(":")[1];
-          response = RGW_ADMIN.addS3CredentialForSubUser(userId, subUserId);
+          response = RGW_ADMIN.createS3CredentialForSubUser(userId, subUserId);
           assertTrue(response.stream().anyMatch(vv -> absSubUserId.equals(vv.getUserId())));
 
           // specify the key
           String accessKey = v.getUserId() + "-adminAccessKey";
           String secretKey = v.getUserId() + "-adminSecretKey";
-          response = RGW_ADMIN.addS3CredentialForSubUser(userId, subUserId, accessKey, secretKey);
+          response = RGW_ADMIN.createS3CredentialForSubUser(userId, subUserId, accessKey, secretKey);
           assertTrue(
               response
                   .stream()
@@ -163,7 +163,7 @@ public class RgwAdminImplTest extends BaseTest {
           // sub user not exist
           // Ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
           // Create a orphan key without user in
-          RGW_ADMIN.addS3CredentialForSubUser(userId, "XXXXXXX");
+          RGW_ADMIN.createS3CredentialForSubUser(userId, "XXXXXXX");
         });
   }
 
@@ -175,7 +175,7 @@ public class RgwAdminImplTest extends BaseTest {
           String userId = absSubUserId.split(":")[0];
           String subUserId = absSubUserId.split(":")[1];
 
-          List<S3Credential> response = RGW_ADMIN.addS3CredentialForSubUser(userId, subUserId);
+          List<S3Credential> response = RGW_ADMIN.createS3CredentialForSubUser(userId, subUserId);
           S3Credential keyToDelete =
               response.stream().filter(vv -> absSubUserId.equals(vv.getUserId())).findFirst().get();
 
@@ -207,7 +207,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void addSwiftCredentialForSubUser() throws Exception {
+  public void createSwiftCredentialForSubUser() throws Exception {
     testWithASubUser(
         v -> {
           SwiftCredential swiftCredential;
@@ -216,14 +216,14 @@ public class RgwAdminImplTest extends BaseTest {
           String absSubUserId = v.getSubusers().get(0).getId(); // In forms of "foo:bar"
           String userId = absSubUserId.split(":")[0];
           String subUserId = absSubUserId.split(":")[1];
-          swiftCredential = RGW_ADMIN.addSwiftCredentialForSubUser(userId, subUserId);
+          swiftCredential = RGW_ADMIN.createSwiftCredentialForSubUser(userId, subUserId);
           assertTrue(absSubUserId.equals(swiftCredential.getUserId()));
           assertNotNull(swiftCredential.getUsername());
           assertNotNull(swiftCredential.getPassword());
 
           // specify the key
           String password = v.getUserId() + "-secret";
-          swiftCredential = RGW_ADMIN.addSwiftCredentialForSubUser(userId, subUserId, password);
+          swiftCredential = RGW_ADMIN.createSwiftCredentialForSubUser(userId, subUserId, password);
           assertTrue(absSubUserId.equals(swiftCredential.getUserId()));
           assertNotNull(swiftCredential.getUsername());
           assertNotNull(swiftCredential.getPassword());
@@ -231,7 +231,7 @@ public class RgwAdminImplTest extends BaseTest {
 
           // sub user not exist
           // Create a orphan key without user in ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
-          RGW_ADMIN.addSwiftCredentialForSubUser(userId, subUserId);
+          RGW_ADMIN.createSwiftCredentialForSubUser(userId, subUserId);
         });
   }
 
@@ -243,7 +243,7 @@ public class RgwAdminImplTest extends BaseTest {
           String userId = absSubUserId.split(":")[0];
           String subUserId = absSubUserId.split(":")[1];
 
-          RGW_ADMIN.addSwiftCredentialForSubUser(userId, subUserId);
+          RGW_ADMIN.createSwiftCredentialForSubUser(userId, subUserId);
 
           // basic
           RGW_ADMIN.removeSwiftCredentialFromSubUser(userId, subUserId);

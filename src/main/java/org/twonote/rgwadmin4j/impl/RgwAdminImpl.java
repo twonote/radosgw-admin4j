@@ -300,7 +300,7 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
-  public List<S3Credential> addS3Credential(String userId, String accessKey, String secretKey) {
+  public List<S3Credential> createS3Credential(String userId, String accessKey, String secretKey) {
     return _createKey(
         userId,
         ImmutableMap.of(
@@ -310,7 +310,7 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
-  public List<S3Credential> addS3Credential(String userId) {
+  public List<S3Credential> createS3Credential(String userId) {
     return _createKey(userId, ImmutableMap.of("generate-key", "True"), S3Credential.class);
   }
 
@@ -320,7 +320,7 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
-  public List<S3Credential> addS3CredentialForSubUser(
+  public List<S3Credential> createS3CredentialForSubUser(
       String userId, String subUserId, String accessKey, String secretKey) {
     List<S3Credential> s3Credentials =
         _createKey(
@@ -339,7 +339,7 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
-  public List<S3Credential> addS3CredentialForSubUser(String userId, String subUserId) {
+  public List<S3Credential> createS3CredentialForSubUser(String userId, String subUserId) {
     List<S3Credential> s3Credentials =
         _createKey(
             userId,
@@ -366,7 +366,7 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
-  public SwiftCredential addSwiftCredentialForSubUser(
+  public SwiftCredential createSwiftCredentialForSubUser(
       String userId, String subUserId, String password) {
     List<SwiftCredential> swiftCredentials =
         _createKey(
@@ -384,7 +384,7 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
-  public SwiftCredential addSwiftCredentialForSubUser(String userId, String subUserId) {
+  public SwiftCredential createSwiftCredentialForSubUser(String userId, String subUserId) {
     List<SwiftCredential> swiftCredentials =
         _createKey(
             userId,
