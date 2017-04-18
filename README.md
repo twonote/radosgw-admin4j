@@ -29,6 +29,7 @@ RgwAdmin RGW_ADMIN =
 
 ### Using the Spring framework
 
+Add a class for spring bean config:
 ```
 @Configuration
 public class RgwAdminBeanConfig {
@@ -59,6 +60,13 @@ radosgw:
   adminEndpoint: ${RADOSGW.ADMIN.ENDPOINT:http://127.0.0.1:8080/admin}
   adminAccessKey: ${RADOSGW.ADMIN.ACCESSKEY:qqq}
   adminSecretKey: ${RADOSGW.ADMIN.SECRETKEY:qqq}
+```
+
+then you can get and use the rgwAdmin (bean) in your work:
+
+```
+@Resource
+RgwAdmin RGW_ADMIN;
 ```
 
 ## Usage example
