@@ -2,6 +2,7 @@ package org.twonote.rgwadmin4j.examples;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.google.common.collect.ImmutableMap;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.twonote.rgwadmin4j.impl.BaseTest;
 import org.twonote.rgwadmin4j.model.*;
@@ -11,11 +12,15 @@ import java.util.UUID;
 
 /** Created by petertc on 4/18/17. */
 public class Example extends BaseTest {
+  // Remove @Ignore before run
   @Test
+  @Ignore("Not a test")
   public void run() throws Exception {
     String userId = "exampleUserId-" + UUID.randomUUID().toString();
     try {
       user(userId);
+    } catch (Exception e) {
+      e.printStackTrace();
     } finally {
       RGW_ADMIN.removeUser(userId);
     }
