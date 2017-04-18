@@ -19,7 +19,12 @@ You can obtain radosgw-admim4j from Maven Central using the following identifier
 ### Using plain-old-Java
 
 ```
-RgwAdminClient RGW_ADMIN_CLIENT = new RgwAdminClientImpl(adminAccessKey, adminSecretKey, adminEndpoint);
+RgwAdmin RGW_ADMIN =
+              new RgwAdminBuilder()
+                  .accessKey(accessKey)
+                  .secretKey(secretKey)
+                  .endpoint(adminEndpoint)
+                  .build();
 ```
 
 ### Using the Spring framework
@@ -61,13 +66,6 @@ radosgw:
 Please check more operations in [java doc](https://twonote.github.io/radosgw-admin4j/apidocs/index.html?org/twonote/rgwadmin4j/RgwAdmin.html)!
 
 ```
-RgwAdmin RGW_ADMIN =
-              new RgwAdminBuilder()
-                  .accessKey(accessKey)
-                  .secretKey(secretKey)
-                  .endpoint(adminEndpoint)
-                  .build();
-
 // create user
 CreateUserResponse response = RGW_ADMIN.createUser(userId);
 
