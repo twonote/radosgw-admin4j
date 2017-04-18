@@ -42,7 +42,7 @@ public class RgwAdminBeanConfig {
   private String adminEndpoint;
 
   @Bean
-  RgwAdminClient init() {
+  RgwAdmin init() {
     return new RgwAdminBuilder()
                   .accessKey(accessKey)
                   .secretKey(secretKey)
