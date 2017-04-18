@@ -58,7 +58,7 @@ radosgw:
 
 ## Usage example
 
-Please check more operations in [java doc](https://twonote.github.io/radosgw-admin4j/apidocs/index.html?org/twonote/rgwadmin4j/RgwAdminClient.html)!
+Please check more operations in [java doc](https://twonote.github.io/radosgw-admin4j/apidocs/index.html?org/twonote/rgwadmin4j/RgwAdmin.html)!
 
 ```
 RgwAdmin RGW_ADMIN =
