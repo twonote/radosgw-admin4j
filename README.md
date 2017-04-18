@@ -1,29 +1,35 @@
 [![Build Status](https://travis-ci.org/twonote/radosgw-admin4j.svg?branch=master)](https://travis-ci.org/twonote/radosgw-admin4j)  [![License](https://img.shields.io/badge/license-Apache%202-blue.svg)]()
 
 # About
-A Ceph Object Storage Admin SDK / Client Library for Java
+radosgw-admin4j is a Ceph object storage admin client that allows provisioning and control of a Ceph object storage deployment. This includes support for user/subuser management, quota management, usage report, etc.
 
-# Hightlight
-* **Fully support all [operations](http://docs.ceph.com/docs/master/radosgw/adminops/)** in the least Ceph version. (Jewel LTS/Kraken stable currently)
-* [Continuous Integration](https://travis-ci.org/twonote/radosgw-admin4j) and tests against the least Ceph version for quality and compatibility
-* Uses the [Maven](http://maven.apache.org/) build system, Java 8 is required.
-* **All contributions are welcome! Feel free here~**
+# Highlight
+* **Fully support all [operations](http://docs.ceph.com/docs/master/radosgw/adminops/)** in the least Ceph version.
+* The easier way to manage radosgw. Avoid troubles when working with radosgw admin APIs, especially that docs are a bit confusing and inconsist with the code base.
+* Quality and compatibility - [Continuous Integration](https://travis-ci.org/twonote/radosgw-admin4j) and tests against the least Ceph version (Jewel LTS/Kraken stable currently)
+* Contributor friendly - typical contribution process, no wired policies, all contributions are welcome!
 
 # Start using 
 
 You can obtain radosgw-admim4j from Maven Central using the following identifier:
-* [io.github.twonote.radosgw-admin4j:0.0.6](https://search.maven.org/#artifactdetails%7Cio.github.twonote%7Cradosgw-admin4j%7C0.0.6%7Cjar)
+* [io.github.twonote.radosgw-admin4j:0.1.0](https://search.maven.org/#artifactdetails%7Cio.github.twonote%7Cradosgw-admin4j%7C0.1.0%7Cjar)
 
 ## Configuration
 
 ### Using plain-old-Java
 
 ```
-RgwAdminClient RGW_ADMIN_CLIENT = new RgwAdminClientImpl(adminAccessKey, adminSecretKey, adminEndpoint);
+RgwAdmin RGW_ADMIN =
+              new RgwAdminBuilder()
+                  .accessKey(accessKey)
+                  .secretKey(secretKey)
+                  .endpoint(adminEndpoint)
+                  .build();
 ```
 
 ### Using the Spring framework
 
+Add a class for spring bean config:
 ```
 @Configuration
 public class RgwAdminBeanConfig {
@@ -37,7 +43,7 @@ public class RgwAdminBeanConfig {
   private String adminEndpoint;
 
   @Bean
-  RgwAdminClient init() {
+  RgwAdmin init() {
     return new RgwAdminBuilder()
                   .accessKey(accessKey)
                   .secretKey(secretKey)
@@ -56,55 +62,67 @@ radosgw:
   adminSecretKey: ${RADOSGW.ADMIN.SECRETKEY:qqq}
 ```
 
-## Usage example
-
-Please check more operations in [java doc](https://twonote.github.io/radosgw-admin4j/apidocs/index.html?org/twonote/rgwadmin4j/RgwAdminClient.html)!
+then you can get and use the rgwAdmin (bean) in your work:
 
 ```
-RgwAdmin RGW_ADMIN =
-              new RgwAdminBuilder()
-                  .accessKey(accessKey)
-                  .secretKey(secretKey)
-                  .endpoint(adminEndpoint)
-                  .build();
+@Resource
+RgwAdmin RGW_ADMIN;
+```
 
-// create user
-CreateUserResponse response = RGW_ADMIN.createUser(userId);
+## Usage example
 
-// Get user info 
-GetUserInfoResponse response = RGW_ADMIN.getUserInfo(adminUserId).get();
+Please check more operations in [java doc](https://twonote.github.io/radosgw-admin4j/apidocs/index.html?org/twonote/rgwadmin4j/RgwAdmin.html)!
 
+### User management
+
+```
+// List user in the system
+List<User> users = RGW_ADMIN.listUserInfo();
+
+// Create user
+RGW_ADMIN.createUser(userId);
+
+// Get user information and show keys
+User user = RGW_ADMIN.getUserInfo(userId).get();
+user.getS3Credentials().stream().peek(System.out::println);
+
+// Create subuser
+SubUser subUser = RGW_ADMIN.createSubUser(userId, "subUserId", SubUser.Permission.FULL, CredentialType.SWIFT);
+
+// Suspend a user
+RGW_ADMIN.suspendUser(userId, true);
+
+// Remove a user
+RGW_ADMIN.removeUser(userId);
+```
+
+### Quota management
+
+```
 // Allow the user owns more buckets
 RGW_ADMIN.modifyUser(userId, ImmutableMap.of("max-buckets", String.valueOf(Integer.MAX_VALUE)));
 
-// create bucket by the new user
-// ...(skip)
+// Set the quota that causes the user can have at most one thousand objects and the maximal usage is 1 GiB
+RGW_ADMIN.setUserQuota(userId, 1000, 1048576);
+```
 
-// get bucket info
+### Store management
 
-GetBucketInfoResponse _response = RGW_ADMIN.getBucketInfo(bucketName).get();
-
-// Change bucket owner
-RGW_ADMIN.linkBucket(bucketName, bucketId, adminUserId);
-
+```
+// Transfer the bucket owner from the user just created to the administrator
 BucketInfo bucketInfo = RGW_ADMIN.getBucketInfo(bucketName).get();
-
-// Change bucket owner from the new user to the admin user
 RGW_ADMIN.linkBucket(bucketName, bucketInfo.getId(), adminUserId);
 
-// Remove bucket
+// Remove a bucket
 RGW_ADMIN.removeBucket(bucketName);
+```
 
-// Suspend user
-RGW_ADMIN.suspendUser(userId);
+### Usage report
 
-// Remove user
-RGW_ADMIN.removeUser(userId);
-
-RGW_ADMIN.suspendUser(user.getUserId(), ture);
-
-// Remove user
-RGW_ADMIN.removeUser(user.getUserId());
+```
+// Retrieve and show the usage report for a given user
+UsageInfo userUsage = RGW_ADMIN.getUserUsage(userId).get();
+userUsage.getSummary().stream().peek(System.out::println);
 ```
 
 ## Setup radosgw and do integration test
