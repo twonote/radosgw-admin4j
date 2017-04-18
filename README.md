@@ -1,18 +1,18 @@
 [![Build Status](https://travis-ci.org/twonote/radosgw-admin4j.svg?branch=master)](https://travis-ci.org/twonote/radosgw-admin4j)  [![License](https://img.shields.io/badge/license-Apache%202-blue.svg)]()
 
 # About
-A Ceph Object Storage Admin SDK / Client Library for Java
+radosgw-admin4j is a Ceph object storage admin client that allows provisioning and control of a Ceph object storage deployment. This includes support for user/subuser management, quota management, usage report, etc.
 
-# Hightlight
-* **Fully support all [operations](http://docs.ceph.com/docs/master/radosgw/adminops/)** in the least Ceph version. (Jewel LTS/Kraken stable currently)
-* [Continuous Integration](https://travis-ci.org/twonote/radosgw-admin4j) and tests against the least Ceph version for quality and compatibility
-* Uses the [Maven](http://maven.apache.org/) build system, Java 8 is required.
-* **All contributions are welcome! Feel free here~**
+# Highlight
+* **Fully support all [operations](http://docs.ceph.com/docs/master/radosgw/adminops/)** in the least Ceph version.
+* The easier way to manage radosgw. Avoid troubles when working with radosgw admin APIs, especially that docs are a bit confusing and inconsist with the code base.
+* Quality and compatibility - [Continuous Integration](https://travis-ci.org/twonote/radosgw-admin4j) and tests against the least Ceph version (Jewel LTS/Kraken stable currently)
+* Contributor friendly - typical contribution process, no wired policies, all contributions are welcome!
 
 # Start using 
 
 You can obtain radosgw-admim4j from Maven Central using the following identifier:
-* [io.github.twonote.radosgw-admin4j:0.0.6](https://search.maven.org/#artifactdetails%7Cio.github.twonote%7Cradosgw-admin4j%7C0.0.6%7Cjar)
+* [io.github.twonote.radosgw-admin4j:0.1.0](https://search.maven.org/#artifactdetails%7Cio.github.twonote%7Cradosgw-admin4j%7C0.1.0%7Cjar)
 
 ## Configuration
 
