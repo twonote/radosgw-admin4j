@@ -156,9 +156,8 @@ $ mvn test
 ### “I already have a radosgw instance on hand”
 First, you need an admin account. If you not yet have it, create the account with the following command:
 ```
-$ radosgw-admin user create --uid=qqq --display-name="qqq"
-$ radosgw-admin key create --uid=qqq --key-type=s3 --access-key=qqq --secret-key=qqq
-$ radosgw-admin --id admin caps add --caps="buckets=*;users=*;usage=*;metadata=*" --uid=qqq
+$ radosgw-admin user create --uid=qqq --display-name="qqq" --access-key=qqq --secret-key=qqq
+$ radosgw-admin admin caps add --caps="buckets=*;users=*;usage=*;metadata=*" --uid=qqq
 ```
 
 Second, enter the key pair (qqq,qqq) and add your radosgw endpoint to the [config file](https://github.com/twonote/radosgw-admin4j/blob/master/src/test/resources/rgwadmin.properties)
