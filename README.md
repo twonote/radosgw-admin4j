@@ -71,7 +71,7 @@ RgwAdmin RGW_ADMIN;
 
 ## Usage example
 
-Please check all available operations in [![Javadocs](https://www.javadoc.io/badge/io.github.twonote/radosgw-admin4j.svg)](https://www.javadoc.io/doc/io.github.twonote/radosgw-admin4j)
+Please check all available operations in [![Javadocs](https://www.javadoc.io/badge/io.github.twonote/radosgw-admin4j.svg)](https://static.javadoc.io/io.github.twonote/radosgw-admin4j/0.1.0/index.html?org/twonote/rgwadmin4j/RgwAdmin.html)
 
 
 ### User management
