@@ -1,1 +1,5 @@
 theme: jekyll-theme-tactile
+title: "radosgwadmin4j"
+description: "A Ceph Object Storage Admin SDK / Client Library for Java"
+show_downloads: "true"
+google_analytics: "UA-99767696-1"
