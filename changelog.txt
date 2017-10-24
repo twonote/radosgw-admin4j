@@ -1,3 +1,6 @@
+0.1.1 (2017-10-24)
+- Compatible to Java 9 / JPMS
+
 0.1.0 (2017-04-17)
 - List user
 - Reform the interface
