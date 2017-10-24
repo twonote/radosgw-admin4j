@@ -125,7 +125,7 @@ public interface RgwAdmin {
   /**
    * Create a new subuser
    *
-   * <p>Available parameters includes:
+   * <p>Available parameters include:
    *
    * <ul>
    * <li>access-key: Specify access key.
@@ -141,7 +141,7 @@ public interface RgwAdmin {
    * <ol>
    * <li>In general for a subuser to be useful, it must be granted permissions by specifying access.
    * <li>You can get subuser credentials by {@link #getUserInfo(String)} after creation.
-   * <li>To create subuser for S3, you need ceph v11.2.0-kraken or above.
+   * <li>To create subuser for S3, you need Ceph v11.2.0-kraken or above.
    * </ol>
    *
    * @param userId The user ID under which a subuser is to be created.
@@ -154,19 +154,19 @@ public interface RgwAdmin {
   /**
    * Create a new sub-user
    *
-   * <p>This method will create the sub-user with the automatic generated credential.
+   * <p>This method will create the sub-user with the automatically generated credential.
    *
    * <p>Tips:
    *
    * <ol>
    * <li>In general for a subuser to be useful, it must be granted permissions by specifying access.
    * <li>You can get subuser credentials by {@link #getUserInfo(String)} after creation.
-   * <li>To create subuser for S3, you need ceph v11.2.0-kraken or above.
+   * <li>To create subuser for S3, you need Ceph v11.2.0-kraken or above.
    * </ol>
    *
    * @param userId The user ID under which a subuser is to be created.
    * @param subUserId Specify the subuser ID to be created. Should be in the relative form, i.e.,
-   *     does not contains the user id.
+   *     does not contain the user id.
    * @param permission The subuser permission.
    * @param credentialType Specify credential type to be generated.
    * @return The created subuser information.
@@ -322,7 +322,7 @@ public interface RgwAdmin {
   /**
    * Delete an existing bucket.
    *
-   * <p>Note that the operation ask radosgw to purge objects in the bucket before deletion.
+   * <p>Note that the operation asks radosgw to purge objects in the bucket before deletion.
    *
    * @param bucketName The bucket to remove.
    */
@@ -402,8 +402,8 @@ public interface RgwAdmin {
   /**
    * Create a new user.
    *
-   * <p>A S3 key pair will be created automatically and returned in the response. If you want to
-   * customize user properties or create swift user, use {@link #createUser(String, Map)} instead.
+   * <p>An S3 key pair will be created automatically and returned in the response. If you want to
+   * customize user properties or create a Swift user, use {@link #createUser(String, Map)} instead.
    *
    * @param userId The user ID to be created.
    * @return The user information.
@@ -413,7 +413,7 @@ public interface RgwAdmin {
   /**
    * Create a new user.
    *
-   * <p>You can customize user properties or create swift user by set the parameters. Available
+   * <p>You can customize user properties or create a Swift user by set the parameters. Available
    * parameters includes:
    *
    * <ul>
@@ -458,7 +458,7 @@ public interface RgwAdmin {
    * Get the subuser list under a user
    *
    * @param userId The user ID under which subusers we interested to.
-   * @return Id of subusers under the given user.
+   * @return The Id of subusers under the given user.
    */
   List<String> listSubUser(String userId);
 
@@ -472,7 +472,7 @@ public interface RgwAdmin {
   /**
    * Modify a user.
    *
-   * <p>Available parameters includes:
+   * <p>Available parameters include:
    *
    * <ul>
    * <li>display-name: The display name of the user to be created.
@@ -496,7 +496,7 @@ public interface RgwAdmin {
    * Suspend or resume a user
    *
    * @param userId The user ID to be suspended or resumed.
-   * @param suspend Set true to suspend the user, and vice versa.
+   * @param suspend Set true to suspend the user and vice versa.
    */
   void suspendUser(String userId, boolean suspend);
 
@@ -531,7 +531,7 @@ public interface RgwAdmin {
   /**
    * Remove an existing object.
    *
-   * <p>NOTE: Does not require owner to be non-suspended.
+   * <p>NOTE: Does not require the owner to be non-suspended.
    *
    * @param bucketName The bucket containing the object to be removed.
    * @param objectKey The object to remove.
@@ -541,10 +541,10 @@ public interface RgwAdmin {
   /**
    * Read the policy of an object.
    *
-   * <p>Note that the term "policy" here is not stand for "S3 bucket policy". Instead, it represents
+   * <p>Note that the term "policy" here does not stand for "S3 bucket policy". Instead, it represents
    * S3 Access Control Policy (ACP).
    *
-   * <p>We return json string instead of the concrete model here due to the server returns the
+   * <p>We return JSON string instead of the concrete model here due to the server returns the
    * internal data structure which is not well defined. For example:
    *
    * <pre>
@@ -586,17 +586,17 @@ public interface RgwAdmin {
    *
    * @param bucketName The bucket to which the object belong to.
    * @param objectKey The object to read the policy from.
-   * @return If successful, returns the policy.
+   * @return If successful returns the policy.
    */
   Optional<String> getObjectPolicy(String bucketName, String objectKey);
 
   /**
-   * Read the policy of an bucket.
+   * Read the policy of a bucket.
    *
-   * <p>Note that the term "policy" here is not stand for "S3 bucket policy". Instead, it represents
+   * <p>Note that the term "policy" here does not stand for "S3 bucket policy". Instead, it represents
    * S3 Access Control Policy (ACP).
    *
-   * <p>We return json string instead of the concrete model here due to the server returns the
+   * <p>We return JSON string instead of the concrete model here due to the server returns the
    * internal data structure which is not well defined. For example:
    *
    * <pre>
@@ -637,7 +637,7 @@ public interface RgwAdmin {
    * </pre>
    *
    * @param bucketName The bucket to read the policy from.
-   * @return If successful, returns the policy.
+   * @return If successful returns the policy.
    */
   Optional<String> getBucketPolicy(String bucketName);
 }
