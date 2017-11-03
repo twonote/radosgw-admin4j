@@ -263,6 +263,12 @@ public class RgwAdminImpl implements RgwAdmin {
     Request request = new Request.Builder().put(emptyBody).url(urlBuilder.build()).build();
 
     String resp = safeCall(request);
+
+    // Fit luminous behavior
+    if (resp == null) {
+      throw new RgwAdminException(404, "NoSuchUser");
+    }
+
     Type type = setModelAndGetCorrespondingList2(returnModel);
     return gson.fromJson(resp, type);
   }
@@ -296,7 +302,12 @@ public class RgwAdminImpl implements RgwAdmin {
 
     Request request = new Request.Builder().delete().url(urlBuilder.build()).build();
 
-    safeCall(request);
+    String resp = safeCall(request);
+
+    // Fit luminous behavior
+    if (resp == null) {
+      throw new RgwAdminException(404, "NoSuchUser");
+    }
   }
 
   @Override
@@ -720,6 +731,12 @@ public class RgwAdminImpl implements RgwAdmin {
     Request request = new Request.Builder().get().url(urlBuilder.build()).build();
 
     String resp = safeCall(request);
+
+    // Fit luminous behavior
+    if (resp == null) {
+      throw new RgwAdminException(404, "NoSuchUser");
+    }
+
     return Optional.ofNullable(gson.fromJson(resp, Quota.class));
   }
 
