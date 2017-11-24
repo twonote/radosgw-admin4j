@@ -96,9 +96,11 @@ public class RgwAdminImplTest extends BaseTest {
           // user not exist
           try {
             RGW_ADMIN.createS3Credential(UUID.randomUUID().toString());
-            fail();
+            fail("user not exist should throw exception");
           } catch (RgwAdminException e) {
-            assertEquals("InvalidArgument", e.getMessage());
+            assertTrue("InvalidArgument".equals(e.getMessage()) || // kraken
+                    "NoSuchUser".equals(e.getMessage()) // luminous
+            );
           }
         });
   }
@@ -126,10 +128,11 @@ public class RgwAdminImplTest extends BaseTest {
           try {
             RGW_ADMIN.removeS3Credential(
                 UUID.randomUUID().toString(), UUID.randomUUID().toString());
-            fail();
+              fail("user not exist should throw exception");
           } catch (RgwAdminException e) {
-            assertEquals(
-                400, e.status()); // ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
+              assertTrue("InvalidArgument".equals(e.getMessage()) || // kraken
+                      "NoSuchUser".equals(e.getMessage()) // luminous
+              );
           }
         });
   }
@@ -835,13 +838,14 @@ public class RgwAdminImplTest extends BaseTest {
           assertEquals(Long.valueOf(1), quota.getMaxSizeKb());
         });
 
-    // not exist
+    // user not exist
     try {
       RGW_ADMIN.getUserQuota(UUID.randomUUID().toString());
-      fail();
+        fail("user not exist should throw exception");
     } catch (RgwAdminException e) {
-      assertEquals(400, e.status());
-      assertEquals("InvalidArgument", e.getMessage());
+        assertTrue("InvalidArgument".equals(e.getMessage()) || // kraken
+                "NoSuchUser".equals(e.getMessage()) // luminous
+        );
     }
 
     RGW_ADMIN.setUserQuota(UUID.randomUUID().toString(), 1, 1);
