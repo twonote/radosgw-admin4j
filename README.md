@@ -5,7 +5,7 @@
 radosgw-admin4j is a Ceph object storage admin client that allows provisioning and control of a Ceph object storage deployment. This includes support for user/subuser management, quota management, usage report, bucket/object management, etc.
 
 # Highlight
-* **Fully support all [operations](http://docs.ceph.com/docs/master/radosgw/adminops/)** in the least Ceph version.
+* **Fully support all [operations](http://docs.ceph.com/docs/master/radosgw/adminops/)** includes **subuser**, **quota** and more in the least Ceph version.
 * An easier way to manage radosgw. Avoid troubles when working with radosgw admin APIs, especially that docs are a bit confusing and inconsistent with the code base.
 * Quality and compatibility - [Continuous Integration](https://travis-ci.org/twonote/radosgw-admin4j) and tests against the least Ceph version (**Luminous**/Kraken currently)
 * Contributor friendly - typical contribution process, no wired policies, all contributions are welcome!
@@ -72,7 +72,7 @@ RgwAdmin RGW_ADMIN;
 
 ## Usage example
 
-Please check all available operations in [![Javadocs](https://www.javadoc.io/badge/io.github.twonote/radosgw-admin4j.svg)](https://static.javadoc.io/io.github.twonote/radosgw-admin4j/0.1.1/index.html?org/twonote/rgwadmin4j/RgwAdmin.html)
+We support all types of operation includes **User**, **Subuser**, **Key**, **Bucket**, **Capability**, **Quota** and **Usage**. Please check all available operations in [![Javadocs](https://www.javadoc.io/badge/io.github.twonote/radosgw-admin4j.svg)](https://static.javadoc.io/io.github.twonote/radosgw-admin4j/0.1.1/index.html?org/twonote/rgwadmin4j/RgwAdmin.html)
 
 
 ### User management
@@ -131,21 +131,16 @@ userUsage.getSummary().stream().peek(System.out::println);
 To kick off, you need one ready to use radosgw instance and one radosgw account with proper admin capabilities. Follow the guide below to have a radowgw setup then you can fire the example code.
 
 ### “I do not have a radosgw setup currently”
-You could refer the [Ceph official manual](http://docs.ceph.com/docs/master/start/) to setup a Ceph cluster with radosgw *quickly*. In fact, it is not a piece of cake if you do not familiar with Ceph. Things will be easier if you have **docker** in your environment. To setup a setup instance with an admin account powered by the [Ceph demo image](https://hub.docker.com/r/ceph/demo/), follow instructions below:
+You could refer the [Ceph official manual](http://docs.ceph.com/docs/master/start/) to setup a Ceph cluster with radosgw *quickly*. In fact, it is not a piece of cake if you do not familiar with Ceph. Things will be easier if you have **docker** in your environment. To setup a setup instance with an admin account powered by the [Ceph daemon image](https://hub.docker.com/r/ceph/daemon/), follow instructions below:
 ```
-$ sudo docker run -d --net=host -v /etc/ceph/:/etc/ceph/ -e MON_IP=127.0.0.1 -e CEPH_PUBLIC_NETWORK=127.0.0.0/24 -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e CEPH_DEMO_BUCKET=qqq --name rgw ceph/demo@sha256:7734ac78571ee0530724181c5b2db2e5a7ca0ff0e246c10c223d3ca9665c74ba
-$ sleep 10
-$ sudo docker exec -it rgw radosgw-admin --id admin caps add --caps="buckets=*;users=*;usage=*;metadata=*" --uid=qqq
+$ sudo docker rm -f rgwl; rm -rf /etc/cephl; sudo docker run -d -p 80:80 -v /etc/cephl/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e RGW_CIVETWEB_PORT=80 -e NETWORK_AUTO_DETECT=4 --name rgwl ceph/daemon@sha256:4d84442c3ac5746bbfc72349a3472fb9e99120c0cb2a95fc4a17320070ca9422 demo; sleep 10
 ```
+
+Note that the port 80 should be available.
 
 Check the setup succeeded by the following command:
 ```
-$ sudo docker ps | grep rgw
-```
-
-(Optionally) You can also *enter* the running container to take a look, watch log, execute the radosgw-admin management tool with the following command:
-```
-$ sudo docker exec -it rgw /bin/bash
+$ nc -z -v -w5 localhost 80
 ```
 
 Once the above procedure is done, you can now run radosgw-admin4j tests without any config on the client side, since the [default config](https://github.com/twonote/radosgw-admin4j/blob/master/src/test/resources/rgwadmin.properties) is meet the case. Run tests by:
@@ -182,7 +177,7 @@ That's all!
 All contributions are welcome. Our code style is [Google java style](https://google.github.io/styleguide/javaguide.html) and we use [google-java-format](https://github.com/google/google-java-format) to do code formatting. Nothing else special.
 
 # Legal
-Copyright 2016 [twonote](http://twonote.github.io/) & The "radosgw-admin4j" contributors.
+Copyright 2017 [twonote](http://twonote.github.io/) & The "radosgw-admin4j" contributors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
