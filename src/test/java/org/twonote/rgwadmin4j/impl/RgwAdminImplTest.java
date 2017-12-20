@@ -37,7 +37,7 @@ public class RgwAdminImplTest extends BaseTest {
     testWithAUser(
         u -> {
           List<User> users = RGW_ADMIN.listUserInfo();
-          users.stream().anyMatch(v -> u.equals(v));
+          assertTrue(users.stream().anyMatch(v -> u.equals(v)));
         });
   }
 

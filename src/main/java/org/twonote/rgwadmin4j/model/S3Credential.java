@@ -32,4 +32,24 @@ public class S3Credential {
   public String getSecretKey() {
     return secretKey;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    S3Credential that = (S3Credential) o;
+
+    if (userId != null ? !userId.equals(that.userId) : that.userId != null) return false;
+    if (accessKey != null ? !accessKey.equals(that.accessKey) : that.accessKey != null) return false;
+    return secretKey != null ? secretKey.equals(that.secretKey) : that.secretKey == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = userId != null ? userId.hashCode() : 0;
+    result = 31 * result + (accessKey != null ? accessKey.hashCode() : 0);
+    result = 31 * result + (secretKey != null ? secretKey.hashCode() : 0);
+    return result;
+  }
 }

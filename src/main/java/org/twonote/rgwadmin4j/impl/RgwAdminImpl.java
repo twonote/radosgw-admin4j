@@ -6,6 +6,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import okhttp3.*;
 import org.twonote.rgwadmin4j.RgwAdmin;
 import org.twonote.rgwadmin4j.model.*;
@@ -22,6 +24,7 @@ import java.util.stream.Collectors;
  */
 public class RgwAdminImpl implements RgwAdmin {
   private static final Gson gson = new Gson();
+  private static final JsonParser jsonParser = new JsonParser();
 
   private static final RequestBody emptyBody = RequestBody.create(null, new byte[] {});
 
@@ -656,7 +659,9 @@ public class RgwAdminImpl implements RgwAdmin {
 
     Request request = new Request.Builder().get().url(urlBuilder.build()).build();
     String resp = safeCall(request);
-    return gson.fromJson(resp, returnType);
+
+    JsonObject jo = (JsonObject)jsonParser.parse(resp);
+    return gson.fromJson(jo.get("data").toString(), returnType);
   }
 
   @Override
