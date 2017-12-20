@@ -1,3 +1,6 @@
+1.0.2 (2017-12-20)
+- Bugfix: listUserInfo() returns Users having all nulls 
+
 1.0.1 (2017-11-24)
 - Compatible to Ceph Luminous LTS
 
