@@ -68,7 +68,7 @@ public class RgwAdminBuilder {
    */
   public RgwAdmin build() {
     if (Arrays.asList(accessKey, secretKey, endpoint).stream().anyMatch(Strings::isNullOrEmpty)) {
-      throw new IllegalStateException("Missing required parameter to build the instance.");
+      throw new IllegalArgumentException("Missing required parameter to build the instance.");
     }
     return new RgwAdminImpl(accessKey, secretKey, endpoint);
   }

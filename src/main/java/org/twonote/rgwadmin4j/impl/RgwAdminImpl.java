@@ -39,9 +39,17 @@ public class RgwAdminImpl implements RgwAdmin {
    * @param endpoint Radosgw admin API endpoint, e.g., http://127.0.0.1:80/admin
    */
   public RgwAdminImpl(String accessKey, String secretKey, String endpoint) {
+    validEndpoint(endpoint);
     this.client =
         new OkHttpClient().newBuilder().addInterceptor(new S3Auth(accessKey, secretKey)).build();
     this.endpoint = endpoint;
+
+  }
+
+  private static void validEndpoint(String endpoint) {
+    if (HttpUrl.parse(endpoint) == null) {
+      throw new IllegalArgumentException("endpoint is invalid");
+    }
   }
 
   private static void appendParameters(Map<String, String> parameters, HttpUrl.Builder urlBuilder) {
