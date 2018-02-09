@@ -12,62 +12,20 @@ radosgw-admin4j is a Ceph object storage admin client that allows provisioning a
 
 # Start using 
 
+## Add dependency
+
 You can obtain radosgw-admim4j from Maven Central using the following identifier:
 * [io.github.twonote.radosgw-admin4j:1.0.2](https://search.maven.org/#artifactdetails%7Cio.github.twonote%7Cradosgw-admin4j%7C1.0.2%7Cjar)
 
 ## Configuration
 
-### Using plain-old-Java
-
 ```
 RgwAdmin RGW_ADMIN =
               new RgwAdminBuilder()
-                  .accessKey(accessKey)
-                  .secretKey(secretKey)
-                  .endpoint(adminEndpoint)
+                  .accessKey("administrator access key")
+                  .secretKey("administrator secret key")
+                  .endpoint("radosgw admin endpoint, e.g., http://127.0.0.1:8080/admin")
                   .build();
-```
-
-### Using the Spring framework
-
-Add a class for spring bean config:
-```
-@Configuration
-public class RgwAdminBeanConfig {
-  @Value("${radosgw.adminAccessKey}")
-  private String accessKey;
-
-  @Value("${radosgw.adminSecretKey}")
-  private String secretKey;
-
-  @Value("${radosgw.adminEndpoint}")
-  private String adminEndpoint;
-
-  @Bean
-  RgwAdmin init() {
-    return new RgwAdminBuilder()
-                  .accessKey(accessKey)
-                  .secretKey(secretKey)
-                  .endpoint(adminEndpoint)
-                  .build();  
-  }
-}
-```
-
-and your ```[project home]/src/main/resources/[...]/spring.yml``` will contains (for example):
-
-```
-radosgw:
-  adminEndpoint: ${RADOSGW.ADMIN.ENDPOINT:http://127.0.0.1:8080/admin}
-  adminAccessKey: ${RADOSGW.ADMIN.ACCESSKEY:qqq}
-  adminSecretKey: ${RADOSGW.ADMIN.SECRETKEY:qqq}
-```
-
-then you can get and use the rgwAdmin (bean) in your work:
-
-```
-@Resource
-RgwAdmin RGW_ADMIN;
 ```
 
 ## Usage example
@@ -177,7 +135,7 @@ That's all!
 All contributions are welcome. Our code style is [Google java style](https://google.github.io/styleguide/javaguide.html) and we use [google-java-format](https://github.com/google/google-java-format) to do code formatting. Nothing else special.
 
 # Legal
-Copyright 2017 [twonote](http://twonote.github.io/) & The "radosgw-admin4j" contributors.
+Copyright 2017-2018 [twonote](http://twonote.github.io/) & The "radosgw-admin4j" contributors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
