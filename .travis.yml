@@ -18,8 +18,8 @@ matrix:
         - docker exec -it rgw radosgw-admin --id admin caps add --caps="buckets=*;users=*;usage=*;metadata=*" --uid=qqq
     - env: CPEH_VERSION=luminous
       before_install:      
-        - docker pull ceph/daemon@sha256:4d84442c3ac5746bbfc72349a3472fb9e99120c0cb2a95fc4a17320070ca9422
-        - docker run -d -p 80:80 -v /etc/cephl2/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e  RGW_CIVETWEB_PORT=80  -e NETWORK_AUTO_DETECT=4 --name rgwl2 ceph/daemon:tag-build-master-luminous-ubuntu-16.04 demo
+        - docker pull ceph/daemon@sha256:174f26cf8752c20da2a69da461c46acd34f1d9a3b81f0761011c015178697346
+        - docker run -d -p 80:80 -v /etc/cephl/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e  RGW_CIVETWEB_PORT=80  -e NETWORK_AUTO_DETECT=4 --name rgwl ceph/daemon@sha256:174f26cf8752c20da2a69da461c46acd34f1d9a3b81f0761011c015178697346 demo
         - sleep 30
 
 install: mvn install -Dgpg.skip=true
