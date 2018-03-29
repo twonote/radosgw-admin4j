@@ -518,9 +518,31 @@ public interface RgwAdmin {
   Optional<Quota> getUserQuota(String userId);
 
   /**
-   * Set, modify or disable user quota.
+   * Get bucket quota.
    *
-   * @param userId The user ID to set quota.
+   * @param userId The bucket owner ID to get quota.
+   * @return bucket quota.
+   */
+  Optional<Quota> getBucketQuota(String userId);
+
+  /**
+   * Set or modify quota on all buckets owned by a user.
+   *
+   * <p>Note that you cannot set quota on buckets individually owned by a user. All buckets belong to a user can only
+   * have a consistent quota setting.
+   *
+   * @param userId The bucket owner to set quota.
+   * @param maxObjects The max-objects setting allows you to specify the maximum number of objects.
+   *     A negative value disables this setting.
+   * @param maxSizeKB The max-size option allows you to specify a quota for the maximum number of
+   *     bytes. A negative value disables this setting.
+   */
+  void setBucketQuota(String userId, long maxObjects, long maxSizeKB);
+
+  /**
+   * Set or modify quota on a user.
+   *
+   * @param userId The user to set quota.
    * @param maxObjects The max-objects setting allows you to specify the maximum number of objects.
    *     A negative value disables this setting.
    * @param maxSizeKB The max-size option allows you to specify a quota for the maximum number of

@@ -21,7 +21,7 @@ import static org.junit.Assert.*;
 
 @SuppressWarnings("ConstantConditions")
 public class RgwAdminImplTest extends BaseTest {
-  @Test
+    @Test
   public void listSubUser() throws Exception {
     testWithASubUser(
         s -> {
@@ -475,6 +475,14 @@ public class RgwAdminImplTest extends BaseTest {
   @Test
   public void setUserQuota() throws Exception {}
 
+  @Ignore("See getAndSetBucketQuota()")
+  @Test
+  public void getBucketQuota() throws Exception {}
+
+  @Ignore("See getAndSetBucketQuota()")
+  @Test
+  public void setBucketQuota() throws Exception {}
+
   @Test
   @Ignore("See userCapability()")
   public void addUserCapability() throws Exception {}
@@ -851,7 +859,45 @@ public class RgwAdminImplTest extends BaseTest {
     RGW_ADMIN.setUserQuota(UUID.randomUUID().toString(), 1, 1);
   }
 
-  @Test
+    @Test
+    public void getAndSetBucketQuota() throws Exception {
+        testWithAUser(
+                (v) -> {
+                    String userId = v.getUserId();
+                    Quota quota;
+
+                    // default false
+                    quota = RGW_ADMIN.getBucketQuota(userId).get();
+                    assertEquals(false, quota.getEnabled());
+                    assertEquals(Long.valueOf(-1), quota.getMaxObjects());
+                    assertTrue(
+                            quota.getMaxSizeKb() == -1 // jewel
+                                    || quota.getMaxSizeKb() == 0 // kraken
+                    );
+
+                    // set quota
+                    RGW_ADMIN.setBucketQuota(userId, 1, 1);
+                    quota = RGW_ADMIN.getBucketQuota(userId).get();
+                    assertEquals(true, quota.getEnabled());
+                    assertEquals(Long.valueOf(1), quota.getMaxObjects());
+                    assertEquals(Long.valueOf(1), quota.getMaxSizeKb());
+                });
+
+        // user not exist
+        try {
+            RGW_ADMIN.getBucketQuota(UUID.randomUUID().toString());
+            fail("user not exist should throw exception");
+        } catch (RgwAdminException e) {
+            assertTrue("InvalidArgument".equals(e.getMessage()) || // kraken
+                    "NoSuchUser".equals(e.getMessage()) // luminous
+            );
+        }
+
+        RGW_ADMIN.setBucketQuota(UUID.randomUUID().toString(), 1, 1);
+    }
+
+
+    @Test
   public void getObjectPolicy() throws Exception {
     testWithAUser(
         (v) -> {

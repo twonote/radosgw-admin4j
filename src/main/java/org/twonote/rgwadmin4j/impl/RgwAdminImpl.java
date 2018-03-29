@@ -733,13 +733,22 @@ public class RgwAdminImpl implements RgwAdmin {
 
   @Override
   public Optional<Quota> getUserQuota(String userId) {
+    return getQuota(userId, "user");
+  }
+
+  @Override
+  public Optional<Quota> getBucketQuota(String userId) {
+    return getQuota(userId, "bucket");
+  }
+
+  public Optional<Quota> getQuota(String userId, String quotaType) {
     HttpUrl.Builder urlBuilder =
         HttpUrl.parse(endpoint)
             .newBuilder()
             .addPathSegment("user")
             .query("quota")
             .addQueryParameter("uid", userId)
-            .addQueryParameter("quota-type", "user");
+            .addQueryParameter("quota-type", quotaType);
 
     Request request = new Request.Builder().get().url(urlBuilder.build()).build();
 
@@ -754,24 +763,33 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
+  public void setBucketQuota(String userId, long maxObjects, long maxSizeKB) {
+    setQuota(userId, "bucket", maxObjects, maxSizeKB);
+  }
+
+  @Override
   public void setUserQuota(String userId, long maxObjects, long maxSizeKB) {
+    setQuota(userId, "user", maxObjects, maxSizeKB);
+  }
+
+  public void setQuota(String userId, String quotaType, long maxObjects, long maxSizeKB) {
     HttpUrl.Builder urlBuilder =
-        HttpUrl.parse(endpoint)
-            .newBuilder()
-            .addPathSegment("user")
-            .query("quota")
-            .addQueryParameter("uid", userId)
-            .addQueryParameter("quota-type", "user");
+            HttpUrl.parse(endpoint)
+                    .newBuilder()
+                    .addPathSegment("user")
+                    .query("quota")
+                    .addQueryParameter("uid", userId)
+                    .addQueryParameter("quota-type", quotaType);
 
     String body =
-        gson.toJson(
-            ImmutableMap.of(
-                "max_objects", String.valueOf(maxObjects),
-                "max_size_kb", String.valueOf(maxSizeKB),
-                "enabled", "true"));
+            gson.toJson(
+                    ImmutableMap.of(
+                            "max_objects", String.valueOf(maxObjects),
+                            "max_size_kb", String.valueOf(maxSizeKB),
+                            "enabled", "true"));
 
     Request request =
-        new Request.Builder().put(RequestBody.create(null, body)).url(urlBuilder.build()).build();
+            new Request.Builder().put(RequestBody.create(null, body)).url(urlBuilder.build()).build();
 
     safeCall(request);
   }
