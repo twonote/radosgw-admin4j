@@ -78,7 +78,7 @@ public class SubUser {
     WRITE,
 
     @SerializedName("readwrite")
-    READ_WRITE,
+    READWRITE,
 
     @SerializedName(
       value = "full",
