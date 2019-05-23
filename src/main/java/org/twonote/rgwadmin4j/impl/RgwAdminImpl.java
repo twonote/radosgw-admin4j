@@ -506,41 +506,15 @@ public class RgwAdminImpl implements RgwAdmin {
 
   @Override
   public List<String> listBucket() {
-    Request request =
-        new Request.Builder()
-            .get()
-            .url(
-                HttpUrl.parse(endpoint)
-                    .newBuilder()
-                    .addPathSegment("bucket")
-                    .addQueryParameter("stats", "False")
-                    .build())
-            .build();
-
-    String resp = safeCall(request);
-    Type type = new TypeToken<List<String>>() {}.getType();
-
-    return gson.fromJson(resp, type);
+    return listBucketInfo().stream().map(bkInfo -> bkInfo.getBucket()).collect(Collectors.toList());
   }
 
   @Override
   public List<String> listBucket(String userId) {
-    Request request =
-        new Request.Builder()
-            .get()
-            .url(
-                HttpUrl.parse(endpoint)
-                    .newBuilder()
-                    .addPathSegment("bucket")
-                    .addQueryParameter("uid", userId)
-                    .addQueryParameter("stats", "False")
-                    .build())
-            .build();
-
-    String resp = safeCall(request);
-    Type type = new TypeToken<List<String>>() {}.getType();
-
-    return gson.fromJson(resp, type);
+    return listBucketInfo(userId)
+        .stream()
+        .map(bkInfo -> bkInfo.getBucket())
+        .collect(Collectors.toList());
   }
 
   @Override
