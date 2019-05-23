@@ -172,8 +172,7 @@ public class BaseTest {
       test.accept(response);
     } catch (Exception e) {
       e.printStackTrace();
-    } finally
-    {
+    } finally {
       RGW_ADMIN.removeUser(userId);
     }
   }

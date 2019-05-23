@@ -12,24 +12,6 @@ import java.util.UUID;
 
 /** Created by petertc on 4/18/17. */
 public class Example extends BaseTest {
-  // Remove @Ignore before run
-  @Test
-  @Ignore("Not a test")
-  public void run() throws Exception {
-    String userId = "exampleUserId-" + UUID.randomUUID().toString();
-    try {
-      user(userId);
-    } catch (Exception e) {
-      e.printStackTrace();
-    } finally {
-      RGW_ADMIN.removeUser(userId);
-    }
-
-    testWithAUser(Example::quota);
-    testWithAUser(Example::store);
-    testWithAUser(Example::usage);
-  }
-
   /*
    * User/subuser management
    */
@@ -45,7 +27,8 @@ public class Example extends BaseTest {
     user.getS3Credentials().stream().peek(System.out::println);
 
     // Create subuser
-    SubUser subUser = RGW_ADMIN.createSubUser(userId, "subUserId", SubUser.Permission.FULL, CredentialType.SWIFT);
+    SubUser subUser =
+        RGW_ADMIN.createSubUser(userId, "subUserId", SubUser.Permission.FULL, CredentialType.SWIFT);
 
     // Suspend a user
     RGW_ADMIN.suspendUser(userId, true);
@@ -63,7 +46,8 @@ public class Example extends BaseTest {
     // Allow the user owns more buckets
     RGW_ADMIN.modifyUser(userId, ImmutableMap.of("max-buckets", String.valueOf(Integer.MAX_VALUE)));
 
-    // Set the quota that causes the user can have at most one thousand objects and the maximal usage is 1 GiB
+    // Set the quota that causes the user can have at most one thousand objects and the maximal
+    // usage is 1 GiB
     RGW_ADMIN.setUserQuota(userId, 1000, 1048576);
   }
 
@@ -95,4 +79,21 @@ public class Example extends BaseTest {
     userUsage.getSummary().stream().peek(System.out::println);
   }
 
+  // Remove @Ignore before run
+  @Test
+  @Ignore("Not a test")
+  public void run() throws Exception {
+    String userId = "exampleUserId-" + UUID.randomUUID().toString();
+    try {
+      user(userId);
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      RGW_ADMIN.removeUser(userId);
+    }
+
+    testWithAUser(Example::quota);
+    testWithAUser(Example::store);
+    testWithAUser(Example::usage);
+  }
 }

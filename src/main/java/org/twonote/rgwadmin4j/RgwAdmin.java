@@ -26,10 +26,10 @@ public interface RgwAdmin {
    * <p>There are few parameters available to filter the query result as you wish, includes:
    *
    * <ul>
-   * <li>start: Date and (optional) time that specifies the start time of the requested data.
-   *     Example: 2012-09-25 16:00:00
-   * <li>end: Date and (optional) time that specifies the end time of the requested data
-   *     (non-inclusive). Example: 2012-09-25 16:00:00
+   *   <li>start: Date and (optional) time that specifies the start time of the requested data.
+   *       Example: 2012-09-25 16:00:00
+   *   <li>end: Date and (optional) time that specifies the end time of the requested data
+   *       (non-inclusive). Example: 2012-09-25 16:00:00
    * </ul>
    *
    * @param userId The user for which the information is requested.
@@ -43,10 +43,10 @@ public interface RgwAdmin {
    * <p>There are few parameters available to filter the query result as you wish, includes:
    *
    * <ul>
-   * <li>start: Date and (optional) time that specifies the start time of the requested data.
-   *     Example: 2012-09-25 16:00:00
-   * <li>end: Date and (optional) time that specifies the end time of the requested data
-   *     (non-inclusive). Example: 2012-09-25 16:00:00
+   *   <li>start: Date and (optional) time that specifies the start time of the requested data.
+   *       Example: 2012-09-25 16:00:00
+   *   <li>end: Date and (optional) time that specifies the end time of the requested data
+   *       (non-inclusive). Example: 2012-09-25 16:00:00
    * </ul>
    *
    * @param parameters optional parameters to filter the usage to delete.
@@ -87,12 +87,12 @@ public interface RgwAdmin {
    * <p>There are few parameters available to filter the query result as you wish, includes:
    *
    * <ul>
-   * <li>start: Date and (optional) time that specifies the start time of the requested data.
-   *     Example: 2012-09-25 16:00:00
-   * <li>end: Date and (optional) time that specifies the end time of the requested data
-   *     (non-inclusive). Example: 2012-09-25 16:00:00
-   * <li>show-entries: Specifies whether data entries should be returned. Example: False [True]
-   * <li>show-summary: Specifies whether data summary should be returned. Example: False [True]
+   *   <li>start: Date and (optional) time that specifies the start time of the requested data.
+   *       Example: 2012-09-25 16:00:00
+   *   <li>end: Date and (optional) time that specifies the end time of the requested data
+   *       (non-inclusive). Example: 2012-09-25 16:00:00
+   *   <li>show-entries: Specifies whether data entries should be returned. Example: False [True]
+   *   <li>show-summary: Specifies whether data summary should be returned. Example: False [True]
    * </ul>
    *
    * @param parameters optional parameters to filter the query result.
@@ -128,20 +128,21 @@ public interface RgwAdmin {
    * <p>Available parameters include:
    *
    * <ul>
-   * <li>access-key: Specify access key.
-   * <li>secret-key: Specify secret key.
-   * <li>key-type: Key type to be generated, options are: swift (default), s3.
-   * <li>access: Set access permissions for sub-user, should be one of read, write, readwrite, full,
-   *     "".
-   * <li>generate-secret: Generate the secret key. Default: False
+   *   <li>access-key: Specify access key.
+   *   <li>secret-key: Specify secret key.
+   *   <li>key-type: Key type to be generated, options are: swift (default), s3.
+   *   <li>access: Set access permissions for sub-user, should be one of read, write, readwrite,
+   *       full, "".
+   *   <li>generate-secret: Generate the secret key. Default: False
    * </ul>
    *
    * <p>Tips:
    *
    * <ol>
-   * <li>In general for a subuser to be useful, it must be granted permissions by specifying access.
-   * <li>You can get subuser credentials by {@link #getUserInfo(String)} after creation.
-   * <li>To create subuser for S3, you need Ceph v11.2.0-kraken or above.
+   *   <li>In general for a subuser to be useful, it must be granted permissions by specifying
+   *       access.
+   *   <li>You can get subuser credentials by {@link #getUserInfo(String)} after creation.
+   *   <li>To create subuser for S3, you need Ceph v11.2.0-kraken or above.
    * </ol>
    *
    * @param userId The user ID under which a subuser is to be created.
@@ -159,9 +160,10 @@ public interface RgwAdmin {
    * <p>Tips:
    *
    * <ol>
-   * <li>In general for a subuser to be useful, it must be granted permissions by specifying access.
-   * <li>You can get subuser credentials by {@link #getUserInfo(String)} after creation.
-   * <li>To create subuser for S3, you need Ceph v11.2.0-kraken or above.
+   *   <li>In general for a subuser to be useful, it must be granted permissions by specifying
+   *       access.
+   *   <li>You can get subuser credentials by {@link #getUserInfo(String)} after creation.
+   *   <li>To create subuser for S3, you need Ceph v11.2.0-kraken or above.
    * </ol>
    *
    * @param userId The user ID under which a subuser is to be created.
@@ -431,15 +433,16 @@ public interface RgwAdmin {
    * parameters includes:
    *
    * <ul>
-   * <li>display-name: The display name of the user to be created.
-   * <li>email: The email address associated with the user.
-   * <li>key-type: Key type to be generated, options are: swift, s3
-   * <li>access-key: Specify access key.
-   * <li>secret-key: Specify secret key.
-   * <li>user-caps: User capabilities. Example: usage=read, write; users=read
-   * <li>generate-key: Generate a new key pair and add to the existing keyring. Example: True [True]
-   * <li>max-buckets: Specify the maximum number of buckets the user can own. Example: 500 [1000]
-   * <li>suspended: Specify whether the user should be suspended. Example: False [False]
+   *   <li>display-name: The display name of the user to be created.
+   *   <li>email: The email address associated with the user.
+   *   <li>key-type: Key type to be generated, options are: swift, s3
+   *   <li>access-key: Specify access key.
+   *   <li>secret-key: Specify secret key.
+   *   <li>user-caps: User capabilities. Example: usage=read, write; users=read
+   *   <li>generate-key: Generate a new key pair and add to the existing keyring. Example: True
+   *       [True]
+   *   <li>max-buckets: Specify the maximum number of buckets the user can own. Example: 500 [1000]
+   *   <li>suspended: Specify whether the user should be suspended. Example: False [False]
    * </ul>
    *
    * <p>If only one of access-key or secret-key is provided, the omitted key will be automatically
@@ -489,15 +492,16 @@ public interface RgwAdmin {
    * <p>Available parameters include:
    *
    * <ul>
-   * <li>display-name: The display name of the user to be created.
-   * <li>email: The email address associated with the user.
-   * <li>key-type: Key type to be generated, options are: swift, s3
-   * <li>access-key: Specify access key.
-   * <li>secret-key: Specify secret key.
-   * <li>user-caps: User capabilities. Example: usage=read, write; users=read
-   * <li>generate-key: Generate a new key pair and add to the existing keyring. Example: True [True]
-   * <li>max-buckets: Specify the maximum number of buckets the user can own. Example: 500 [1000]
-   * <li>suspended: Specify whether the user should be suspended. Example: False [False]
+   *   <li>display-name: The display name of the user to be created.
+   *   <li>email: The email address associated with the user.
+   *   <li>key-type: Key type to be generated, options are: swift, s3
+   *   <li>access-key: Specify access key.
+   *   <li>secret-key: Specify secret key.
+   *   <li>user-caps: User capabilities. Example: usage=read, write; users=read
+   *   <li>generate-key: Generate a new key pair and add to the existing keyring. Example: True
+   *       [True]
+   *   <li>max-buckets: Specify the maximum number of buckets the user can own. Example: 500 [1000]
+   *   <li>suspended: Specify whether the user should be suspended. Example: False [False]
    * </ul>
    *
    * @param userId The user ID to be modified.
@@ -542,8 +546,8 @@ public interface RgwAdmin {
   /**
    * Set or modify quota on all buckets owned by a user.
    *
-   * <p>Note that you cannot set quota on buckets individually owned by a user. All buckets belong to a user can only
-   * have a consistent quota setting.
+   * <p>Note that you cannot set quota on buckets individually owned by a user. All buckets belong
+   * to a user can only have a consistent quota setting.
    *
    * @param userId The bucket owner to set quota.
    * @param maxObjects The max-objects setting allows you to specify the maximum number of objects.
@@ -577,8 +581,8 @@ public interface RgwAdmin {
   /**
    * Read the policy of an object.
    *
-   * <p>Note that the term "policy" here does not stand for "S3 bucket policy". Instead, it represents
-   * S3 Access Control Policy (ACP).
+   * <p>Note that the term "policy" here does not stand for "S3 bucket policy". Instead, it
+   * represents S3 Access Control Policy (ACP).
    *
    * <p>We return JSON string instead of the concrete model here due to the server returns the
    * internal data structure which is not well defined. For example:
@@ -629,8 +633,8 @@ public interface RgwAdmin {
   /**
    * Read the policy of a bucket.
    *
-   * <p>Note that the term "policy" here does not stand for "S3 bucket policy". Instead, it represents
-   * S3 Access Control Policy (ACP).
+   * <p>Note that the term "policy" here does not stand for "S3 bucket policy". Instead, it
+   * represents S3 Access Control Policy (ACP).
    *
    * <p>We return JSON string instead of the concrete model here due to the server returns the
    * internal data structure which is not well defined. For example:

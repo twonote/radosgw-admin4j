@@ -99,7 +99,8 @@ public class SubUserExample extends BaseTest {
 
           createSomeObjects(childSwift);
 
-          // The S3 bucket created by parent user and the SwiftExample container created by child subuser are incorporated.
+          // The S3 bucket created by parent user and the SwiftExample container created by child
+          // subuser are incorporated.
           assertEquals(2, parentS3.listBuckets().size());
           assertEquals(2, childSwift.list().size());
 
@@ -113,7 +114,8 @@ public class SubUserExample extends BaseTest {
                   .count());
           assertEquals(6, childSwift.list().stream().flatMap(bk -> bk.list().stream()).count());
 
-          // files uploaded by child are owned by parent...swift does not have concept of object owner?
+          // files uploaded by child are owned by parent...swift does not have concept of object
+          // owner?
           assertTrue(
               parentS3
                   .listBuckets()

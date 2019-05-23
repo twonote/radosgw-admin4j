@@ -16,15 +16,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-
-/**
- * Created by petertc on 3/31/17.
- */
+/** Created by petertc on 3/31/17. */
 public class SwiftExample {
+  private static final String userId = "rgwAdmin4jTest-" + UUID.randomUUID().toString();
   private static String username;
   private static String password;
   private static String authUrl;
-  private static final String userId = "rgwAdmin4jTest-" + UUID.randomUUID().toString();
   private static RgwAdmin RGW_ADMIN_CLIENT;
 
   private static void example() {
@@ -96,7 +93,8 @@ public class SwiftExample {
     User response = RGW_ADMIN_CLIENT.createUser(userId);
 
     String subUserId = UUID.randomUUID().toString();
-    RGW_ADMIN_CLIENT.createSubUser(response.getUserId(), subUserId, SubUser.Permission.FULL, CredentialType.SWIFT);
+    RGW_ADMIN_CLIENT.createSubUser(
+        response.getUserId(), subUserId, SubUser.Permission.FULL, CredentialType.SWIFT);
 
     User response2 = RGW_ADMIN_CLIENT.getUserInfo(response.getUserId()).get();
     username = response2.getSwiftCredentials().get(0).getUsername();
@@ -112,6 +110,5 @@ public class SwiftExample {
     } finally {
       RGW_ADMIN_CLIENT.removeUser(userId);
     }
-
   }
 }

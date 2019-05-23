@@ -630,15 +630,15 @@ public class RgwAdminImplTest extends BaseTest {
             s3.createBucket(UUID.randomUUID().toString().toLowerCase());
           }
 
-            List<BucketInfo> response;
+          List<BucketInfo> response;
 
-            // all buckets
-            response = RGW_ADMIN.listBucketInfo();
-            assertTrue(response.size() >= 3);
+          // all buckets
+          response = RGW_ADMIN.listBucketInfo();
+          assertTrue(response.size() >= 3);
 
-            // bucket belong to the user
-            response = RGW_ADMIN.listBucketInfo(v.getUserId());
-            assertEquals(3, response.size());
+          // bucket belong to the user
+          response = RGW_ADMIN.listBucketInfo(v.getUserId());
+          assertEquals(3, response.size());
         });
   }
 

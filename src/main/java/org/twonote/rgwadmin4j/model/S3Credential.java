@@ -41,7 +41,8 @@ public class S3Credential {
     S3Credential that = (S3Credential) o;
 
     if (userId != null ? !userId.equals(that.userId) : that.userId != null) return false;
-    if (accessKey != null ? !accessKey.equals(that.accessKey) : that.accessKey != null) return false;
+    if (accessKey != null ? !accessKey.equals(that.accessKey) : that.accessKey != null)
+      return false;
     return secretKey != null ? secretKey.equals(that.secretKey) : that.secretKey == null;
   }
 
