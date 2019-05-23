@@ -899,7 +899,17 @@ public class RgwAdminImplTest extends BaseTest {
                   || quota.getMaxSizeKb() == 0 // kraken
               );
 
-          // set quota
+          // set quota for individual bucket
+          AmazonS3 s3 =
+              createS3(
+                  v.getS3Credentials().get(0).getAccessKey(),
+                  v.getS3Credentials().get(0).getSecretKey());
+          String bucketName = userId.toLowerCase();
+          s3.createBucket(bucketName);
+          RGW_ADMIN.setBucketQuota(userId, bucketName, 1, 1);
+          // TODO: don't know how to verify this... no API to get individual bucket quota?
+
+          // set quota for all buckets
           RGW_ADMIN.setBucketQuota(userId, 1, 1);
           quota = RGW_ADMIN.getBucketQuota(userId).get();
           assertEquals(true, quota.getEnabled());

@@ -758,6 +758,11 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
+  public void setBucketQuota(String userId, String bucket, long maxObjects, long maxSizeKB) {
+    setQuota(userId, bucket, "bucket", maxObjects, maxSizeKB);
+  }
+
+  @Override
   public void setBucketQuota(String userId, long maxObjects, long maxSizeKB) {
     setQuota(userId, "bucket", maxObjects, maxSizeKB);
   }
@@ -768,6 +773,11 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   public void setQuota(String userId, String quotaType, long maxObjects, long maxSizeKB) {
+    setQuota(userId, null, quotaType, maxObjects, maxSizeKB);
+  }
+
+  public void setQuota(
+      String userId, String bucket, String quotaType, long maxObjects, long maxSizeKB) {
     HttpUrl.Builder urlBuilder =
         HttpUrl.parse(endpoint)
             .newBuilder()
@@ -775,6 +785,10 @@ public class RgwAdminImpl implements RgwAdmin {
             .query("quota")
             .addQueryParameter("uid", userId)
             .addQueryParameter("quota-type", quotaType);
+
+    if (bucket != null) {
+      urlBuilder.addQueryParameter("bucket", bucket);
+    }
 
     String body =
         gson.toJson(
