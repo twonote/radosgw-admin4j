@@ -505,6 +505,25 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
+  public List<String> listBucket() {
+    Request request =
+        new Request.Builder()
+            .get()
+            .url(
+                HttpUrl.parse(endpoint)
+                    .newBuilder()
+                    .addPathSegment("bucket")
+                    .addQueryParameter("stats", "False")
+                    .build())
+            .build();
+
+    String resp = safeCall(request);
+    Type type = new TypeToken<List<String>>() {}.getType();
+
+    return gson.fromJson(resp, type);
+  }
+
+  @Override
   public List<String> listBucket(String userId) {
     Request request =
         new Request.Builder()
@@ -525,6 +544,11 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
+  public List<BucketInfo> listBucketInfo() {
+    return _getBucketInfo(ImmutableMap.of("stats", "True"));
+  }
+
+  @Override
   public List<BucketInfo> listBucketInfo(String userId) {
     return _getBucketInfo(ImmutableMap.of("uid", userId, "stats", "True"));
   }
@@ -539,10 +563,7 @@ public class RgwAdminImpl implements RgwAdmin {
     String resp = safeCall(request);
 
     // ugly part...
-    if (parameters.containsKey("uid")) {
-      Type type = new TypeToken<List<BucketInfo>>() {}.getType();
-      return gson.fromJson(resp, type);
-    } else if (parameters.containsKey("bucket")) {
+    if (parameters.containsKey("bucket")) {
       BucketInfo response = gson.fromJson(resp, BucketInfo.class);
       List<BucketInfo> ret = new ArrayList<>();
       if (response != null) {
@@ -551,7 +572,8 @@ public class RgwAdminImpl implements RgwAdmin {
       return ret;
     }
 
-    throw new RuntimeException("Parameters should have either uid or bucket");
+    Type type = new TypeToken<List<BucketInfo>>() {}.getType();
+    return gson.fromJson(resp, type);
   }
 
   @Override
