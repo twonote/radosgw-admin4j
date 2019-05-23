@@ -2,12 +2,12 @@
 [![Javadocs](https://www.javadoc.io/badge/io.github.twonote/radosgw-admin4j.svg)](https://static.javadoc.io/io.github.twonote/radosgw-admin4j/1.1.0/index.html?org/twonote/rgwadmin4j/RgwAdmin.html)
 
 # About
-radosgw-admin4j is a Ceph object storage admin client that allows provisioning and control of a Ceph object storage deployment. This includes support for user/subuser management, quota management, usage report, bucket/object management, etc.
+radosgw-admin4j is a Ceph object storage admin client that allows provisioning and control of a Ceph object storage deployment. Features include user/sub user management, quota management, usage report, bucket/object management, etc.
 
 # Highlight
-* **Fully support all [operations](http://docs.ceph.com/docs/master/radosgw/adminops/)** includes **subuser**, **quota** and more in the least Ceph version.
+* **Fully support all [operations](http://docs.ceph.com/docs/master/radosgw/adminops/)** includes **sub user**, **quota** and more in the least Ceph version.
 * An easier way to manage radosgw. Avoid troubles when working with radosgw admin APIs, especially that docs are a bit confusing and inconsistent with the code base.
-* Quality and compatibility - [Continuous Integration](https://travis-ci.org/twonote/radosgw-admin4j) and tests against the least stable Ceph version (**Luminous**/**Mimic** currently. Krakan and previous should also works.)
+* Quality and compatibility - [Continuous Integration](https://travis-ci.org/twonote/radosgw-admin4j) and tests against the least stable Ceph version (**Luminous**/**Mimic** currently. Kraken and previous should also work.)
 * Contributor friendly - typical contribution process, no wired policies, all contributions are welcome!
 
 # Start using 
@@ -62,7 +62,7 @@ RGW_ADMIN.removeUser(userId);
 // Allow the user owns more buckets
 RGW_ADMIN.modifyUser(userId, ImmutableMap.of("max-buckets", String.valueOf(Integer.MAX_VALUE)));
 
-// Set the quota that causes the user can have at most one thousand objects and the maximal usage is 1 GiB
+// Set the quota that causes the user can have at most one thousand objects, and the maximal usage is 1 GiB
 RGW_ADMIN.setUserQuota(userId, 1000, 1048576);
 ```
 
@@ -94,7 +94,7 @@ You could refer the [Ceph official manual](http://docs.ceph.com/docs/master/star
 $ sudo docker rm -f rgwl; rm -rf /etc/cephl; sudo docker run -d -p 80:80 -v /etc/cephl/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e RGW_CIVETWEB_PORT=80 -e NETWORK_AUTO_DETECT=4 --name rgwl ceph/daemon@sha256:4d84442c3ac5746bbfc72349a3472fb9e99120c0cb2a95fc4a17320070ca9422 demo; sleep 10
 ```
 
-Note that the port 80 should be available.
+Note that port 80 should be available.
 
 Check the setup succeeded by the following command:
 ```
