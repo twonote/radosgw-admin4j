@@ -21,7 +21,7 @@ import static org.junit.Assert.*;
 
 @SuppressWarnings("ConstantConditions")
 public class RgwAdminImplTest extends BaseTest {
-    @Test
+  @Test
   public void listSubUser() throws Exception {
     testWithASubUser(
         s -> {
@@ -98,9 +98,10 @@ public class RgwAdminImplTest extends BaseTest {
             RGW_ADMIN.createS3Credential(UUID.randomUUID().toString());
             fail("user not exist should throw exception");
           } catch (RgwAdminException e) {
-            assertTrue("InvalidArgument".equals(e.getMessage()) || // kraken
-                    "NoSuchUser".equals(e.getMessage()) // luminous
-            );
+            assertTrue(
+                "InvalidArgument".equals(e.getMessage()) // kraken
+                    || "NoSuchUser".equals(e.getMessage()) // luminous
+                );
           }
         });
   }
@@ -128,11 +129,13 @@ public class RgwAdminImplTest extends BaseTest {
           try {
             RGW_ADMIN.removeS3Credential(
                 UUID.randomUUID().toString(), UUID.randomUUID().toString());
-              fail("user not exist should throw exception");
+            fail("user not exist should throw exception");
           } catch (RgwAdminException e) {
-              assertTrue("InvalidArgument".equals(e.getMessage()) || // kraken
-                      "NoSuchUser".equals(e.getMessage()) // luminous
-              );
+            assertTrue(
+                "InvalidArgument".equals(e.getMessage())
+                    || // kraken
+                    "NoSuchUser".equals(e.getMessage()) // luminous
+                );
           }
         });
   }
@@ -153,7 +156,8 @@ public class RgwAdminImplTest extends BaseTest {
           // specify the key
           String accessKey = v.getUserId() + "-adminAccessKey";
           String secretKey = v.getUserId() + "-adminSecretKey";
-          response = RGW_ADMIN.createS3CredentialForSubUser(userId, subUserId, accessKey, secretKey);
+          response =
+              RGW_ADMIN.createS3CredentialForSubUser(userId, subUserId, accessKey, secretKey);
           assertTrue(
               response
                   .stream()
@@ -233,7 +237,8 @@ public class RgwAdminImplTest extends BaseTest {
           assertEquals(password, swiftCredential.getPassword());
 
           // sub user not exist
-          // Create a orphan key without user in ceph version 11.2.0 (f223e27eeb35991352ebc1f67423d4ebc252adb7)
+          // Create a orphan key without user in ceph version 11.2.0
+          // (f223e27eeb35991352ebc1f67423d4ebc252adb7)
           RGW_ADMIN.createSwiftCredentialForSubUser(userId, subUserId);
         });
   }
@@ -683,7 +688,8 @@ public class RgwAdminImplTest extends BaseTest {
 
   @Test
   public void removeUser() throws Exception {
-    // The operation is success if the user is not exist in the system after the operation is executed.
+    // The operation is success if the user is not exist in the system after the operation is
+    // executed.
     String userId = "testRemoveUserId";
     RGW_ADMIN.createUser(userId);
     RGW_ADMIN.removeUser(userId);
@@ -849,55 +855,58 @@ public class RgwAdminImplTest extends BaseTest {
     // user not exist
     try {
       RGW_ADMIN.getUserQuota(UUID.randomUUID().toString());
-        fail("user not exist should throw exception");
+      fail("user not exist should throw exception");
     } catch (RgwAdminException e) {
-        assertTrue("InvalidArgument".equals(e.getMessage()) || // kraken
-                "NoSuchUser".equals(e.getMessage()) // luminous
-        );
+      assertTrue(
+          "InvalidArgument".equals(e.getMessage())
+              || // kraken
+              "NoSuchUser".equals(e.getMessage()) // luminous
+          );
     }
 
     RGW_ADMIN.setUserQuota(UUID.randomUUID().toString(), 1, 1);
   }
 
-    @Test
-    public void getAndSetBucketQuota() throws Exception {
-        testWithAUser(
-                (v) -> {
-                    String userId = v.getUserId();
-                    Quota quota;
+  @Test
+  public void getAndSetBucketQuota() throws Exception {
+    testWithAUser(
+        (v) -> {
+          String userId = v.getUserId();
+          Quota quota;
 
-                    // default false
-                    quota = RGW_ADMIN.getBucketQuota(userId).get();
-                    assertEquals(false, quota.getEnabled());
-                    assertEquals(Long.valueOf(-1), quota.getMaxObjects());
-                    assertTrue(
-                            quota.getMaxSizeKb() == -1 // jewel
-                                    || quota.getMaxSizeKb() == 0 // kraken
-                    );
+          // default false
+          quota = RGW_ADMIN.getBucketQuota(userId).get();
+          assertEquals(false, quota.getEnabled());
+          assertEquals(Long.valueOf(-1), quota.getMaxObjects());
+          assertTrue(
+              quota.getMaxSizeKb() == -1 // jewel
+                  || quota.getMaxSizeKb() == 0 // kraken
+              );
 
-                    // set quota
-                    RGW_ADMIN.setBucketQuota(userId, 1, 1);
-                    quota = RGW_ADMIN.getBucketQuota(userId).get();
-                    assertEquals(true, quota.getEnabled());
-                    assertEquals(Long.valueOf(1), quota.getMaxObjects());
-                    assertEquals(Long.valueOf(1), quota.getMaxSizeKb());
-                });
+          // set quota
+          RGW_ADMIN.setBucketQuota(userId, 1, 1);
+          quota = RGW_ADMIN.getBucketQuota(userId).get();
+          assertEquals(true, quota.getEnabled());
+          assertEquals(Long.valueOf(1), quota.getMaxObjects());
+          assertEquals(Long.valueOf(1), quota.getMaxSizeKb());
+        });
 
-        // user not exist
-        try {
-            RGW_ADMIN.getBucketQuota(UUID.randomUUID().toString());
-            fail("user not exist should throw exception");
-        } catch (RgwAdminException e) {
-            assertTrue("InvalidArgument".equals(e.getMessage()) || // kraken
-                    "NoSuchUser".equals(e.getMessage()) // luminous
-            );
-        }
-
-        RGW_ADMIN.setBucketQuota(UUID.randomUUID().toString(), 1, 1);
+    // user not exist
+    try {
+      RGW_ADMIN.getBucketQuota(UUID.randomUUID().toString());
+      fail("user not exist should throw exception");
+    } catch (RgwAdminException e) {
+      assertTrue(
+          "InvalidArgument".equals(e.getMessage())
+              || // kraken
+              "NoSuchUser".equals(e.getMessage()) // luminous
+          );
     }
 
+    RGW_ADMIN.setBucketQuota(UUID.randomUUID().toString(), 1, 1);
+  }
 
-    @Test
+  @Test
   public void getObjectPolicy() throws Exception {
     testWithAUser(
         (v) -> {

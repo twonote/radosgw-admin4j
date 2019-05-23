@@ -43,7 +43,6 @@ public class RgwAdminImpl implements RgwAdmin {
     this.client =
         new OkHttpClient().newBuilder().addInterceptor(new S3Auth(accessKey, secretKey)).build();
     this.endpoint = endpoint;
-
   }
 
   private static void validEndpoint(String endpoint) {
@@ -668,7 +667,7 @@ public class RgwAdminImpl implements RgwAdmin {
     Request request = new Request.Builder().get().url(urlBuilder.build()).build();
     String resp = safeCall(request);
 
-    JsonObject jo = (JsonObject)jsonParser.parse(resp);
+    JsonObject jo = (JsonObject) jsonParser.parse(resp);
     return gson.fromJson(jo.get("data").toString(), returnType);
   }
 
@@ -774,22 +773,22 @@ public class RgwAdminImpl implements RgwAdmin {
 
   public void setQuota(String userId, String quotaType, long maxObjects, long maxSizeKB) {
     HttpUrl.Builder urlBuilder =
-            HttpUrl.parse(endpoint)
-                    .newBuilder()
-                    .addPathSegment("user")
-                    .query("quota")
-                    .addQueryParameter("uid", userId)
-                    .addQueryParameter("quota-type", quotaType);
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("user")
+            .query("quota")
+            .addQueryParameter("uid", userId)
+            .addQueryParameter("quota-type", quotaType);
 
     String body =
-            gson.toJson(
-                    ImmutableMap.of(
-                            "max_objects", String.valueOf(maxObjects),
-                            "max_size_kb", String.valueOf(maxSizeKB),
-                            "enabled", "true"));
+        gson.toJson(
+            ImmutableMap.of(
+                "max_objects", String.valueOf(maxObjects),
+                "max_size_kb", String.valueOf(maxSizeKB),
+                "enabled", "true"));
 
     Request request =
-            new Request.Builder().put(RequestBody.create(null, body)).url(urlBuilder.build()).build();
+        new Request.Builder().put(RequestBody.create(null, body)).url(urlBuilder.build()).build();
 
     safeCall(request);
   }
