@@ -85,7 +85,7 @@ UsageInfo userUsage = RGW_ADMIN.getUserUsage(userId).get();
 userUsage.getSummary().stream().peek(System.out::println);
 ```
 
-## Radosgw setup
+## One more thing: Radosgw setup
 To kick off, you need one ready to use radosgw instance and one radosgw account with proper admin capabilities. Follow the guide below to have a radowgw setup then you can fire the example code.
 
 ### “I do not have a radosgw setup currently”
