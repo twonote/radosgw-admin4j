@@ -7,15 +7,15 @@ services:
 
 matrix:
   include:
-    - env: CPEH_VERSION=luminous
-      before_install:      
-        - docker pull ceph/daemon@sha256:174f26cf8752c20da2a69da461c46acd34f1d9a3b81f0761011c015178697346
-        - docker run -d -p 80:80 -v /etc/cephl/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e  RGW_CIVETWEB_PORT=80  -e NETWORK_AUTO_DETECT=4 --name rgwl ceph/daemon@sha256:174f26cf8752c20da2a69da461c46acd34f1d9a3b81f0761011c015178697346 demo
-        - sleep 30
+#    - env: CPEH_VERSION=luminous
+#      before_install:      
+#        - docker pull ceph/daemon@sha256:174f26cf8752c20da2a69da461c46acd34f1d9a3b81f0761011c015178697346
+#        - docker run -d -p 80:80 -v /etc/cephl/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e  RGW_CIVETWEB_PORT=80  -e NETWORK_AUTO_DETECT=4 --name rgwl ceph/daemon@sha256:174f26cf8752c20da2a69da461c46acd34f1d9a3b81f0761011c015178697346 demo
+#        - sleep 30
     - env: CPEH_VERSION=mimic
       before_install:      
         - docker pull ceph/daemon:v4.0.0-stable-4.0-mimic-centos-7
-        - docker run -d -p 80:80 -v /etc/cephl/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e  RGW_CIVETWEB_PORT=80  -e NETWORK_AUTO_DETECT=4 --name rgwl ceph/daemon@sha256:174f26cf8752c20da2a69da461c46acd34f1d9a3b81f0761011c015178697346 demo
+        - docker run -d -p 80:80 -v /etc/cephm/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e  RGW_CIVETWEB_PORT=80  -e NETWORK_AUTO_DETECT=4 --name rgwm ceph/daemon@sha256:f5136a105c07abc5bdf843b2489eedcc3843a7e6bbae3066852f7b6da8d79732 demo
         - sleep 30
 
 install: mvn install -Dgpg.skip=true
