@@ -244,7 +244,7 @@ public interface RgwAdmin {
    * Remove an existing S3 credential from the specified user.
    *
    * @param userId The specified user.
-   * @param accessKey The access key belonging to the credential to remove.
+   * @param accessKey The access key which is belonging to the credential to remove.
    */
   void removeS3Credential(String userId, String accessKey);
 
@@ -280,7 +280,7 @@ public interface RgwAdmin {
    * @param userId the specified user.
    * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
    *     foo:bar.
-   * @param accessKey The access key belonging to the credential to remove.
+   * @param accessKey The access key which is belonging to the credential to remove.
    */
   void removeS3CredentialFromSubUser(String userId, String subUserId, String accessKey);
 
