@@ -170,8 +170,6 @@ public class BaseTest {
     try {
       User response = RGW_ADMIN.createUser(userId);
       test.accept(response);
-    } catch (Exception e) {
-      e.printStackTrace();
     } finally {
       RGW_ADMIN.removeUser(userId);
     }
