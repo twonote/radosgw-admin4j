@@ -888,6 +888,14 @@ public class RgwAdminImplTest extends BaseTest {
     testWithAUser(
         (v) -> {
           String userId = v.getUserId();
+
+          AmazonS3 s3 =
+              createS3(
+                  v.getS3Credentials().get(0).getAccessKey(),
+                  v.getS3Credentials().get(0).getSecretKey());
+          String bucketName = userId.toLowerCase();
+          s3.createBucket(bucketName);
+
           Quota quota;
 
           // default false
@@ -899,22 +907,23 @@ public class RgwAdminImplTest extends BaseTest {
                   || quota.getMaxSizeKb() == 0 // kraken
               );
 
-          // set quota for individual bucket
-          AmazonS3 s3 =
-              createS3(
-                  v.getS3Credentials().get(0).getAccessKey(),
-                  v.getS3Credentials().get(0).getSecretKey());
-          String bucketName = userId.toLowerCase();
-          s3.createBucket(bucketName);
-          RGW_ADMIN.setBucketQuota(userId, bucketName, 1, 1);
-          // TODO: don't know how to verify this... no API to get individual bucket quota?
-
-          // set quota for all buckets
+          // set quota
           RGW_ADMIN.setBucketQuota(userId, 1, 1);
+
+          // shown by getBucketQuota()
           quota = RGW_ADMIN.getBucketQuota(userId).get();
           assertEquals(true, quota.getEnabled());
           assertEquals(Long.valueOf(1), quota.getMaxObjects());
           assertEquals(Long.valueOf(1), quota.getMaxSizeKb());
+
+          // not shown by getBucketInfo()
+          quota = RGW_ADMIN.getBucketInfo(bucketName).get().getBucketQuota();
+          assertEquals(false, quota.getEnabled());
+          assertEquals(Long.valueOf(-1), quota.getMaxObjects());
+          assertTrue(
+              quota.getMaxSizeKb() == -1 // jewel
+                  || quota.getMaxSizeKb() == 0 // kraken
+              );
         });
 
     // user not exist
@@ -930,6 +939,50 @@ public class RgwAdminImplTest extends BaseTest {
     }
 
     RGW_ADMIN.setBucketQuota(UUID.randomUUID().toString(), 1, 1);
+  }
+
+  @Test
+  public void getAndSetSpecificBucketQuota() throws Exception {
+    testWithAUser(
+        (v) -> {
+          String userId = v.getUserId();
+
+          AmazonS3 s3 =
+              createS3(
+                  v.getS3Credentials().get(0).getAccessKey(),
+                  v.getS3Credentials().get(0).getSecretKey());
+          String bucketName = userId.toLowerCase();
+          s3.createBucket(bucketName);
+
+          Quota quota;
+
+          // default false
+          quota = RGW_ADMIN.getBucketInfo(bucketName).get().getBucketQuota();
+          assertEquals(false, quota.getEnabled());
+          assertEquals(Long.valueOf(-1), quota.getMaxObjects());
+          assertTrue(
+              quota.getMaxSizeKb() == -1 // jewel
+                  || quota.getMaxSizeKb() == 0 // kraken
+              );
+
+          // set quota
+          RGW_ADMIN.setIndividualBucketQuota(userId, bucketName, 1, 1);
+
+          // not shown by getBucketQuota()
+          quota = RGW_ADMIN.getBucketQuota(userId).get();
+          assertEquals(false, quota.getEnabled());
+          assertEquals(Long.valueOf(-1), quota.getMaxObjects());
+          assertTrue(
+              quota.getMaxSizeKb() == -1 // jewel
+                  || quota.getMaxSizeKb() == 0 // kraken
+              );
+
+          // not shown by getBucketInfo()
+          quota = RGW_ADMIN.getBucketInfo(bucketName).get().getBucketQuota();
+          assertEquals(true, quota.getEnabled());
+          assertEquals(Long.valueOf(1), quota.getMaxObjects());
+          assertEquals(Long.valueOf(1), quota.getMaxSizeKb());
+        });
   }
 
   @Test

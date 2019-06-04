@@ -758,26 +758,35 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
-  public void setBucketQuota(String userId, String bucket, long maxObjects, long maxSizeKB) {
-    setQuota(userId, bucket, "bucket", maxObjects, maxSizeKB);
+  public void setIndividualBucketQuota(String userId, String bucket, long maxObjects, long maxSizeKB) {
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("bucket")
+            .query("quota")
+            .addQueryParameter("uid", userId)
+            .addQueryParameter("bucket", bucket);
+
+    Request request =
+        new Request.Builder()
+            .put(RequestBody.create(null, buildQuotaConfig(maxObjects, maxSizeKB)))
+            .url(urlBuilder.build())
+            .build();
+
+    safeCall(request);
   }
 
   @Override
   public void setBucketQuota(String userId, long maxObjects, long maxSizeKB) {
-    setQuota(userId, "bucket", maxObjects, maxSizeKB);
+    setUserQuota(userId, "bucket", maxObjects, maxSizeKB);
   }
 
   @Override
   public void setUserQuota(String userId, long maxObjects, long maxSizeKB) {
-    setQuota(userId, "user", maxObjects, maxSizeKB);
+    setUserQuota(userId, "user", maxObjects, maxSizeKB);
   }
 
-  public void setQuota(String userId, String quotaType, long maxObjects, long maxSizeKB) {
-    setQuota(userId, null, quotaType, maxObjects, maxSizeKB);
-  }
-
-  public void setQuota(
-      String userId, String bucket, String quotaType, long maxObjects, long maxSizeKB) {
+  public void setUserQuota(String userId, String quotaType, long maxObjects, long maxSizeKB) {
     HttpUrl.Builder urlBuilder =
         HttpUrl.parse(endpoint)
             .newBuilder()
@@ -786,21 +795,21 @@ public class RgwAdminImpl implements RgwAdmin {
             .addQueryParameter("uid", userId)
             .addQueryParameter("quota-type", quotaType);
 
-    if (bucket != null) {
-      urlBuilder.addQueryParameter("bucket", bucket);
-    }
-
-    String body =
-        gson.toJson(
-            ImmutableMap.of(
-                "max_objects", String.valueOf(maxObjects),
-                "max_size_kb", String.valueOf(maxSizeKB),
-                "enabled", "true"));
-
     Request request =
-        new Request.Builder().put(RequestBody.create(null, body)).url(urlBuilder.build()).build();
+        new Request.Builder()
+            .put(RequestBody.create(null, buildQuotaConfig(maxObjects, maxSizeKB)))
+            .url(urlBuilder.build())
+            .build();
 
     safeCall(request);
+  }
+
+  private String buildQuotaConfig(long maxObjects, long maxSizeKB) {
+    return gson.toJson(
+        ImmutableMap.of(
+            "max_objects", String.valueOf(maxObjects),
+            "max_size_kb", String.valueOf(maxSizeKB),
+            "enabled", "true"));
   }
 
   @Override

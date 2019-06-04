@@ -544,7 +544,11 @@ public interface RgwAdmin {
   Optional<Quota> getBucketQuota(String userId);
 
   /**
-   * Set or modify quota on the given buckets owned by a user.
+   * Set or modify a quota on a given bucket.
+   *
+   * Note that you can get this quota via {@link #getBucketInfo(String)}
+   *
+   * <p>Tips: To use this feature, you need Ceph v13.0.2 (mimic) or above.
    *
    * @param userId The bucket owner to set quota.
    * @param bucket The bucket to set quota.
@@ -553,12 +557,10 @@ public interface RgwAdmin {
    * @param maxSizeKB The max-size option allows you to specify a quota for the maximum number of
    *     bytes. A negative value disables this setting.
    */
-  void setBucketQuota(String userId, String bucket, long maxObjects, long maxSizeKB);
+  void setIndividualBucketQuota(String userId, String bucket, long maxObjects, long maxSizeKB);
 
   /**
-   * Set or modify quota on all buckets owned by a user.
-   *
-   * <p>Tips: To use this feature, you need Ceph v12 (Luminous) or above.
+   * Set or modify quotas on all buckets owned by a user.
    *
    * @param userId The bucket owner to set quota.
    * @param maxObjects The max-objects setting allows you to specify the maximum number of objects.
@@ -569,7 +571,7 @@ public interface RgwAdmin {
   void setBucketQuota(String userId, long maxObjects, long maxSizeKB);
 
   /**
-   * Set or modify quota on a user.
+   * Set or modify a quota on a user.
    *
    * @param userId The user to set quota.
    * @param maxObjects The max-objects setting allows you to specify the maximum number of objects.
