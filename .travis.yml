@@ -16,7 +16,7 @@ matrix:
       before_install:      
         # ceph version 13.2.5 (cbff874f9007f1869bfd3821b7e33b2a6ffd4988) mimic (stable)
         # ceph/daemon:v4.0.0-stable-4.0-mimic-centos-7
-        - docker run -d -p 80:80 -v /etc/cephm/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e  RGW_CIVETWEB_PORT=80  -e NETWORK_AUTO_DETECT=4 --name rgwm ceph/daemon@sha256:f5136a105c07abc5bdf843b2489eedcc3843a7e6bbae3066852f7b6da8d79732 demo
+        - docker run -d -p 80:80 -v /etc/cephm/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e  RGW_CIVETWEB_PORT=80  -e NETWORK_AUTO_DETECT=4 --name rgwm ceph/daemon:latest-mimic demo
         - sleep 30
 
 install: mvn install -Dgpg.skip=true
