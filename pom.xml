@@ -86,17 +86,17 @@
                         <goals>
                             <goal>jar</goal>
                         </goals>
-                    </execution>
-                     <configuration>
-                       <verbose>true</verbose>
-                       <!-- workaround for https://bugs.openjdk.java.net/browse/JDK-8212233 -->
-                       <javaApiLinks>
-                         <property>
-                           <name>foo</name>
-                           <value>bar</value>
-                         </property>
-                       </javaApiLinks>
-                     </configuration>                    
+                              <configuration>
+                                <verbose>true</verbose>
+                                <!-- workaround for https://bugs.openjdk.java.net/browse/JDK-8212233 -->
+                                <javaApiLinks>
+                                  <property>
+                                    <name>foo</name>
+                                    <value>bar</value>
+                                  </property>
+                                </javaApiLinks>
+                              </configuration>                          
+                    </execution>                   
                 </executions>
             </plugin>
             <plugin>
