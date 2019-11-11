@@ -18,6 +18,8 @@ matrix:
         - docker run -d -p 80:80 -v /etc/cephm/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e  RGW_CIVETWEB_PORT=80  -e NETWORK_AUTO_DETECT=4 --name rgwm ceph/daemon:v3.2.8-stable-3.2-mimic-centos-7 demo
         - timeout 60 bash -c "until nc -vz 127.0.0.1 80; do sleep 1; done" \
         - sleep 30
+        - docker ps
+        - docker logs
         - echo -e 'GET / HTTP/1.1\r\nHost:localhost\r\n\r\n' | nc localhost 80
 
 
