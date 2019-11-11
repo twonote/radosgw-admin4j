@@ -7,7 +7,7 @@ radosgw-admin4j is a Ceph object storage admin client that allows provisioning a
 # Highlight
 * **Fully support all [operations](http://docs.ceph.com/docs/master/radosgw/adminops/)** includes **sub user**, **quota** and more in the latest Ceph version.
 * An easier way to manage radosgw. Avoid troubles when working with radosgw admin APIs, especially that docs are a bit confusing and inconsistent with the code base.
-* Quality and compatibility - [Continuous Integration](https://travis-ci.org/twonote/radosgw-admin4j) and tests against the latest stable Ceph version (**Luminous**/**Mimic** currently. Kraken and previous should also work.)
+* Quality and compatibility - [Continuous Integration](https://travis-ci.org/twonote/radosgw-admin4j) and tests against Ceph LTS versions ([**Mimic/Nautilus**](https://docs.ceph.com/docs/master/releases/general/) currently.)
 * Contributor friendly - typical contribution process, no weird policies, all contributions are welcome!
 
 # Start using 
