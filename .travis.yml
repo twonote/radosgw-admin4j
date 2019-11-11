@@ -19,7 +19,7 @@ matrix:
         - timeout 60 bash -c "until nc -vz 127.0.0.1 80; do sleep 1; done" \
         - sleep 30
         - docker ps
-        - docker logs
+        - docker logs rgwm
         - echo -e 'GET / HTTP/1.1\r\nHost:localhost\r\n\r\n' | nc localhost 80
 
 
