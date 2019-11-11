@@ -7,6 +7,7 @@ services:
 
 matrix:
   include:
+# EOL
 #    - env: CPEH_VERSION=luminous
 #      before_install:      
 #        - docker pull ceph/daemon@sha256:174f26cf8752c20da2a69da461c46acd34f1d9a3b81f0761011c015178697346
@@ -20,7 +21,14 @@ matrix:
         - docker ps
         - cat rgwm.log
         - echo -e 'GET / HTTP/1.1\r\nHost:localhost\r\n\r\n' | nc localhost 80
-
+    - env: CPEH_VERSION=nautilus
+      before_install:
+        - docker pull ceph/daemon:v4.0.1-stable-4.0-nautilus-centos-7
+        - docker run -d -p 80:80 -v /etc/cephn/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e  RGW_CIVETWEB_PORT=80  -e NETWORK_AUTO_DETECT=4 --name rgwm ceph/daemon:v4.0.1-stable-4.0-nautilus-centos-7 demo
+        - timeout 60 bash -c "until docker logs rgwn &> rgwn.log && grep SUCCESS rgwn.log; do sleep 1; done" 
+        - docker ps
+        - cat rgwn.log
+        - echo -e 'GET / HTTP/1.1\r\nHost:localhost\r\n\r\n' | nc localhost 80
 
 install: mvn install -Dgpg.skip=true
 
