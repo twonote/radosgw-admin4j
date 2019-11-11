@@ -13,7 +13,8 @@ matrix:
 #        - docker run -d -p 80:80 -v /etc/cephl/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e  RGW_CIVETWEB_PORT=80  -e NETWORK_AUTO_DETECT=4 --name rgwl ceph/daemon@sha256:174f26cf8752c20da2a69da461c46acd34f1d9a3b81f0761011c015178697346 demo
 #        - sleep 30
     - env: CPEH_VERSION=mimic
-      before_install:      
+      before_install:   
+        - docker pull ceph/daemon:v3.2.8-stable-3.2-mimic-centos-7
         - docker run -d -p 80:80 -v /etc/cephm/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e  RGW_CIVETWEB_PORT=80  -e NETWORK_AUTO_DETECT=4 --name rgwm ceph/daemon:v3.2.8-stable-3.2-mimic-centos-7 demo
         - timeout 60 bash -c "until nc -vz 127.0.0.1 80; do sleep 1; done" \
 
