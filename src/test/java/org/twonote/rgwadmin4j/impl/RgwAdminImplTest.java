@@ -334,28 +334,16 @@ public class RgwAdminImplTest extends BaseTest {
     testWithASubUser(
         su -> {
           SubUser subUser = su.getSubusers().get(0);
-          SubUser.Permission permissionToSet;
-          List<SubUser> response;
-          SubUser result;
 
-          // basic
-          permissionToSet = SubUser.Permission.READ;
-          response =
-              RGW_ADMIN.setSubUserPermission(
-                  subUser.getParentUserId(), subUser.getRelativeSubUserId(), permissionToSet);
+          for (SubUser.Permission permissionToSet : SubUser.Permission.values()) {
+            List<SubUser> response =
+                RGW_ADMIN.setSubUserPermission(
+                    subUser.getParentUserId(), subUser.getRelativeSubUserId(), permissionToSet);
 
-          result =
-              response.stream().filter(r -> subUser.getId().equals(r.getId())).findFirst().get();
-          assertEquals(permissionToSet, result.getPermission());
-
-          // none
-          permissionToSet = SubUser.Permission.NONE;
-          response =
-              RGW_ADMIN.setSubUserPermission(
-                  subUser.getParentUserId(), subUser.getRelativeSubUserId(), permissionToSet);
-          result =
-              response.stream().filter(r -> subUser.getId().equals(r.getId())).findFirst().get();
-          assertEquals(permissionToSet, result.getPermission());
+            SubUser result =
+                response.stream().filter(r -> subUser.getId().equals(r.getId())).findFirst().get();
+            assertEquals(permissionToSet, result.getPermission());
+          }
         });
   }
 
