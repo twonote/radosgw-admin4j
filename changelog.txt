@@ -1,3 +1,7 @@
+2.0.1 (2019-11-12)
+- Bugfix: If a subUser have READWRITE permission, you will get a NULL. 
+- Compatible to Java 11
+
 2.0.0 (2019-06-04)
 - Breaking change: setBucketQuota(String userId, String bucket...) is now be
   setIndividualBucketQuota(...) for disambiguation.
