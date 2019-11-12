@@ -91,14 +91,14 @@ To kick off, you need one ready to use radosgw instance and one radosgw account 
 ### “I do not have a radosgw setup currently”
 You could refer the [Ceph official manual](http://docs.ceph.com/docs/master/start/) to setup a Ceph cluster with radosgw *quickly*. In fact, it is not a piece of cake if you do not familiar with Ceph. Things will be easier if you have **docker** in your environment. To setup a setup instance with an admin account powered by the [Ceph daemon image](https://hub.docker.com/r/ceph/daemon/), follow instructions below:
 ```
-$ sudo docker rm -f rgwl; rm -rf /etc/cephl; sudo docker run -d -p 80:80 -v /etc/cephl/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e RGW_CIVETWEB_PORT=80 -e NETWORK_AUTO_DETECT=4 --name rgwl ceph/daemon@sha256:4d84442c3ac5746bbfc72349a3472fb9e99120c0cb2a95fc4a17320070ca9422 demo; sleep 10
+$ sudo docker rm -f rgwn; rm -rf /etc/cephn rgwn.log; sudo docker run -d -p 80:80 -v /etc/cephn/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e  RGW_CIVETWEB_PORT=80  -e NETWORK_AUTO_DETECT=4 --name rgwn ceph/daemon:v4.0.1-stable-4.0-nautilus-centos-7 demo; 
 ```
 
 Note that port 80 should be available.
 
 Check the setup succeeded by the following command:
 ```
-$ nc -z -v -w5 localhost 80
+$ timeout 60 bash -c "until docker logs rgwn &> rgwn.log && grep SUCCESS rgwn.log; do sleep 1; done"
 ```
 
 Once the above procedure is done, you can now run radosgw-admin4j tests without any config on the client side, since the [default config](https://github.com/twonote/radosgw-admin4j/blob/master/src/test/resources/rgwadmin.properties) is meet the case. Run tests by:
