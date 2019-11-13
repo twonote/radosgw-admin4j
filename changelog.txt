@@ -1,4 +1,4 @@
-2.0.1 (2019-11-12)
+2.0.2 (2019-11-13)
 - Bugfix: If a subUser have READWRITE permission, you will get a NULL. 
 - Compatible to Java 11
 
