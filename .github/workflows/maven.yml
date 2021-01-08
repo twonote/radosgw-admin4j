@@ -12,10 +12,10 @@ jobs:
     steps:  
       # run ceph rgw
       - run: docker pull ceph/daemon:v5.0.4-stable-5.0-octopus-centos-8
-      - run: docker run -d --net=host -v /etc/cephn/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e  RGW_CIVETWEB_PORT=80  -e NETWORK_AUTO_DETECT=4 --name rgwn ceph/daemon:v5.0.4-stable-5.0-octopus-centos-8 demo
-      - run: timeout 120 bash -c "until docker logs rgwn &> rgwn.log && grep SUCCESS rgwn.log; do sleep 1; done" 
+      - run: docker run -d -p 80:8080 -v /etc/ceph/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e NETWORK_AUTO_DETECT=4 --name rgw ceph/daemon:v5.0.4-stable-5.0-octopus-centos-8 demo
+      - run: timeout 120 bash -c "until docker logs rgw &> rgw.log && grep SUCCESS rgw.log; do sleep 1; done" 
       - run: docker ps
-      - run: cat rgwn.log
+      - run: cat rgw.log
       - run: echo -e 'GET / HTTP/1.1\r\nHost:localhost\r\n\r\n' | nc localhost 80
       # setup java        
       - name: Set up JDK 1.8
