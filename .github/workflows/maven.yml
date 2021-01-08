@@ -6,6 +6,26 @@ name: integration-test
 on: [push, pull_request]
   
 jobs:
+  octopus:
+    name: integration_test_octopus
+    runs-on: ubuntu-latest
+    steps:  
+      # run ceph rgw
+      - run: docker pull ceph/daemon:v5.0.4-stable-5.0-octopus-centos-8
+      - run: docker run -d -p 80:80 -v /etc/cephn/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e  RGW_CIVETWEB_PORT=80  -e NETWORK_AUTO_DETECT=4 --name rgwn ceph/daemon:v5.0.4-stable-5.0-octopus-centos-8 demo
+      - run: timeout 60 bash -c "until docker logs rgwn &> rgwn.log && grep SUCCESS rgwn.log; do sleep 1; done" 
+      - run: docker ps
+      - run: cat rgwn.log
+      - run: echo -e 'GET / HTTP/1.1\r\nHost:localhost\r\n\r\n' | nc localhost 80
+      # setup java        
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+      # run integration test
+      - uses: actions/checkout@v2
+      - run: mvn install -Dgpg.skip=true
+      - run: cat target/surefire-reports/*.txt
   nautilus:
     name: integration_test_nautilus
     runs-on: ubuntu-latest
