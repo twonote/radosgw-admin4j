@@ -29,7 +29,15 @@ matrix:
         - docker ps
         - cat rgwn.log
         - echo -e 'GET / HTTP/1.1\r\nHost:localhost\r\n\r\n' | nc localhost 80
-
+    - env: CPEH_VERSION=octopus
+      before_install:
+        - docker pull ceph/daemon:v5.0.4-stable-5.0-octopus-centos-8
+        - docker run -d -p 80:80 -v /etc/cephn/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e  RGW_CIVETWEB_PORT=80  -e NETWORK_AUTO_DETECT=4 --name rgwo ceph/daemon:v5.0.4-stable-5.0-octopus-centos-8 demo
+        - timeout 60 bash -c "until docker logs rgwo &> rgwo.log && grep SUCCESS rgwo.log; do sleep 1; done" 
+        - docker ps
+        - cat rgwo.log
+        - echo -e 'GET / HTTP/1.1\r\nHost:localhost\r\n\r\n' | nc localhost 80
+        
 install: mvn install -Dgpg.skip=true
 
 after_failure:
