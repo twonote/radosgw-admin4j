@@ -135,7 +135,7 @@ That's all!
 All contributions are welcome. Our code style is [Google java style](https://google.github.io/styleguide/javaguide.html) and we use [google-java-format](https://github.com/google/google-java-format) to do code formatting. Nothing else special.
 
 # Legal
-Copyright 2017-2019 [twonote](http://twonote.github.io/) & The "radosgw-admin4j" contributors.
+Copyright 2017-2021 [twonote](http://twonote.github.io/) & The "radosgw-admin4j" contributors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
