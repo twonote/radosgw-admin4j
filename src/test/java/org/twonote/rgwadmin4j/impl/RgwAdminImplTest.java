@@ -601,8 +601,13 @@ public class RgwAdminImplTest extends BaseTest {
           //            exception.expect(RuntimeException.class);
           RGW_ADMIN.linkBucket(bucketName, bucketId, adminUserId + "qqq");
 
-          //            exception.expect(RuntimeException.class);
-          RGW_ADMIN.linkBucket(bucketName, bucketId + "qq", adminUserId);
+          try {
+            RGW_ADMIN.linkBucket(bucketName, bucketId + "qq", adminUserId);
+          } catch (RgwAdminException e) {
+            assertTrue(
+                "InvalidArgument".equals(e.getMessage()) // raise exception starts from Ceph Octopus
+            );
+          }
         });
   }
 
@@ -672,7 +677,7 @@ public class RgwAdminImplTest extends BaseTest {
 
   @Test
   public void modifyUser() throws Exception {
-    String userId = "testModifyUserId";
+    String userId = "testModifyUserId" + UUID.randomUUID().toString();
     RGW_ADMIN.createUser(userId);
 
     // basic
@@ -716,8 +721,13 @@ public class RgwAdminImplTest extends BaseTest {
       assertEquals(Integer.valueOf(1000), response.getMaxBuckets());
 
       // create exist one should act like modification
-      response = RGW_ADMIN.createUser(userId, ImmutableMap.of("max-buckets", "1"));
-      assertEquals(Integer.valueOf(1), response.getMaxBuckets());
+      try {
+        RGW_ADMIN.createUser(userId);
+      } catch (RgwAdminException e) {
+        assertTrue(
+            "UserAlreadyExists".equals(e.getMessage()) // raise exception starts from Ceph Octopus
+        );
+      }
 
     } finally {
       RGW_ADMIN.removeUser(userId);
