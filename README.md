@@ -2,15 +2,15 @@
 [![Javadocs](https://www.javadoc.io/badge/io.github.twonote/radosgw-admin4j.svg)](https://www.javadoc.io/static/io.github.twonote/radosgw-admin4j/2.0.2/org/twonote/rgwadmin4j/RgwAdmin.html)
 
 # About
-radosgw-admin4j is a Ceph object storage admin client that allows provisioning and control of a Ceph object storage deployment. Features include user/sub user management, quota management, usage report, bucket/object management, etc.
+Updaradosgw-admin4j is a Ceph object storage admin client that allows provisioning and control of a Ceph object storage deployment. Features include user/subuser management, quota management, usage report, bucket/object management, etc.
 
 # Highlight
-* **Fully support all [operations](http://docs.ceph.com/docs/master/radosgw/adminops/)** includes **sub user**, **quota** and more in the latest Ceph version.
-* An easier way to manage radosgw. Avoid troubles when working with radosgw admin APIs, especially that docs are a bit confusing and inconsistent with the code base.
-* Quality and compatibility - [Continuous Integration](https://travis-ci.org/twonote/radosgw-admin4j) and tests against Ceph LTS versions ([**Mimic/Nautilus**](https://docs.ceph.com/docs/master/releases/general/) currently.)
+* **Fully support all [operations](http://docs.ceph.com/docs/master/radosgw/adminops/)** includes **subuser**, **quota** and more in the latest Ceph version.
+* An easier way to manage radosgw. Avoid troubles when working with radosgw admin APIs, especially that docs are a bit confusing and inconsistent with the codebase.
+* Quality and compatibility - [Continuous Integration](https://github.com/twonote/radosgw-admin4j/actions) and tests against Ceph LTS versions ([**Nautilus/Octopus**](https://docs.ceph.com/en/latest/releases/general/) currently.)
 * Contributor friendly - typical contribution process, no weird policies, all contributions are welcome!
 
-# Start using 
+# Start using
 
 ## Add dependency
 
@@ -86,22 +86,22 @@ userUsage.getSummary().stream().peek(System.out::println);
 ```
 
 ## One more thing: Radosgw setup
-To kick off, you need one ready to use radosgw instance and one radosgw account with proper admin capabilities. Follow the guide below to have a radowgw setup then you can fire the example code.
+To kick-off, you need one ready to use radosgw instance and one radosgw account with proper admin capabilities. Follow the guide below to have a radowgw setup then you can fire the example code.
 
 ### “I do not have a radosgw setup currently”
-You could refer the [Ceph official manual](http://docs.ceph.com/docs/master/start/) to setup a Ceph cluster with radosgw *quickly*. In fact, it is not a piece of cake if you do not familiar with Ceph. Things will be easier if you have **docker** in your environment. To setup a setup instance with an admin account powered by the [Ceph daemon image](https://hub.docker.com/r/ceph/daemon/), follow instructions below:
+You could refer to the [Ceph official manual](http://docs.ceph.com/docs/master/start/) to set up a Ceph cluster with radosgw *quickly*. It is not a piece of cake if you do not familiar with Ceph. Things will be easier if you have **docker** in your environment. To set up a standalone instance with an admin account powered by the [Ceph daemon image](https://hub.docker.com/r/ceph/daemon/), follow the instructions below:
 ```
-$ sudo docker rm -f rgwn; rm -rf /etc/cephn rgwn.log; sudo docker run -d -p 80:80 -v /etc/cephn/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e  RGW_CIVETWEB_PORT=80  -e NETWORK_AUTO_DETECT=4 --name rgwn ceph/daemon:v4.0.1-stable-4.0-nautilus-centos-7 demo; 
+$ docker run -d -p 80:8080 -v /etc/ceph/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e NETWORK_AUTO_DETECT=4 --name rgw ceph/daemon:v5.0.4-stable-5.0-octopus-centos-8 demo 
 ```
 
 Note that port 80 should be available.
 
-Check the setup succeeded by the following command:
+It takes about two minutes to initialize the Ceph cluster. Check the setup succeeded by the following command:
 ```
-$ timeout 60 bash -c "until docker logs rgwn &> rgwn.log && grep SUCCESS rgwn.log; do sleep 1; done"
+$ timeout 120 bash -c "until docker logs rgw &> rgw.log && grep SUCCESS rgw.log; do sleep 1; done"
 ```
 
-Once the above procedure is done, you can now run radosgw-admin4j tests without any config on the client side, since the [default config](https://github.com/twonote/radosgw-admin4j/blob/master/src/test/resources/rgwadmin.properties) is meet the case. Run tests by:
+Once the above procedure is done, you can now run radosgw-admin4j tests without any config on the client-side, since the [default config](https://github.com/twonote/radosgw-admin4j/blob/master/src/test/resources/rgwadmin.properties) is meet the case. Run tests by:
 ```
 $ git clone https://github.com/twonote/radosgw-admin4j.git
 $ cd radosgw-admin4j
@@ -117,7 +117,7 @@ $ radosgw-admin --id admin caps add --caps="buckets=*;users=*;usage=*;metadata=*
 
 Second, enter the key pair (qqq,qqq) and add your radosgw endpoint to the [config file](https://github.com/twonote/radosgw-admin4j/blob/master/src/test/resources/rgwadmin.properties)
 
-Note that radosgw does not enable [usage log](http://docs.ceph.com/docs/master/radosgw/admin/#usage) in default. If you need the feature (or run test cases), be sure that you enable the usage log in Ceph config file. Example ceph.conf: 
+Note that radosgw does not enable [usage log](http://docs.ceph.com/docs/master/radosgw/admin/#usage) in default. If you need the feature (or run test cases), be sure that you enable the usage log in Ceph config file. Example ceph.conf:
 ```
 ...
 [client.radosgw.gateway]
@@ -140,9 +140,9 @@ Copyright 2017-2021 [twonote](http://twonote.github.io/) & The "radosgw-admin4j"
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
- 
+
 [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
- 
+
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
