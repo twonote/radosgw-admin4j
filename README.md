@@ -2,7 +2,7 @@
 [![Javadocs](https://www.javadoc.io/badge/io.github.twonote/radosgw-admin4j.svg)](https://www.javadoc.io/static/io.github.twonote/radosgw-admin4j/2.0.2/org/twonote/rgwadmin4j/RgwAdmin.html)
 
 # About
-Updaradosgw-admin4j is a Ceph object storage admin client that allows provisioning and control of a Ceph object storage deployment. Features include user/subuser management, quota management, usage report, bucket/object management, etc.
+radosgw-admin4j is a Ceph object storage admin client that allows provisioning and control of a Ceph object storage deployment. Features include user/subuser management, quota management, usage report, bucket/object management, etc.
 
 # Highlight
 * **Fully support all [operations](http://docs.ceph.com/docs/master/radosgw/adminops/)** includes **subuser**, **quota** and more in the latest Ceph version.
