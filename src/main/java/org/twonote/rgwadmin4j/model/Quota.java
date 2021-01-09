@@ -3,7 +3,9 @@ package org.twonote.rgwadmin4j.model;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-/** Represents the user quota. */
+/**
+ * Represents the user quota.
+ */
 public class Quota {
 
   @SerializedName("enabled")

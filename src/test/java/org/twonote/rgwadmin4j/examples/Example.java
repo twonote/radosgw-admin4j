@@ -2,16 +2,22 @@ package org.twonote.rgwadmin4j.examples;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.google.common.collect.ImmutableMap;
+import java.util.List;
+import java.util.UUID;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.twonote.rgwadmin4j.impl.BaseTest;
-import org.twonote.rgwadmin4j.model.*;
+import org.twonote.rgwadmin4j.model.BucketInfo;
+import org.twonote.rgwadmin4j.model.CredentialType;
+import org.twonote.rgwadmin4j.model.SubUser;
+import org.twonote.rgwadmin4j.model.UsageInfo;
+import org.twonote.rgwadmin4j.model.User;
 
-import java.util.List;
-import java.util.UUID;
-
-/** Created by petertc on 4/18/17. */
+/**
+ * Created by petertc on 4/18/17.
+ */
 public class Example extends BaseTest {
+
   /*
    * User/subuser management
    */
@@ -82,7 +88,7 @@ public class Example extends BaseTest {
   // Remove @Ignore before run
   @Test
   @Ignore("Not a test")
-  public void run() throws Exception {
+  public void run() {
     String userId = "exampleUserId-" + UUID.randomUUID().toString();
     try {
       user(userId);

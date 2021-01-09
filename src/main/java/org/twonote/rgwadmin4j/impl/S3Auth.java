@@ -2,19 +2,19 @@ package org.twonote.rgwadmin4j.impl;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableSet;
-import okhttp3.Interceptor;
-import okhttp3.Request;
-import okhttp3.Response;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Set;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import okhttp3.Interceptor;
+import okhttp3.Request;
+import okhttp3.Response;
 
 /**
  * AWS authentication for Amazon S3 for the wonderful java okhttp client
@@ -88,8 +88,12 @@ class S3Auth implements Interceptor {
 
   private static String encodeBase64(byte[] data) {
     String base64 = Base64.getEncoder().encodeToString(data);
-    if (base64.endsWith("\r\n")) base64 = base64.substring(0, base64.length() - 2);
-    if (base64.endsWith("\n")) base64 = base64.substring(0, base64.length() - 1);
+    if (base64.endsWith("\r\n")) {
+      base64 = base64.substring(0, base64.length() - 2);
+    }
+    if (base64.endsWith("\n")) {
+      base64 = base64.substring(0, base64.length() - 1);
+    }
 
     return base64;
   }
@@ -151,10 +155,10 @@ class S3Auth implements Interceptor {
     stringToSign.append(resource);
     try {
       Mac mac = Mac.getInstance("HmacSHA1");
-      byte[] keyBytes = secretKey.getBytes("UTF8");
+      byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
       SecretKeySpec signingKey = new SecretKeySpec(keyBytes, "HmacSHA1");
       mac.init(signingKey);
-      byte[] signBytes = mac.doFinal(stringToSign.toString().getBytes("UTF8"));
+      byte[] signBytes = mac.doFinal(stringToSign.toString().getBytes(StandardCharsets.UTF_8));
       String signature = encodeBase64(signBytes);
       return "AWS" + " " + accessKey + ":" + signature;
     } catch (Exception e) {

@@ -8,14 +8,30 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import okhttp3.*;
-import org.twonote.rgwadmin4j.RgwAdmin;
-import org.twonote.rgwadmin4j.model.*;
-
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
+import org.twonote.rgwadmin4j.RgwAdmin;
+import org.twonote.rgwadmin4j.model.BucketInfo;
+import org.twonote.rgwadmin4j.model.Cap;
+import org.twonote.rgwadmin4j.model.CredentialType;
+import org.twonote.rgwadmin4j.model.Quota;
+import org.twonote.rgwadmin4j.model.S3Credential;
+import org.twonote.rgwadmin4j.model.SubUser;
+import org.twonote.rgwadmin4j.model.SwiftCredential;
+import org.twonote.rgwadmin4j.model.UsageInfo;
+import org.twonote.rgwadmin4j.model.User;
 
 /**
  * Radosgw administrator implementation
@@ -23,10 +39,11 @@ import java.util.stream.Collectors;
  * <p>Created by petertc on 2/16/17.
  */
 public class RgwAdminImpl implements RgwAdmin {
+
   private static final Gson gson = new Gson();
   private static final JsonParser jsonParser = new JsonParser();
 
-  private static final RequestBody emptyBody = RequestBody.create(null, new byte[] {});
+  private static final RequestBody emptyBody = RequestBody.create(null, new byte[]{});
 
   private final String endpoint;
   private final OkHttpClient client;
@@ -36,7 +53,7 @@ public class RgwAdminImpl implements RgwAdmin {
    *
    * @param accessKey Access key of the admin who have proper administrative capabilities.
    * @param secretKey Secret key of the admin who have proper administrative capabilities.
-   * @param endpoint Radosgw admin API endpoint, e.g., http://127.0.0.1:80/admin
+   * @param endpoint  Radosgw admin API endpoint, e.g., http://127.0.0.1:80/admin
    */
   public RgwAdminImpl(String accessKey, String secretKey, String endpoint) {
     validEndpoint(endpoint);
@@ -62,7 +79,9 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   private static <T> Type setModelAndGetCorrespondingList2(Class<T> type) {
-    return new TypeToken<ArrayList<T>>() {}.where(new TypeParameter<T>() {}, type).getType();
+    return new TypeToken<ArrayList<T>>() {
+    }.where(new TypeParameter<T>() {
+    }, type).getType();
   }
 
   @Override
@@ -138,7 +157,8 @@ public class RgwAdminImpl implements RgwAdmin {
             .build();
 
     String resp = safeCall(request);
-    Type type = new TypeToken<List<Cap>>() {}.getType();
+    Type type = new TypeToken<List<Cap>>() {
+    }.getType();
     return gson.fromJson(resp, type);
   }
 
@@ -158,7 +178,8 @@ public class RgwAdminImpl implements RgwAdmin {
             .build();
 
     String resp = safeCall(request);
-    Type type = new TypeToken<List<Cap>>() {}.getType();
+    Type type = new TypeToken<List<Cap>>() {
+    }.getType();
     return gson.fromJson(resp, type);
   }
 
@@ -178,7 +199,8 @@ public class RgwAdminImpl implements RgwAdmin {
     Request request = new Request.Builder().put(emptyBody).url(urlBuilder.build()).build();
 
     String resp = safeCall(request);
-    Type type = new TypeToken<List<SubUser>>() {}.getType();
+    Type type = new TypeToken<List<SubUser>>() {
+    }.getType();
     return gson.fromJson(resp, type);
   }
 
@@ -218,7 +240,8 @@ public class RgwAdminImpl implements RgwAdmin {
     Request request = new Request.Builder().post(emptyBody).url(urlBuilder.build()).build();
 
     String resp = safeCall(request);
-    Type type = new TypeToken<List<SubUser>>() {}.getType();
+    Type type = new TypeToken<List<SubUser>>() {
+    }.getType();
     return gson.fromJson(resp, type);
   }
 
@@ -296,7 +319,8 @@ public class RgwAdminImpl implements RgwAdmin {
     Request request = new Request.Builder().put(emptyBody).url(urlBuilder.build()).build();
 
     String resp = safeCall(request);
-    Type type = new TypeToken<List<S3Credential>>() {}.getType();
+    Type type = new TypeToken<List<S3Credential>>() {
+    }.getType();
     return gson.fromJson(resp, type);
   }
 
@@ -506,14 +530,14 @@ public class RgwAdminImpl implements RgwAdmin {
 
   @Override
   public List<String> listBucket() {
-    return listBucketInfo().stream().map(bkInfo -> bkInfo.getBucket()).collect(Collectors.toList());
+    return listBucketInfo().stream().map(BucketInfo::getBucket).collect(Collectors.toList());
   }
 
   @Override
   public List<String> listBucket(String userId) {
     return listBucketInfo(userId)
         .stream()
-        .map(bkInfo -> bkInfo.getBucket())
+        .map(BucketInfo::getBucket)
         .collect(Collectors.toList());
   }
 
@@ -546,7 +570,8 @@ public class RgwAdminImpl implements RgwAdmin {
       return ret;
     }
 
-    Type type = new TypeToken<List<BucketInfo>>() {}.getType();
+    Type type = new TypeToken<List<BucketInfo>>() {
+    }.getType();
     return gson.fromJson(resp, type);
   }
 
@@ -640,7 +665,8 @@ public class RgwAdminImpl implements RgwAdmin {
             .addPathSegment(metadataType.toString());
     Request request = new Request.Builder().get().url(urlBuilder.build()).build();
     String resp = safeCall(request);
-    Type type = new TypeToken<List<String>>() {}.getType();
+    Type type = new TypeToken<List<String>>() {
+    }.getType();
     return gson.fromJson(resp, type);
   }
 
@@ -650,7 +676,7 @@ public class RgwAdminImpl implements RgwAdmin {
    * <p>Equivalent to radosgw-admin metadata get --metadata-key bucket.instance:dsvdvdsv
    *
    * @param metadataType Specify the metadata type.
-   * @param key Specify the metadata key.
+   * @param key          Specify the metadata key.
    * @return Content of metadata in a json string.
    */
   private <T> T getMetadata(MetadataType metadataType, String key, Class<T> returnType) {
@@ -663,6 +689,7 @@ public class RgwAdminImpl implements RgwAdmin {
     Request request = new Request.Builder().get().url(urlBuilder.build()).build();
     String resp = safeCall(request);
 
+    assert resp != null;
     JsonObject jo = (JsonObject) jsonParser.parse(resp);
     return gson.fromJson(jo.get("data").toString(), returnType);
   }
@@ -674,7 +701,7 @@ public class RgwAdminImpl implements RgwAdmin {
 
   @Override
   public List<String> listSubUser(String userId) {
-    return listSubUserInfo(userId).stream().map(s -> s.getId()).collect(Collectors.toList());
+    return listSubUserInfo(userId).stream().map(SubUser::getId).collect(Collectors.toList());
   }
 
   @Override
@@ -758,7 +785,8 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
-  public void setIndividualBucketQuota(String userId, String bucket, long maxObjects, long maxSizeKB) {
+  public void setIndividualBucketQuota(String userId, String bucket, long maxObjects,
+      long maxSizeKB) {
     HttpUrl.Builder urlBuilder =
         HttpUrl.parse(endpoint)
             .newBuilder()

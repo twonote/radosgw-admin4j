@@ -1,5 +1,12 @@
 package org.twonote.rgwadmin4j.examples;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Properties;
+import java.util.TreeMap;
+import java.util.UUID;
 import org.javaswift.joss.client.factory.AccountConfig;
 import org.javaswift.joss.client.factory.AccountFactory;
 import org.javaswift.joss.client.factory.AuthenticationMethod;
@@ -12,12 +19,11 @@ import org.twonote.rgwadmin4j.model.CredentialType;
 import org.twonote.rgwadmin4j.model.SubUser;
 import org.twonote.rgwadmin4j.model.User;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-
-/** Created by petertc on 3/31/17. */
+/**
+ * Created by petertc on 3/31/17.
+ */
 public class SwiftExample {
+
   private static final String userId = "rgwAdmin4jTest-" + UUID.randomUUID().toString();
   private static String username;
   private static String password;
@@ -42,7 +48,7 @@ public class SwiftExample {
     object.uploadObject(new File("src/test/resources/foo.txt"));
 
     // Add/Update Object Metadata
-    Map<String, Object> metadata = new TreeMap<String, Object>();
+    Map<String, Object> metadata = new TreeMap<>();
     metadata.put("key", "value");
     object.setMetadata(metadata);
 
