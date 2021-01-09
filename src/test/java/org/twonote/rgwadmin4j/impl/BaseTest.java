@@ -7,6 +7,13 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.google.common.collect.ImmutableMap;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.NoSuchElementException;
+import java.util.Properties;
+import java.util.UUID;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import org.javaswift.joss.client.factory.AccountConfig;
 import org.javaswift.joss.client.factory.AccountFactory;
 import org.javaswift.joss.client.factory.AuthenticationMethod;
@@ -16,16 +23,11 @@ import org.junit.BeforeClass;
 import org.twonote.rgwadmin4j.model.S3Credential;
 import org.twonote.rgwadmin4j.model.User;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.NoSuchElementException;
-import java.util.Properties;
-import java.util.UUID;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-
-/** Created by hrchu on 2017/4/10. */
+/**
+ * Created by hrchu on 2017/4/10.
+ */
 public class BaseTest {
+
   protected static RgwAdminImpl RGW_ADMIN;
   protected static String adminUserId;
   protected static String adminAccessKey;
@@ -104,7 +106,6 @@ public class BaseTest {
 
   private static void testRgwAdminConnectivity() {
     try {
-      //noinspection ResultOfMethodCallIgnored
       RGW_ADMIN.getUserInfo(adminUserId).get();
     } catch (NoSuchElementException | RgwAdminException e) {
       System.out.println(

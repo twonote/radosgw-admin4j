@@ -1,12 +1,15 @@
 package org.twonote.rgwadmin4j.model;
 
+import static org.junit.Assert.assertEquals;
+
 import com.google.gson.Gson;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-
-/** Created by hrchu on 2017/4/8. */
+/**
+ * Created by hrchu on 2017/4/8.
+ */
 public class CapTest {
+
   private final Gson gson = new Gson();
 
   @Test

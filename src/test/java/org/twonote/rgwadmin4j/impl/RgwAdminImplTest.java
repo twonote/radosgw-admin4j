@@ -1,28 +1,39 @@
 package org.twonote.rgwadmin4j.impl;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.HeadBucketRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.twonote.rgwadmin4j.model.*;
-
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.twonote.rgwadmin4j.model.BucketInfo;
+import org.twonote.rgwadmin4j.model.Cap;
+import org.twonote.rgwadmin4j.model.CredentialType;
+import org.twonote.rgwadmin4j.model.Quota;
+import org.twonote.rgwadmin4j.model.S3Credential;
+import org.twonote.rgwadmin4j.model.SubUser;
+import org.twonote.rgwadmin4j.model.SwiftCredential;
+import org.twonote.rgwadmin4j.model.UsageInfo;
+import org.twonote.rgwadmin4j.model.User;
 
-import static org.junit.Assert.*;
-
-@SuppressWarnings("ConstantConditions")
 public class RgwAdminImplTest extends BaseTest {
+
   @Test
-  public void listSubUser() throws Exception {
+  public void listSubUser() {
     testWithASubUser(
         s -> {
           List<String> subUserIds = RGW_ADMIN.listSubUser(s.getUserId());
@@ -33,16 +44,16 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void listUserInfo() throws Exception {
+  public void listUserInfo() {
     testWithAUser(
         u -> {
           List<User> users = RGW_ADMIN.listUserInfo();
-          assertTrue(users.stream().anyMatch(v -> u.equals(v)));
+          assertTrue(users.stream().anyMatch(u::equals));
         });
   }
 
   @Test
-  public void listUser() throws Exception {
+  public void listUser() {
     testWithAUser(
         u -> {
           List<String> userIds = RGW_ADMIN.listUser();
@@ -51,7 +62,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void listSubUserInfo() throws Exception {
+  public void listSubUserInfo() {
     testWithASubUser(
         u -> {
           List<SubUser> subUsers = RGW_ADMIN.listSubUserInfo(u.getUserId());
@@ -60,7 +71,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void getSubUserInfo() throws Exception {
+  public void getSubUserInfo() {
     testWithASubUser(
         u -> {
           Optional<SubUser> subUserInfo =
@@ -71,7 +82,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void createS3Credential() throws Exception {
+  public void createS3Credential() {
     testWithAUser(
         v -> {
           List<S3Credential> response;
@@ -101,13 +112,13 @@ public class RgwAdminImplTest extends BaseTest {
             assertTrue(
                 "InvalidArgument".equals(e.getMessage()) // kraken
                     || "NoSuchUser".equals(e.getMessage()) // luminous
-                );
+            );
           }
         });
   }
 
   @Test
-  public void removeS3Credential() throws Exception {
+  public void removeS3Credential() {
     testWithAUser(
         v -> {
           String accessKey = v.getS3Credentials().get(0).getAccessKey();
@@ -135,13 +146,13 @@ public class RgwAdminImplTest extends BaseTest {
                 "InvalidArgument".equals(e.getMessage())
                     || // kraken
                     "NoSuchUser".equals(e.getMessage()) // luminous
-                );
+            );
           }
         });
   }
 
   @Test
-  public void createS3CredentialForSubUser() throws Exception {
+  public void createS3CredentialForSubUser() {
     testWithASubUser(
         v -> {
           List<S3Credential> response;
@@ -175,7 +186,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void removeS3CredentialFromSubUser() throws Exception {
+  public void removeS3CredentialFromSubUser() {
     testWithASubUser(
         v -> {
           String absSubUserId = v.getSubusers().get(0).getId(); // In forms of "foo:bar"
@@ -214,7 +225,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void createSwiftCredentialForSubUser() throws Exception {
+  public void createSwiftCredentialForSubUser() {
     testWithASubUser(
         v -> {
           SwiftCredential swiftCredential;
@@ -244,7 +255,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void removeSwiftCredentialFromSubUser() throws Exception {
+  public void removeSwiftCredentialFromSubUser() {
     testWithASubUser(
         v -> {
           String absSubUserId = v.getSubusers().get(0).getId(); // In forms of "foo:bar"
@@ -270,10 +281,11 @@ public class RgwAdminImplTest extends BaseTest {
 
   @Test
   @Ignore("See trimUsage()")
-  public void trimUserUsage() throws Exception {}
+  public void trimUserUsage() {
+  }
 
   @Test
-  public void trimUsage() throws Exception {
+  public void trimUsage() {
     testWithAUser(
         v -> {
           createSomeObjects(v);
@@ -304,10 +316,11 @@ public class RgwAdminImplTest extends BaseTest {
 
   @Test
   @Ignore("See getUsage()")
-  public void getUserUsage() throws Exception {}
+  public void getUserUsage() {
+  }
 
   @Test
-  public void getUsage() throws Exception {
+  public void getUsage() {
     testWithAUser(
         v -> {
           String userId = v.getUserId();
@@ -330,7 +343,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void setSubUserPermission() throws Exception {
+  public void setSubUserPermission() {
     testWithASubUser(
         su -> {
           SubUser subUser = su.getSubusers().get(0);
@@ -348,7 +361,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void modifySubUser() throws Exception {
+  public void modifySubUser() {
     testWithAUser(
         v -> {
           String subUserId = UUID.randomUUID().toString();
@@ -362,7 +375,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void removeSubUser() throws Exception {
+  public void removeSubUser() {
     testWithAUser(
         v -> {
           String subUserId = UUID.randomUUID().toString();
@@ -404,7 +417,7 @@ public class RgwAdminImplTest extends BaseTest {
 
   @Ignore("Works in v11.2.0-kraken or above.")
   @Test
-  public void _createSubUser() throws Exception {
+  public void _createSubUser() {
     testWithAUser(
         v -> {
           String subUserId = UUID.randomUUID().toString();
@@ -440,7 +453,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void checkBucketIndex() throws Exception {
+  public void checkBucketIndex() {
     testWithAUser(
         (v) -> {
           String userId = v.getUserId();
@@ -462,26 +475,31 @@ public class RgwAdminImplTest extends BaseTest {
 
   @Ignore("See getAndSetUserQuota()")
   @Test
-  public void getUserQuota() throws Exception {}
+  public void getUserQuota() {
+  }
 
   @Ignore("See getAndSetUserQuota()")
   @Test
-  public void setUserQuota() throws Exception {}
+  public void setUserQuota() {
+  }
 
   @Ignore("See getAndSetBucketQuota()")
   @Test
-  public void getBucketQuota() throws Exception {}
+  public void getBucketQuota() {
+  }
 
   @Ignore("See getAndSetBucketQuota()")
   @Test
-  public void setBucketQuota() throws Exception {}
+  public void setBucketQuota() {
+  }
 
   @Test
   @Ignore("See userCapability()")
-  public void addUserCapability() throws Exception {}
+  public void addUserCapability() {
+  }
 
   @Test
-  public void userCapability() throws Exception {
+  public void userCapability() {
     testWithASubUser(
         v -> {
           String userId = v.getUserId();
@@ -505,7 +523,8 @@ public class RgwAdminImplTest extends BaseTest {
 
   @Test
   @Ignore("See userCapability()")
-  public void removeUserCapability() throws Exception {}
+  public void removeUserCapability() {
+  }
 
   @Test
   public void removeBucket() throws Exception {
@@ -535,13 +554,13 @@ public class RgwAdminImplTest extends BaseTest {
             s3.headBucket(new HeadBucketRequest(bucketName));
             fail();
           } catch (Exception e) {
-            assertTrue("Not Found".equals(((AmazonS3Exception) e).getErrorMessage()));
+            assertEquals("Not Found", ((AmazonS3Exception) e).getErrorMessage());
           }
         });
   }
 
   @Test
-  public void unlinkBucket() throws Exception {
+  public void unlinkBucket() {
     testWithAUser(
         (v) -> {
           String userId = v.getUserId();
@@ -569,7 +588,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void linkBucket() throws Exception {
+  public void linkBucket() {
     testWithAUser(
         v -> {
           String userId = "linkbkusr" + UUID.randomUUID().toString();
@@ -601,13 +620,16 @@ public class RgwAdminImplTest extends BaseTest {
           //            exception.expect(RuntimeException.class);
           RGW_ADMIN.linkBucket(bucketName, bucketId, adminUserId + "qqq");
 
-          //            exception.expect(RuntimeException.class);
-          RGW_ADMIN.linkBucket(bucketName, bucketId + "qq", adminUserId);
+          try {
+            RGW_ADMIN.linkBucket(bucketName, bucketId + "qq", adminUserId);
+          } catch (RgwAdminException e) {
+            assertEquals("InvalidArgument", e.getMessage());
+          }
         });
   }
 
   @Test
-  public void listBucketInfo() throws Exception {
+  public void listBucketInfo() {
     testWithASubUser(
         v -> {
           AmazonS3 s3 =
@@ -631,7 +653,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void listBucket() throws Exception {
+  public void listBucket() {
     testWithASubUser(
         v -> {
           AmazonS3 s3 =
@@ -655,7 +677,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void getBucketInfo() throws Exception {
+  public void getBucketInfo() {
     testWithASubUser(
         v -> {
           AmazonS3 s3 =
@@ -671,8 +693,8 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void modifyUser() throws Exception {
-    String userId = "testModifyUserId";
+  public void modifyUser() {
+    String userId = "testModifyUserId" + UUID.randomUUID().toString();
     RGW_ADMIN.createUser(userId);
 
     // basic
@@ -691,7 +713,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void removeUser() throws Exception {
+  public void removeUser() {
     // The operation is success if the user is not exist in the system after the operation is
     // executed.
     String userId = "testRemoveUserId";
@@ -704,7 +726,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void createUser() throws Exception {
+  public void createUser() {
     String userId = "bobx" + UUID.randomUUID().toString();
     try {
       // basic
@@ -716,8 +738,11 @@ public class RgwAdminImplTest extends BaseTest {
       assertEquals(Integer.valueOf(1000), response.getMaxBuckets());
 
       // create exist one should act like modification
-      response = RGW_ADMIN.createUser(userId, ImmutableMap.of("max-buckets", "1"));
-      assertEquals(Integer.valueOf(1), response.getMaxBuckets());
+      try {
+        RGW_ADMIN.createUser(userId);
+      } catch (RgwAdminException e) {
+        assertEquals("UserAlreadyExists", e.getMessage());
+      }
 
     } finally {
       RGW_ADMIN.removeUser(userId);
@@ -725,7 +750,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void getUserInfo() throws Exception {
+  public void getUserInfo() {
     // basic
     User response = RGW_ADMIN.getUserInfo(adminUserId).get();
     assertEquals(Integer.valueOf(0), response.getSuspended());
@@ -741,7 +766,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void suspendUser() throws Exception {
+  public void suspendUser() {
     testWithASubUser(
         v -> {
           String userId = v.getUserId();
@@ -760,7 +785,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void userQuotaMaxObjects() throws Exception {
+  public void userQuotaMaxObjects() {
     testWithAUser(
         (v) -> {
           String userId = v.getUserId();
@@ -799,7 +824,7 @@ public class RgwAdminImplTest extends BaseTest {
    * (Assume that the used size is 0 before taking the action.)
    */
   @Test
-  public void userQuotaMaxSize() throws Exception {
+  public void userQuotaMaxSize() {
     testWithAUser(
         (v) -> {
           String userId = v.getUserId();
@@ -833,7 +858,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void getAndSetUserQuota() throws Exception {
+  public void getAndSetUserQuota() {
     testWithAUser(
         (v) -> {
           String userId = v.getUserId();
@@ -846,7 +871,7 @@ public class RgwAdminImplTest extends BaseTest {
           assertTrue(
               quota.getMaxSizeKb() == -1 // jewel
                   || quota.getMaxSizeKb() == 0 // kraken
-              );
+          );
 
           // set quota
           RGW_ADMIN.setUserQuota(userId, 1, 1);
@@ -865,14 +890,14 @@ public class RgwAdminImplTest extends BaseTest {
           "InvalidArgument".equals(e.getMessage())
               || // kraken
               "NoSuchUser".equals(e.getMessage()) // luminous
-          );
+      );
     }
 
     RGW_ADMIN.setUserQuota(UUID.randomUUID().toString(), 1, 1);
   }
 
   @Test
-  public void getAndSetBucketQuota() throws Exception {
+  public void getAndSetBucketQuota() {
     testWithAUser(
         (v) -> {
           String userId = v.getUserId();
@@ -893,7 +918,7 @@ public class RgwAdminImplTest extends BaseTest {
           assertTrue(
               quota.getMaxSizeKb() == -1 // jewel
                   || quota.getMaxSizeKb() == 0 // kraken
-              );
+          );
 
           // set quota
           RGW_ADMIN.setBucketQuota(userId, 1, 1);
@@ -911,7 +936,7 @@ public class RgwAdminImplTest extends BaseTest {
           assertTrue(
               quota.getMaxSizeKb() == -1 // jewel
                   || quota.getMaxSizeKb() == 0 // kraken
-              );
+          );
         });
 
     // user not exist
@@ -923,14 +948,14 @@ public class RgwAdminImplTest extends BaseTest {
           "InvalidArgument".equals(e.getMessage())
               || // kraken
               "NoSuchUser".equals(e.getMessage()) // luminous
-          );
+      );
     }
 
     RGW_ADMIN.setBucketQuota(UUID.randomUUID().toString(), 1, 1);
   }
 
   @Test
-  public void getAndSetSpecificBucketQuota() throws Exception {
+  public void getAndSetSpecificBucketQuota() {
     testWithAUser(
         (v) -> {
           String userId = v.getUserId();
@@ -951,7 +976,7 @@ public class RgwAdminImplTest extends BaseTest {
           assertTrue(
               quota.getMaxSizeKb() == -1 // jewel
                   || quota.getMaxSizeKb() == 0 // kraken
-              );
+          );
 
           // set quota
           RGW_ADMIN.setIndividualBucketQuota(userId, bucketName, 1, 1);
@@ -963,7 +988,7 @@ public class RgwAdminImplTest extends BaseTest {
           assertTrue(
               quota.getMaxSizeKb() == -1 // jewel
                   || quota.getMaxSizeKb() == 0 // kraken
-              );
+          );
 
           // not shown by getBucketInfo()
           quota = RGW_ADMIN.getBucketInfo(bucketName).get().getBucketQuota();
@@ -974,7 +999,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void getObjectPolicy() throws Exception {
+  public void getObjectPolicy() {
     testWithAUser(
         (v) -> {
           String userId = v.getUserId();
@@ -992,7 +1017,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void getBucketPolicy() throws Exception {
+  public void getBucketPolicy() {
     testWithAUser(
         (v) -> {
           String userId = v.getUserId();
@@ -1008,7 +1033,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void removeObject() throws Exception {
+  public void removeObject() {
     testWithAUser(
         (v) -> {
           String userId = v.getUserId();

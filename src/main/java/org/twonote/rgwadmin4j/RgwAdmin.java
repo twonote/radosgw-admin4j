@@ -1,10 +1,17 @@
 package org.twonote.rgwadmin4j;
 
-import org.twonote.rgwadmin4j.model.*;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.twonote.rgwadmin4j.model.BucketInfo;
+import org.twonote.rgwadmin4j.model.Cap;
+import org.twonote.rgwadmin4j.model.CredentialType;
+import org.twonote.rgwadmin4j.model.Quota;
+import org.twonote.rgwadmin4j.model.S3Credential;
+import org.twonote.rgwadmin4j.model.SubUser;
+import org.twonote.rgwadmin4j.model.SwiftCredential;
+import org.twonote.rgwadmin4j.model.UsageInfo;
+import org.twonote.rgwadmin4j.model.User;
 
 /**
  * Radosgw administrator
@@ -19,6 +26,7 @@ import java.util.Optional;
  */
 @SuppressWarnings("SameParameterValue")
 public interface RgwAdmin {
+
   /**
    * Remove usage information for specified user. With no dates specified, removes all usage
    * information.
@@ -32,7 +40,7 @@ public interface RgwAdmin {
    *       (non-inclusive). Example: 2012-09-25 16:00:00
    * </ul>
    *
-   * @param userId The user for which the information is requested.
+   * @param userId     The user for which the information is requested.
    * @param parameters optional parameters to filter the usage to delete.
    */
   void trimUserUsage(String userId, Map<String, String> parameters);
@@ -105,7 +113,7 @@ public interface RgwAdmin {
    *
    * <p>Note that you can get the capability by {@link #getUserInfo(String)}
    *
-   * @param userId The user ID to add an administrative capability to.
+   * @param userId   The user ID to add an administrative capability to.
    * @param userCaps The administrative capability to add to the user.
    * @return The user's capabilities after the operation.
    */
@@ -116,7 +124,7 @@ public interface RgwAdmin {
    *
    * <p>Note that you can get the capability by {@link #getUserInfo(String)}
    *
-   * @param userId The user ID to remove an administrative capability from.
+   * @param userId   The user ID to remove an administrative capability from.
    * @param userCaps The administrative capabilities to remove from the user.
    * @return The user's capabilities after the operation.
    */
@@ -145,8 +153,8 @@ public interface RgwAdmin {
    *   <li>To create subuser for S3, you need Ceph v11.2.0-kraken or above.
    * </ol>
    *
-   * @param userId The user ID under which a subuser is to be created.
-   * @param subUserId Specify the subuser ID to be created.
+   * @param userId     The user ID under which a subuser is to be created.
+   * @param subUserId  Specify the subuser ID to be created.
    * @param parameters The subuser parameters.
    * @return Subusers associated with the user account.
    */
@@ -166,10 +174,10 @@ public interface RgwAdmin {
    *   <li>To create subuser for S3, you need Ceph v11.2.0-kraken or above.
    * </ol>
    *
-   * @param userId The user ID under which a subuser is to be created.
-   * @param subUserId Specify the subuser ID to be created. Should be in the relative form, i.e.,
-   *     does not contain the user id.
-   * @param permission The subuser permission.
+   * @param userId         The user ID under which a subuser is to be created.
+   * @param subUserId      Specify the subuser ID to be created. Should be in the relative form,
+   *                       i.e., does not contain the user id.
+   * @param permission     The subuser permission.
    * @param credentialType Specify credential type to be generated.
    * @return The created subuser information.
    */
@@ -184,8 +192,8 @@ public interface RgwAdmin {
    *
    * <p>Note that you can get the permission by {@link #getSubUserInfo(String, String)}
    *
-   * @param userId The user ID under which a subuser is to be created.
-   * @param subUserId Specify the subuser ID to be created.
+   * @param userId     The user ID under which a subuser is to be created.
+   * @param subUserId  Specify the subuser ID to be created.
    * @param permission Specify the subuser permission.
    * @return Subusers associated with the user account.
    */
@@ -203,7 +211,7 @@ public interface RgwAdmin {
   /**
    * Get sub-user information.
    *
-   * @param userId The user ID.
+   * @param userId    The user ID.
    * @param subUserId The subuser ID
    * @return The subuser information.
    */
@@ -214,7 +222,7 @@ public interface RgwAdmin {
    *
    * <p>Note that the operation also removes credentials belonging to the subuser.
    *
-   * @param userId The user ID under which the subuser is to be removed.
+   * @param userId    The user ID under which the subuser is to be removed.
    * @param subUserId The subuser ID to be removed.
    */
   void removeSubUser(String userId, String subUserId);
@@ -222,7 +230,7 @@ public interface RgwAdmin {
   /**
    * Create a new S3 credential for the specified user.
    *
-   * @param userId the specified user.
+   * @param userId    the specified user.
    * @param accessKey S3 access key
    * @param secretKey S3 secret key
    * @return S3 credentials associated with this user account.
@@ -243,7 +251,7 @@ public interface RgwAdmin {
   /**
    * Remove an existing S3 credential from the specified user.
    *
-   * @param userId The specified user.
+   * @param userId    The specified user.
    * @param accessKey The access key which is belonging to the credential to remove.
    */
   void removeS3Credential(String userId, String accessKey);
@@ -251,9 +259,9 @@ public interface RgwAdmin {
   /**
    * Create a new S3 credential for the specified subuser.
    *
-   * @param userId The specified user.
+   * @param userId    The specified user.
    * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
-   *     foo:bar.
+   *                  foo:bar.
    * @param accessKey S3 access key.
    * @param secretKey S3 secret key.
    * @return S3 credentials associated with this subuser account.
@@ -267,9 +275,9 @@ public interface RgwAdmin {
    * <p>The credential will be automatically generated for the user. If you want to specify the
    * credential, please use {@link #createS3CredentialForSubUser(String, String, String, String)}
    *
-   * @param userId the specified user.
+   * @param userId    the specified user.
    * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
-   *     foo:bar.
+   *                  foo:bar.
    * @return S3 credentials created associated with this subuser account.
    */
   List<S3Credential> createS3CredentialForSubUser(String userId, String subUserId);
@@ -277,9 +285,9 @@ public interface RgwAdmin {
   /**
    * Remove an existing S3 credential from the specified sub user.
    *
-   * @param userId the specified user.
+   * @param userId    the specified user.
    * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
-   *     foo:bar.
+   *                  foo:bar.
    * @param accessKey The access key which is belonging to the credential to remove.
    */
   void removeS3CredentialFromSubUser(String userId, String subUserId, String accessKey);
@@ -289,10 +297,10 @@ public interface RgwAdmin {
    *
    * <p>Tip: a subuser can have only one swift credential.
    *
-   * @param userId The specified user.
+   * @param userId    The specified user.
    * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
-   *     foo:bar.
-   * @param password The specified swift password.
+   *                  foo:bar.
+   * @param password  The specified swift password.
    * @return The Swift credentials associated with this subuser account.
    */
   SwiftCredential createSwiftCredentialForSubUser(String userId, String subUserId, String password);
@@ -305,9 +313,9 @@ public interface RgwAdmin {
    *
    * <p>Tip: a subuser can have only one swift credential.
    *
-   * @param userId The specified user.
+   * @param userId    The specified user.
    * @param subUserId The specified sub user. Should not contain user id, i.e., bar instead of
-   *     foo:bar.
+   *                  foo:bar.
    * @return The Swift credential associated with this subuser account.
    */
   SwiftCredential createSwiftCredentialForSubUser(String userId, String subUserId);
@@ -315,9 +323,9 @@ public interface RgwAdmin {
   /**
    * Remove the credential from the specified sub user.
    *
-   * @param userId the specified user.
+   * @param userId    the specified user.
    * @param subUserId the specified sub user. Should not contain user id, i.e., bar instead of
-   *     foo:bar.
+   *                  foo:bar.
    */
   void removeSwiftCredentialFromSubUser(String userId, String subUserId);
 
@@ -334,9 +342,9 @@ public interface RgwAdmin {
    * Link a bucket to a specified user, unlinking the bucket from any previous user.
    *
    * @param bucketName The bucket name to unlink.
-   * @param bucketId The bucket id to unlink. Example: dev.6607669.420. (You can get this by {@link
-   *     #getBucketInfo(String)})
-   * @param userId The user ID to link the bucket to.
+   * @param bucketId   The bucket id to unlink. Example: dev.6607669.420. (You can get this by
+   *                   {@link #getBucketInfo(String)})
+   * @param userId     The user ID to link the bucket to.
    */
   void linkBucket(String bucketName, String bucketId, String userId);
 
@@ -344,7 +352,7 @@ public interface RgwAdmin {
    * Unlink a bucket from a specified user. Primarily useful for changing bucket ownership.
    *
    * @param bucketName The bucket to unlink.
-   * @param userId The user ID to unlink the bucket from.
+   * @param userId     The user ID to unlink the bucket from.
    */
   void unlinkBucket(String bucketName, String userId);
 
@@ -370,9 +378,9 @@ public interface RgwAdmin {
    * }
    * </pre>
    *
-   * @param bucketName The bucket to return info on.
+   * @param bucketName     The bucket to return info on.
    * @param isCheckObjects Check multipart object accounting. Example: True [False]
-   * @param isFix Also fix the bucket index when checking. Example: False [False]
+   * @param isFix          Also fix the bucket index when checking. Example: False [False]
    * @return Status of bucket index.
    */
   Optional<String> checkBucketIndex(String bucketName, boolean isCheckObjects, boolean isFix);
@@ -419,7 +427,8 @@ public interface RgwAdmin {
    * Create a new user.
    *
    * <p>An S3 key pair will be created automatically and returned in the response. If you want to
-   * customize user properties or create a Swift user, use {@link #createUser(String, Map)} instead.
+   * customize user properties or create a Swift user, use {@link #createUser(String, Map)}
+   * instead.
    *
    * @param userId The user ID to be created.
    * @return The user information.
@@ -450,7 +459,7 @@ public interface RgwAdmin {
    * key pair. If access-key is specified and refers to an existing key owned by the user then it
    * will be modified.
    *
-   * @param userId The user ID to be created.
+   * @param userId     The user ID to be created.
    * @param parameters The user properties.
    * @return The user information.
    */
@@ -504,7 +513,7 @@ public interface RgwAdmin {
    *   <li>suspended: Specify whether the user should be suspended. Example: False [False]
    * </ul>
    *
-   * @param userId The user ID to be modified.
+   * @param userId     The user ID to be modified.
    * @param parameters Optional parameters.
    * @return The user information.
    */
@@ -513,7 +522,7 @@ public interface RgwAdmin {
   /**
    * Suspend or resume a user
    *
-   * @param userId The user ID to be suspended or resumed.
+   * @param userId  The user ID to be suspended or resumed.
    * @param suspend Set true to suspend the user and vice versa.
    */
   void suspendUser(String userId, boolean suspend);
@@ -545,39 +554,39 @@ public interface RgwAdmin {
 
   /**
    * Set or modify a quota on a given bucket.
-   *
+   * <p>
    * Note that you can get this quota via {@link #getBucketInfo(String)}
    *
    * <p>Tips: To use this feature, you need Ceph v13.0.2 (mimic) or above.
    *
-   * @param userId The bucket owner to set quota.
-   * @param bucket The bucket to set quota.
+   * @param userId     The bucket owner to set quota.
+   * @param bucket     The bucket to set quota.
    * @param maxObjects The max-objects setting allows you to specify the maximum number of objects.
-   *     A negative value disables this setting.
-   * @param maxSizeKB The max-size option allows you to specify a quota for the maximum number of
-   *     bytes. A negative value disables this setting.
+   *                   A negative value disables this setting.
+   * @param maxSizeKB  The max-size option allows you to specify a quota for the maximum number of
+   *                   bytes. A negative value disables this setting.
    */
   void setIndividualBucketQuota(String userId, String bucket, long maxObjects, long maxSizeKB);
 
   /**
    * Set or modify quotas on all buckets owned by a user.
    *
-   * @param userId The bucket owner to set quota.
+   * @param userId     The bucket owner to set quota.
    * @param maxObjects The max-objects setting allows you to specify the maximum number of objects.
-   *     A negative value disables this setting.
-   * @param maxSizeKB The max-size option allows you to specify a quota for the maximum number of
-   *     bytes. A negative value disables this setting.
+   *                   A negative value disables this setting.
+   * @param maxSizeKB  The max-size option allows you to specify a quota for the maximum number of
+   *                   bytes. A negative value disables this setting.
    */
   void setBucketQuota(String userId, long maxObjects, long maxSizeKB);
 
   /**
    * Set or modify a quota on a user.
    *
-   * @param userId The user to set quota.
+   * @param userId     The user to set quota.
    * @param maxObjects The max-objects setting allows you to specify the maximum number of objects.
-   *     A negative value disables this setting.
-   * @param maxSizeKB The max-size option allows you to specify a quota for the maximum number of
-   *     bytes. A negative value disables this setting.
+   *                   A negative value disables this setting.
+   * @param maxSizeKB  The max-size option allows you to specify a quota for the maximum number of
+   *                   bytes. A negative value disables this setting.
    */
   void setUserQuota(String userId, long maxObjects, long maxSizeKB);
 
@@ -587,7 +596,7 @@ public interface RgwAdmin {
    * <p>NOTE: Does not require the owner to be non-suspended.
    *
    * @param bucketName The bucket containing the object to be removed.
-   * @param objectKey The object to remove.
+   * @param objectKey  The object to remove.
    */
   void removeObject(String bucketName, String objectKey);
 
@@ -638,7 +647,7 @@ public interface RgwAdmin {
    * </pre>
    *
    * @param bucketName The bucket to which the object belong to.
-   * @param objectKey The object to read the policy from.
+   * @param objectKey  The object to read the policy from.
    * @return If successful returns the policy.
    */
   Optional<String> getObjectPolicy(String bucketName, String objectKey);

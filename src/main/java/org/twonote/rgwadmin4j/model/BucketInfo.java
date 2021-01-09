@@ -3,8 +3,11 @@ package org.twonote.rgwadmin4j.model;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-/** Represents the bucket information. */
+/**
+ * Represents the bucket information.
+ */
 public class BucketInfo {
+
   /*
    {
     "bucket":"testgetbucketinfo",
@@ -180,8 +183,11 @@ public class BucketInfo {
     this.bucketQuota = bucketQuota;
   }
 
-  /** Bucket stats information. */
+  /**
+   * Bucket stats information.
+   */
   public static class Usage {
+
     @SerializedName("rgw.main")
     private RgwMain rgwMain;
 
@@ -194,6 +200,7 @@ public class BucketInfo {
     }
 
     public static class RgwMain {
+
       /**
        * size : 122880 size_actual : 122880 size_utilized : 122880 size_kb : 120 size_kb_actual :
        * 120 size_kb_utilized : 120 num_objects : 3
