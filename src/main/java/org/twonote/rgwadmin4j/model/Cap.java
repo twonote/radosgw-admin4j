@@ -8,7 +8,10 @@ import com.google.gson.annotations.SerializedName;
  * <p>Created by hrchu on 2017/4/8.
  */
 public class Cap {
-  /** type : usage perm : * */
+
+  /**
+   * type : usage perm : *
+   */
   private final Type type;
 
   private final Perm perm;
@@ -38,8 +41,12 @@ public class Cap {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     Cap cap = (Cap) o;
 
@@ -83,8 +90,8 @@ public class Cap {
     WRITE,
 
     @SerializedName(
-      value = "*",
-      alternate = {"read, write", "read,write", "write, read", "write,read"}
+        value = "*",
+        alternate = {"read, write", "read,write", "write, read", "write,read"}
     )
     READ_WRITE;
 

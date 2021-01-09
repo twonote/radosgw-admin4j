@@ -1,9 +1,9 @@
 package org.twonote.rgwadmin4j;
 
 import com.google.common.base.Strings;
-import org.twonote.rgwadmin4j.impl.RgwAdminImpl;
-
 import java.util.Arrays;
+import java.util.stream.Stream;
+import org.twonote.rgwadmin4j.impl.RgwAdminImpl;
 
 /**
  * Fluent builder for {@link RgwAdmin}. Use of the builder is preferred over using constructors of
@@ -12,6 +12,7 @@ import java.util.Arrays;
  * <p>Created by hrchu on 2017/4/10.
  */
 public class RgwAdminBuilder {
+
   private String accessKey;
   private String secretKey;
   private String endpoint;
@@ -20,8 +21,7 @@ public class RgwAdminBuilder {
    * Sets the access key to be used by the client.
    *
    * <p>Note that the corresponding user, i.g, the administrator, should has proper administrative
-   * capabilities. See more about administrative capabilities <a
-   * href="http://docs.ceph.com/docs/master/radosgw/admin/#add-remove-admin-capabilities">here</a>
+   * capabilities. See more about administrative capabilities <a href="http://docs.ceph.com/docs/master/radosgw/admin/#add-remove-admin-capabilities">here</a>
    *
    * @param accessKey Access key to use.
    * @return This object for method chaining.
@@ -35,8 +35,7 @@ public class RgwAdminBuilder {
    * Sets the secret key to be used by the client.
    *
    * <p>Note that the corresponding user, i.g, the administrator, should has proper administrative
-   * capabilities. See more about administrative capabilities <a
-   * href="http://docs.ceph.com/docs/master/radosgw/admin/#add-remove-admin-capabilities">here</a>
+   * capabilities. See more about administrative capabilities <a href="http://docs.ceph.com/docs/master/radosgw/admin/#add-remove-admin-capabilities">here</a>
    *
    * @param secretKey Secret key to use.
    * @return This object for method chaining.
@@ -67,7 +66,7 @@ public class RgwAdminBuilder {
    * @return Client instance to make API calls with.
    */
   public RgwAdmin build() {
-    if (Arrays.asList(accessKey, secretKey, endpoint).stream().anyMatch(Strings::isNullOrEmpty)) {
+    if (Stream.of(accessKey, secretKey, endpoint).anyMatch(Strings::isNullOrEmpty)) {
       throw new IllegalArgumentException("Missing required parameter to build the instance.");
     }
     return new RgwAdminImpl(accessKey, secretKey, endpoint);

@@ -1,9 +1,8 @@
 package org.twonote.rgwadmin4j.model;
 
+import java.util.List;
 import org.twonote.rgwadmin4j.model.usage.Entries;
 import org.twonote.rgwadmin4j.model.usage.Summary;
-
-import java.util.List;
 
 /*
 Example:
@@ -104,8 +103,12 @@ Example:
    ]
 }
  */
-/** Represents the request bandwidth usage information. */
+
+/**
+ * Represents the request bandwidth usage information.
+ */
 public class UsageInfo {
+
   private List<Entries> entries;
   private List<Summary> summary;
 

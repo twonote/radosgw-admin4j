@@ -2,9 +2,14 @@ package org.twonote.rgwadmin4j.model;
 
 import com.google.gson.annotations.SerializedName;
 
-/** Represents the sub-user information. */
+/**
+ * Represents the sub-user information.
+ */
 public class SubUser {
-  /** id : rgwAdmin4jTest-6eed8682-c533-4364-bd36-684e3a9f32c7:qqqqq permissions : full-control */
+
+  /**
+   * id : rgwAdmin4jTest-6eed8682-c533-4364-bd36-684e3a9f32c7:qqqqq permissions : full-control
+   */
   private String id;
 
   @SerializedName("permissions")
@@ -50,12 +55,18 @@ public class SubUser {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     SubUser subUser = (SubUser) o;
 
-    if (id != null ? !id.equals(subUser.id) : subUser.id != null) return false;
+    if (id != null ? !id.equals(subUser.id) : subUser.id != null) {
+      return false;
+    }
     return permission == subUser.permission;
   }
 
@@ -66,7 +77,9 @@ public class SubUser {
     return result;
   }
 
-  /** Access permission for sub-user. */
+  /**
+   * Access permission for sub-user.
+   */
   public enum Permission {
     @SerializedName("<none>")
     NONE,
@@ -81,8 +94,8 @@ public class SubUser {
     READWRITE,
 
     @SerializedName(
-      value = "full",
-      alternate = {"full-control"}
+        value = "full",
+        alternate = {"full-control"}
     )
     FULL;
 
