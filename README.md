@@ -1,5 +1,5 @@
-![build status](https://github.com/twonote/radosgw-admin4j/actions/workflows/maven.yml/badge.svg)
-  [![License](https://img.shields.io/badge/license-Apache%202-blue.svg)]()
+![build status](https://github.com/twonote/radosgw-admin4j/actions/workflows/maven.yml/badge.svg)(https://github.com/twonote/radosgw-admin4j/actions)
+  [![License](https://img.shields.io/badge/license-Apache%202-blue.svg)](https://github.com/twonote/radosgw-admin4j/blob/master/LICENSE)
 [![Javadocs](https://www.javadoc.io/badge/io.github.twonote/radosgw-admin4j.svg)](https://www.javadoc.io/static/io.github.twonote/radosgw-admin4j/2.0.2/org/twonote/rgwadmin4j/RgwAdmin.html)
 
 # About
