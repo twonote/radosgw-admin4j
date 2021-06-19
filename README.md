@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/twonote/radosgw-admin4j.svg?branch=master)](https://travis-ci.org/twonote/radosgw-admin4j)  [![License](https://img.shields.io/badge/license-Apache%202-blue.svg)]()
+![build status](https://github.com/twonote/radosgw-admin4j/actions/workflows/maven.yml/badge.svg)
+  [![License](https://img.shields.io/badge/license-Apache%202-blue.svg)]()
 [![Javadocs](https://www.javadoc.io/badge/io.github.twonote/radosgw-admin4j.svg)](https://www.javadoc.io/static/io.github.twonote/radosgw-admin4j/2.0.2/org/twonote/rgwadmin4j/RgwAdmin.html)
 
 # About
@@ -7,7 +8,7 @@ radosgw-admin4j is a Ceph object storage admin client that allows provisioning a
 # Highlight
 * **Fully support all [operations](http://docs.ceph.com/docs/master/radosgw/adminops/)** includes **subuser**, **quota** and more in the latest Ceph version.
 * An easier way to manage radosgw. Avoid troubles when working with radosgw admin APIs, especially that docs are a bit confusing and inconsistent with the codebase.
-* Quality and compatibility - [Continuous Integration](https://github.com/twonote/radosgw-admin4j/actions) and tests against Ceph LTS versions ([**Nautilus/Octopus**](https://docs.ceph.com/en/latest/releases/general/) currently.)
+* Quality and compatibility - [Continuous Integration](https://github.com/twonote/radosgw-admin4j/actions) and tests against Ceph LTS versions ([**Octopus/Pacific**](https://docs.ceph.com/en/latest/releases/general/) currently.)
 * Contributor friendly - typical contribution process, no weird policies, all contributions are welcome!
 
 # Start using
