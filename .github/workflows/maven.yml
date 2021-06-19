@@ -22,6 +22,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '11'
+          distribution: 'adopt'
       # run integration test
       - uses: actions/checkout@v2
       - run: mvn install -Dgpg.skip=true
