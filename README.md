@@ -90,9 +90,9 @@ userUsage.getSummary().stream().peek(System.out::println);
 To kick-off, you need one ready to use radosgw instance and one radosgw account with proper admin capabilities. Follow the guide below to have a radowgw setup then you can fire the example code.
 
 ### “I do not have a radosgw setup currently”
-You could refer to the [Ceph official manual](http://docs.ceph.com/docs/master/start/) to set up a Ceph cluster with radosgw *quickly*. It is not a piece of cake if you do not familiar with Ceph. Things will be easier if you have **docker** in your environment. To set up a standalone instance with an admin account powered by the [Ceph daemon image](https://hub.docker.com/r/ceph/daemon/), follow the instructions below:
+You could refer to the [Ceph official manual](http://docs.ceph.com/docs/master/start/) to set up a Ceph cluster with radosgw *quickly*. It is not a piece of cake if you do not familiar with Ceph. Things will be easier if you have **Docker** in your environment. To set up a standalone instance with an admin account powered by the [Ceph daemon docker image](https://hub.docker.com/r/ceph/daemon/), follow the instructions below:
 ```
-$ docker run -d -p 80:8080 -v /etc/ceph/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e NETWORK_AUTO_DETECT=4 --name rgw ceph/daemon:v5.0.4-stable-5.0-octopus-centos-8 demo 
+$ docker run -d -p 80:8080 -v /etc/ceph/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e NETWORK_AUTO_DETECT=4 --name rgw ceph/daemon:v6.0.3-stable-6.0-pacific-centos-8-x86_64 demo 
 ```
 
 Note that port 80 should be available.
