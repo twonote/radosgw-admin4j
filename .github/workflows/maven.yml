@@ -6,8 +6,8 @@ name: integration-test
 on: [push, pull_request]
   
 jobs:
-  pacific:
-    name: integration_test_pacific
+  pacific-java11:
+    name: integration_test_pacific_java11
     runs-on: ubuntu-latest
     steps:  
       # run ceph rgw
@@ -18,7 +18,27 @@ jobs:
       - run: cat rgw.log
       - run: echo -e 'GET / HTTP/1.1\r\nHost:localhost\r\n\r\n' | nc localhost 80
       # setup java        
-      - name: Set up JDK 1.8
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+      # run integration test
+      - uses: actions/checkout@v2
+      - run: mvn install -Dgpg.skip=true
+      - run: cat target/surefire-reports/*.txt
+  pacific-java8:
+    name: integration_test_pacific_java8
+    runs-on: ubuntu-latest
+    steps:  
+      # run ceph rgw
+      - run: docker pull ceph/daemon:v6.0.3-stable-6.0-pacific-centos-8-x86_64
+      - run: docker run -d -p 80:8080 -v /etc/ceph/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e NETWORK_AUTO_DETECT=4 --name rgw ceph/daemon:v6.0.3-stable-6.0-pacific-centos-8-x86_64 demo
+      - run: timeout 120 bash -c "until docker logs rgw &> rgw.log && grep SUCCESS rgw.log; do sleep 1; done" 
+      - run: docker ps
+      - run: cat rgw.log
+      - run: echo -e 'GET / HTTP/1.1\r\nHost:localhost\r\n\r\n' | nc localhost 80
+      # setup java        
+      - name: Set up JDK 8
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
