@@ -1,6 +1,6 @@
 [![build status](https://github.com/twonote/radosgw-admin4j/actions/workflows/maven.yml/badge.svg)](https://github.com/twonote/radosgw-admin4j/actions)
   [![License](https://img.shields.io/badge/license-Apache%202-blue.svg)](https://github.com/twonote/radosgw-admin4j/blob/master/LICENSE)
-[![Javadocs](https://www.javadoc.io/badge/io.github.twonote/radosgw-admin4j.svg)](https://www.javadoc.io/static/io.github.twonote/radosgw-admin4j/2.0.2/org/twonote/rgwadmin4j/RgwAdmin.html)
+[![Javadocs](https://www.javadoc.io/badge/io.github.twonote/radosgw-admin4j.svg)](https://www.javadoc.io/doc/io.github.twonote/radosgw-admin4j/latest/org/twonote/rgwadmin4j/RgwAdmin.html)
 
 # About
 radosgw-admin4j is a Ceph object storage admin client that allows provisioning and control of a Ceph object storage deployment. Features include user/subuser management, quota management, usage report, bucket/object management, etc.
@@ -16,7 +16,7 @@ radosgw-admin4j is a Ceph object storage admin client that allows provisioning a
 ## Add dependency
 
 You can obtain radosgw-admim4j from Maven Central using the following identifier:
-* [io.github.twonote.radosgw-admin4j:2.0.2](https://search.maven.org/#artifactdetails%7Cio.github.twonote%7Cradosgw-admin4j%7C2.0.2%7Cjar)
+* [io.github.twonote.radosgw-admin4j:2.0.](https://search.maven.org/#artifactdetails%7Cio.github.twonote%7Cradosgw-admin4j%7C2.0.2%7Cjar)
 
 ## Configuration
 
@@ -31,7 +31,7 @@ RgwAdmin RGW_ADMIN =
 
 ## Usage example
 
-We support all types of operation includes **User**, **Subuser**, **Key**, **Bucket**, **Capability**, **Quota** and **Usage**. Please check all available operations in [![Javadocs](https://www.javadoc.io/badge/io.github.twonote/radosgw-admin4j.svg)](https://www.javadoc.io/static/io.github.twonote/radosgw-admin4j/2.0.2/org/twonote/rgwadmin4j/RgwAdmin.html)
+We support all types of operation includes **User**, **Subuser**, **Key**, **Bucket**, **Capability**, **Quota** and **Usage**. Please check all available operations in [![Javadocs](https://www.javadoc.io/badge/io.github.twonote/radosgw-admin4j.svg)](https://www.javadoc.io/doc/io.github.twonote/radosgw-admin4j/latest/org/twonote/rgwadmin4j/RgwAdmin.html)
 
 
 ### User management
