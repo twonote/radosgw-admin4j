@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:  
       # run ceph rgw
-      - run: docker pull ceph/daemon:v6.0.3-stable-6.0-pacific-centos-8-x86_64
-      - run: docker run -d -p 80:8080 -v /etc/ceph/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e NETWORK_AUTO_DETECT=4 --name rgw ceph/daemon:v6.0.3-stable-6.0-pacific-centos-8-x86_64 demo
+      - run: docker pull quay.io/ceph/daemon:latest-pacific 
+      - run: docker run -d -p 80:8080 -v /etc/ceph/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e NETWORK_AUTO_DETECT=4 --name rgw quay.io/ceph/daemon:latest-pacific demo
       - run: timeout 120 bash -c "until docker logs rgw &> rgw.log && grep SUCCESS rgw.log; do sleep 1; done" 
       - run: docker ps
       - run: cat rgw.log
