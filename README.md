@@ -126,16 +126,14 @@ To get started, you need a ready-to-use radosgw instance and an admin account wi
 
    ```bash
    $ radosgw-admin user create --uid=qqq --display-name="qqq" --access-key=qqq --secret-key=qqq
-   $ radosgw
-
--admin --id admin caps add --caps="buckets=*;users=*;usage=*;metadata=*" --uid=qqq
+   $ radosgw-admin --id admin caps add --caps="buckets=*;users=*;usage=*;metadata=*" --uid=qqq
    ```
 
 2. Enter the key pair (qqq,qqq) and add your radosgw endpoint to the [config file](https://github.com/twonote/radosgw-admin4j/blob/master/src/test/resources/rgwadmin.properties).
 
 3. Note that radosgw does not enable [usage log](http://docs.ceph.com/docs/master/radosgw/admin/#usage) by default. If you need this feature or plan to run test cases, make sure you enable the usage log in your Ceph config file. For example, in your ceph.conf:
 
-   ```ini
+   ```
    ...
    [client.radosgw.gateway]
    rgw enable usage log = true
