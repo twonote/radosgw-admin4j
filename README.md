@@ -1,151 +1,160 @@
-[![build status](https://github.com/twonote/radosgw-admin4j/actions/workflows/maven.yml/badge.svg)](https://github.com/twonote/radosgw-admin4j/actions)
-  [![License](https://img.shields.io/badge/license-Apache%202-blue.svg)](https://github.com/twonote/radosgw-admin4j/blob/master/LICENSE)
-[![Javadocs](https://www.javadoc.io/badge/io.github.twonote/radosgw-admin4j.svg)](https://www.javadoc.io/doc/io.github.twonote/radosgw-admin4j/latest/org/twonote/rgwadmin4j/RgwAdmin.html) [![Maven Central](https://img.shields.io/maven-central/v/io.github.twonote/radosgw-admin4j.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.twonote%22%20AND%20a:%22radosgw-admin4j%22)
+[![Build Status](https://github.com/twonote/radosgw-admin4j/actions/workflows/maven.yml/badge.svg)](https://github.com/twonote/radosgw-admin4j/actions)
+[![License](https://img.shields.io/badge/license-Apache%202-blue.svg)](https://github.com/twonote/radosgw-admin4j/blob/master/LICENSE)
+[![Javadocs](https://www.javadoc.io/badge/io.github.twonote/radosgw-admin4j.svg)](https://www.javadoc.io/doc/io.github.twonote/radosgw-admin4j/latest/org/twonote/rgwadmin4j/RgwAdmin.html)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.twonote/radosgw-admin4j.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.twonote%22%20AND%20a:%22radosgw-admin4j%22)
 
 # About
-radosgw-admin4j is a Ceph object storage admin client that allows provisioning and control of a Ceph object storage deployment. Features include user/subuser management, quota management, usage report, bucket/object management, etc.
+**radosgw-admin4j** is a powerful Ceph object storage admin client designed for provisioning and managing Ceph object storage deployments. It offers a wide range of features, including user and subuser management, quota control, usage reporting, and bucket/object management, among others.
 
-# Highlight
-* **Fully support all [operations](http://docs.ceph.com/docs/master/radosgw/adminops/)** includes **subuser**, **quota** and more in the latest Ceph version.
-* An easier way to manage radosgw. Avoid troubles when working with radosgw admin APIs, especially that docs are a bit confusing and inconsistent with the codebase.
-* Quality and compatibility - [Continuous Integration](https://github.com/twonote/radosgw-admin4j/actions) and tests against active releases of Ceph  ([**Octopus/Pacific/Quincy/Reef**](https://docs.ceph.com/en/latest/releases/index.html) currently.)
-* Contributor friendly - typical contribution process, no weird policies, all contributions are welcome!
+# Highlights
+- **Full Support for All [Operations](http://docs.ceph.com/docs/master/radosgw/adminops/)**: We fully support all operations, including subuser and quota management, for the latest Ceph versions.
+- Simplified Radosgw Management: Manage your radosgw instance with ease, avoiding the complexities often associated with radosgw admin APIs.
+- Quality and Compatibility: Our codebase undergoes continuous integration and testing against active Ceph releases, including **Octopus**, **Pacific**, **Quincy**, and **Reef**.
+- Contributor-Friendly: We welcome contributions with a straightforward contribution process and no unusual policies.
 
-# Start using
+# Getting Started
 
-## Add dependency
+## Add Dependency
 
-You can obtain radosgw-admin4j from Maven Central using the following identifier:
-* [io.github.twonote.radosgw-admin4j](https://search.maven.org/search?q=radosgw-admin4j)
+You can include radosgw-admin4j in your project by adding the following Maven Central dependency:
+
+```xml
+<dependency>
+    <groupId>io.github.twonote</groupId>
+    <artifactId>radosgw-admin4j</artifactId>
+    <version>2.0.8</version> <!-- Replace with the latest version -->
+</dependency>
+```
 
 ## Configuration
 
+```java
+RgwAdmin rgwAdmin = new RgwAdminBuilder()
+    .accessKey("administrator access key")
+    .secretKey("administrator secret key")
+    .endpoint("radosgw admin endpoint, e.g., http://127.0.0.1:8080/admin")
+    .build();
 ```
-RgwAdmin RGW_ADMIN =
-              new RgwAdminBuilder()
-                  .accessKey("administrator access key")
-                  .secretKey("administrator secret key")
-                  .endpoint("radosgw admin endpoint, e.g., http://127.0.0.1:8080/admin")
-                  .build();
-```
 
-## Usage example
+## Usage Example
 
-We support all types of operation includes **User**, **Subuser**, **Key**, **Bucket**, **Capability**, **Quota** and **Usage**. Please check all available operations in [![Javadocs](https://www.javadoc.io/badge/io.github.twonote/radosgw-admin4j.svg)](https://www.javadoc.io/doc/io.github.twonote/radosgw-admin4j/latest/org/twonote/rgwadmin4j/RgwAdmin.html)
+We offer a comprehensive set of operations, including User, Subuser, Key, Bucket, Capability, Quota, and Usage. Please refer to the [![Javadocs](https://www.javadoc.io/badge/io.github.twonote/radosgw-admin4j.svg)](https://www.javadoc.io/doc/io.github.twonote/radosgw-admin4j/latest/org/twonote/rgwadmin4j/RgwAdmin.html) for all available operations.
 
+### User Management
 
-### User management
+```java
+// List users in the system
+List<User> users = rgwAdmin.listUserInfo();
 
-```
-// List user in the system
-List<User> users = RGW_ADMIN.listUserInfo();
+// Create a user
+rgwAdmin.createUser(userId);
 
-// Create user
-RGW_ADMIN.createUser(userId);
+// Get user information and display keys
+User user = rgwAdmin.getUserInfo(userId).get();
+user.getS3Credentials().forEach(System.out::println);
 
-// Get user information and show keys
-User user = RGW_ADMIN.getUserInfo(userId).get();
-user.getS3Credentials().stream().peek(System.out::println);
-
-// Create subuser
-SubUser subUser = RGW_ADMIN.createSubUser(userId, "subUserId", SubUser.Permission.FULL, CredentialType.SWIFT);
+// Create a subuser
+SubUser subUser = rgwAdmin.createSubUser(userId, "subUserId", SubUser.Permission.FULL, CredentialType.SWIFT);
 
 // Suspend a user
-RGW_ADMIN.suspendUser(userId, true);
+rgwAdmin.suspendUser(userId, true);
 
 // Remove a user
-RGW_ADMIN.removeUser(userId);
+rgwAdmin.removeUser(userId);
 ```
 
-### Quota management
+### Quota Management
 
+```java
+// Allow the user to own more buckets
+rgwAdmin.modifyUser(userId, ImmutableMap.of("max-buckets", String.valueOf(Integer.MAX_VALUE)));
+
+// Set a quota that limits the user to a maximum of one thousand objects and a maximum usage of 1 GiB
+rgwAdmin.setUserQuota(userId, 1000, 1048576);
 ```
-// Allow the user owns more buckets
-RGW_ADMIN.modifyUser(userId, ImmutableMap.of("max-buckets", String.valueOf(Integer.MAX_VALUE)));
 
-// Set the quota that causes the user can have at most one thousand objects, and the maximal usage is 1 GiB
-RGW_ADMIN.setUserQuota(userId, 1000, 1048576);
-```
+### Bucket Management
 
-### Bucket management
-
-```
-// Transfer the bucket owner from the user just created to the administrator
-BucketInfo bucketInfo = RGW_ADMIN.getBucketInfo(bucketName).get();
-RGW_ADMIN.linkBucket(bucketName, bucketInfo.getId(), adminUserId);
+```java
+// Transfer the bucket ownership from the user to the administrator
+BucketInfo bucketInfo = rgwAdmin.getBucketInfo(bucketName).get();
+rgwAdmin.linkBucket(bucketName, bucketInfo.getId(), adminUserId);
 
 // Remove a bucket
-RGW_ADMIN.removeBucket(bucketName);
+rgwAdmin.removeBucket(bucketName);
 ```
 
-### Usage report
+### Usage Report
 
-```
-// Retrieve and show the usage report for a given user
-UsageInfo userUsage = RGW_ADMIN.getUserUsage(userId).get();
-userUsage.getSummary().stream().peek(System.out::println);
-```
-
-## One more thing: Radosgw setup
-To kick-off, you need one ready to use radosgw instance and one radosgw account with proper admin capabilities. Follow the guide below to have a radowgw setup then you can fire the example code.
-
-### “I do not have a radosgw setup currently”
-You could refer to the [Ceph official manual](http://docs.ceph.com/docs/master/start/) to set up a Ceph cluster with radosgw *quickly*. It is not a piece of cake if you do not familiar with Ceph. Things will be easier if you have **Docker** in your environment. To set up a standalone instance with an admin account powered by the [Ceph daemon docker image](https://hub.docker.com/r/ceph/daemon/), follow the instructions below:
-```
-$ docker run -d -p 80:8080 -v /etc/ceph/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e NETWORK_AUTO_DETECT=4 --name rgw ceph/daemon:v6.0.3-stable-6.0-pacific-centos-8-x86_64 demo 
+```java
+// Retrieve and display the usage report for a given user
+UsageInfo userUsage = rgwAdmin.getUserUsage(userId).get();
+userUsage.getSummary().forEach(System.out::println);
 ```
 
-Note that port 80 should be available.
+## One More Thing: Radosgw Setup
 
-It takes about two minutes to initialize the Ceph cluster. Check the setup succeeded by the following command:
-```
-$ timeout 120 bash -c "until docker logs rgw &> rgw.log && grep SUCCESS rgw.log; do sleep 1; done"
-```
+To get started, you need a ready-to-use radosgw instance and an admin account with the necessary capabilities. Here's how you can set up a radosgw instance:
 
-Once the above procedure is done, you can now run radosgw-admin4j tests without any config on the client-side, since the [default config](https://github.com/twonote/radosgw-admin4j/blob/master/src/test/resources/rgwadmin.properties) is meet the case. Run tests by:
-```
-$ git clone https://github.com/twonote/radosgw-admin4j.git
-$ cd radosgw-admin4j
-$ mvn test
-```
+### If You Don't Have a Radosgw Setup
 
-### “I already have a radosgw instance on hand”
-First, you need an admin account. If you not yet have it, create the account with the following command:
-```
-$ radosgw-admin user create --uid=qqq --display-name="qqq" --access-key=qqq --secret-key=qqq
-$ radosgw-admin --id admin caps add --caps="buckets=*;users=*;usage=*;metadata=*" --uid=qqq
-```
+1. You can refer to the [Ceph official manual](http://docs.ceph.com/docs/master/start/) for a quick Ceph cluster setup. If you're not familiar with Ceph, this may be a bit challenging. An easier approach is available if you have **Docker** in your environment. To set up a standalone instance with an admin account using the [Ceph daemon Docker image](https://hub.docker.com/r/ceph/daemon/), follow these instructions:
 
-Second, enter the key pair (qqq,qqq) and add your radosgw endpoint to the [config file](https://github.com/twonote/radosgw-admin4j/blob/master/src/test/resources/rgwadmin.properties)
+   ```bash
+   $ docker run -d -p 80:8080 -v /etc/ceph/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e NETWORK_AUTO_DETECT=4 --name rgw ceph/daemon:v6.0.3-stable-6.0-pacific-centos-8-x86_64 demo
+   ```
 
-Note that radosgw does not enable [usage log](http://docs.ceph.com/docs/master/radosgw/admin/#usage) in default. If you need the feature (or run test cases), be sure that you enable the usage log in Ceph config file. Example ceph.conf:
-```
-...
-[client.radosgw.gateway]
-rgw enable usage log = true
-rgw usage log tick interval = 1
-rgw usage log flush threshold = 1
-rgw usage max shards = 32
-rgw usage max user shards = 1
-...
-```
+   Note that port 80 should be available.
 
-That's all!
+2. It takes about two minutes to initialize the Ceph cluster. Check if the setup succeeded with the following command:
+
+   ```bash
+   $ timeout 120 bash -c "until docker logs rgw &> rgw.log && grep SUCCESS rgw.log; do sleep 1; done"
+   ```
+
+3. Once the setup is complete, you can run radosgw-admin4j tests without any additional configuration on the client side since the [default config](https://github.com/twonote/radosgw-admin4j/blob/master/src/test/resources/rgwadmin.properties) should suffice. Run tests with the following commands:
+
+   ```bash
+   $ git clone https://github.com/twonote/radosgw-admin4j.git
+   $ cd radosgw-admin4j
+   $ mvn test
+   ```
+
+### If You Already Have a Radosgw Instance
+
+1. First, ensure you have an admin account. If not, create the account with the following commands:
+
+   ```bash
+   $ radosgw-admin user create --uid=qqq --display-name="qqq" --access-key=qqq --secret-key=qqq
+   $ radosgw
+
+-admin --id admin caps add --caps="buckets=*;users=*;usage=*;metadata=*" --uid=qqq
+   ```
+
+2. Enter the key pair (qqq,qqq) and add your radosgw endpoint to the [config file](https://github.com/twonote/radosgw-admin4j/blob/master/src/test/resources/rgwadmin.properties).
+
+3. Note that radosgw does not enable [usage log](http://docs.ceph.com/docs/master/radosgw/admin/#usage) by default. If you need this feature or plan to run test cases, make sure you enable the usage log in your Ceph config file. For example, in your ceph.conf:
+
+   ```ini
+   ...
+   [client.radosgw.gateway]
+   rgw enable usage log = true
+   rgw usage log tick interval = 1
+   rgw usage log flush threshold = 1
+   rgw usage max shards = 32
+   rgw usage max user shards = 1
+   ...
+   ```
+
+That's it!
 
 # Contributing
-All contributions are welcome. Our code style is [Google java style](https://google.github.io/styleguide/javaguide.html) and we use [google-java-format](https://github.com/google/google-java-format) to do code formatting. Nothing else special.
+We welcome all contributions to the project. Our code style follows the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html), and we use [google-java-format](https://github.com/google/google-java-format) for code formatting. There are no unusual policies, and we encourage you to get involved.
 
 # Legal
 Copyright 2017-2023 [twonote](http://twonote.github.io/) & The "radosgw-admin4j" contributors.
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+Licensed under the Apache License, Version 2.0. You may not use this file except in compliance with the License. You can obtain a copy of the License at [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0). Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, without warranties or conditions of any kind, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+```
 
-[http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+I've updated the formatting, improved section titles, clarified the steps for setting up Radosgw, and incorporated other suggestions for readability. Please replace "1.0.0" with the actual version number when using this text in your documentation.
