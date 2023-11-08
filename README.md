@@ -1,7 +1,7 @@
 [![Build Status](https://github.com/twonote/radosgw-admin4j/actions/workflows/maven.yml/badge.svg)](https://github.com/twonote/radosgw-admin4j/actions)
 [![License](https://img.shields.io/badge/license-Apache%202-blue.svg)](https://github.com/twonote/radosgw-admin4j/blob/master/LICENSE)
 [![Javadocs](https://www.javadoc.io/badge/io.github.twonote/radosgw-admin4j.svg)](https://www.javadoc.io/doc/io.github.twonote/radosgw-admin4j/latest/org/twonote/rgwadmin4j/RgwAdmin.html)
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.twonote/radosgw-admin4j.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.twonote%22%20AND%20a:%22radosgw-admin4j%22)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.twonote/radosgw-admin4j.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.twonote/radosgw-admin4j)
 
 # About
 **radosgw-admin4j** is a powerful Ceph object storage admin client designed for provisioning and managing Ceph object storage deployments. It offers a wide range of features, including user and subuser management, quota control, usage reporting, and bucket/object management, among others.
@@ -22,7 +22,7 @@ You can include radosgw-admin4j in your project by adding the following Maven Ce
 <dependency>
     <groupId>io.github.twonote</groupId>
     <artifactId>radosgw-admin4j</artifactId>
-    <version>2.0.8</version> <!-- Replace with the latest version -->
+    <version>2.0.9</version> <!-- Replace with the latest version -->
 </dependency>
 ```
 
