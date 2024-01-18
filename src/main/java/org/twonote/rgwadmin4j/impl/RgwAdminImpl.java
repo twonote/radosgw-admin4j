@@ -587,6 +587,25 @@ public class RgwAdminImpl implements RgwAdmin {
     throw new RuntimeException("Server should not return more than one bucket");
   }
 
+  private String call(Request request) {
+    try (Response response = client.newCall(request).execute()) {
+      if (response.code() == 404) {
+        throw new RgwAdminException(404, "not found");
+      }
+      if (!response.isSuccessful()) {
+        throw ErrorUtils.parseError(response);
+      }
+      ResponseBody body = response.body();
+      if (body != null) {
+        return response.body().string();
+      } else {
+        return null;
+      }
+    } catch (IOException e) {
+      throw new RgwAdminException(500, "IOException", e);
+    }
+  }
+
   /**
    * Guarantee that the request is execute success and the connection is closed
    *
@@ -801,7 +820,7 @@ public class RgwAdminImpl implements RgwAdmin {
             .url(urlBuilder.build())
             .build();
 
-    safeCall(request);
+    call(request);
   }
 
   @Override
@@ -829,7 +848,7 @@ public class RgwAdminImpl implements RgwAdmin {
             .url(urlBuilder.build())
             .build();
 
-    safeCall(request);
+    call(request);
   }
 
   private String buildQuotaConfig(long maxObjects, long maxSizeKB) {
