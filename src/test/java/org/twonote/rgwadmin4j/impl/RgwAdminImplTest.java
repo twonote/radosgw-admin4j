@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.twonote.rgwadmin4j.model.BucketInfo;
@@ -97,8 +99,7 @@ public class RgwAdminImplTest extends BaseTest {
           String secretKey = v.getUserId() + "-adminSecretKey";
           response = RGW_ADMIN.createS3Credential(v.getUserId(), accessKey, secretKey);
           assertTrue(
-              response
-                  .stream()
+              response.stream()
                   .anyMatch(
                       v1 ->
                           accessKey.equals(v1.getAccessKey())
@@ -112,7 +113,7 @@ public class RgwAdminImplTest extends BaseTest {
             assertTrue(
                 "InvalidArgument".equals(e.getMessage()) // kraken
                     || "NoSuchUser".equals(e.getMessage()) // luminous
-            );
+                );
           }
         });
   }
@@ -146,7 +147,7 @@ public class RgwAdminImplTest extends BaseTest {
                 "InvalidArgument".equals(e.getMessage())
                     || // kraken
                     "NoSuchUser".equals(e.getMessage()) // luminous
-            );
+                );
           }
         });
   }
@@ -170,8 +171,7 @@ public class RgwAdminImplTest extends BaseTest {
           response =
               RGW_ADMIN.createS3CredentialForSubUser(userId, subUserId, accessKey, secretKey);
           assertTrue(
-              response
-                  .stream()
+              response.stream()
                   .anyMatch(
                       v1 ->
                           absSubUserId.equals(v1.getUserId())
@@ -200,11 +200,7 @@ public class RgwAdminImplTest extends BaseTest {
           // basic
           RGW_ADMIN.removeS3CredentialFromSubUser(userId, subUserId, keyToDelete.getAccessKey());
           assertFalse(
-              RGW_ADMIN
-                  .getUserInfo(userId)
-                  .get()
-                  .getS3Credentials()
-                  .stream()
+              RGW_ADMIN.getUserInfo(userId).get().getS3Credentials().stream()
                   .anyMatch(
                       k ->
                           keyToDelete
@@ -267,11 +263,7 @@ public class RgwAdminImplTest extends BaseTest {
           // basic
           RGW_ADMIN.removeSwiftCredentialFromSubUser(userId, subUserId);
           assertFalse(
-              RGW_ADMIN
-                  .getUserInfo(userId)
-                  .get()
-                  .getSwiftCredentials()
-                  .stream()
+              RGW_ADMIN.getUserInfo(userId).get().getSwiftCredentials().stream()
                   .anyMatch(
                       k ->
                           absSubUserId.equals(
@@ -281,8 +273,7 @@ public class RgwAdminImplTest extends BaseTest {
 
   @Test
   @Ignore("See trimUsage()")
-  public void trimUserUsage() {
-  }
+  public void trimUserUsage() {}
 
   @Test
   public void trimUsage() {
@@ -316,8 +307,7 @@ public class RgwAdminImplTest extends BaseTest {
 
   @Test
   @Ignore("See getUsage()")
-  public void getUserUsage() {
-  }
+  public void getUserUsage() {}
 
   @Test
   public void getUsage() {
@@ -404,11 +394,7 @@ public class RgwAdminImplTest extends BaseTest {
               RGW_ADMIN.createSubUser(userId, subUserId, permission, CredentialType.SWIFT);
           assertEquals(permission, response.getPermission());
           Optional<SwiftCredential> keyResponse =
-              RGW_ADMIN
-                  .getUserInfo(userId)
-                  .get()
-                  .getSwiftCredentials()
-                  .stream()
+              RGW_ADMIN.getUserInfo(userId).get().getSwiftCredentials().stream()
                   .filter(k -> absSubUserId.equals(k.getUserId()))
                   .findFirst();
           assertTrue(keyResponse.isPresent());
@@ -436,9 +422,7 @@ public class RgwAdminImplTest extends BaseTest {
 
           // test subuser in s3
           S3Credential key =
-              response2
-                  .getS3Credentials()
-                  .stream()
+              response2.getS3Credentials().stream()
                   .filter(e -> fullSubUserId.equals(e.getUserId()))
                   .findFirst()
                   .get();
@@ -475,28 +459,23 @@ public class RgwAdminImplTest extends BaseTest {
 
   @Ignore("See getAndSetUserQuota()")
   @Test
-  public void getUserQuota() {
-  }
+  public void getUserQuota() {}
 
   @Ignore("See getAndSetUserQuota()")
   @Test
-  public void setUserQuota() {
-  }
+  public void setUserQuota() {}
 
   @Ignore("See getAndSetBucketQuota()")
   @Test
-  public void getBucketQuota() {
-  }
+  public void getBucketQuota() {}
 
   @Ignore("See getAndSetBucketQuota()")
   @Test
-  public void setBucketQuota() {
-  }
+  public void setBucketQuota() {}
 
   @Test
   @Ignore("See userCapability()")
-  public void addUserCapability() {
-  }
+  public void addUserCapability() {}
 
   @Test
   public void userCapability() {
@@ -523,8 +502,7 @@ public class RgwAdminImplTest extends BaseTest {
 
   @Test
   @Ignore("See userCapability()")
-  public void removeUserCapability() {
-  }
+  public void removeUserCapability() {}
 
   @Test
   public void removeBucket() throws Exception {
@@ -871,7 +849,7 @@ public class RgwAdminImplTest extends BaseTest {
           assertTrue(
               quota.getMaxSizeKb() == -1 // jewel
                   || quota.getMaxSizeKb() == 0 // kraken
-          );
+              );
 
           // set quota
           RGW_ADMIN.setUserQuota(userId, 1, 1);
@@ -890,8 +868,13 @@ public class RgwAdminImplTest extends BaseTest {
           "InvalidArgument".equals(e.getMessage())
               || // kraken
               "NoSuchUser".equals(e.getMessage()) // luminous
-      );
+          );
     }
+    RgwAdminException rgwAdminException =
+        Assert.assertThrows(
+            RgwAdminException.class,
+            () -> RGW_ADMIN.setUserQuota(UUID.randomUUID().toString(), 1, 1));
+    assertEquals(rgwAdminException.status(), 404);
 
     RGW_ADMIN.setUserQuota(UUID.randomUUID().toString(), 1, 1);
   }
@@ -918,7 +901,7 @@ public class RgwAdminImplTest extends BaseTest {
           assertTrue(
               quota.getMaxSizeKb() == -1 // jewel
                   || quota.getMaxSizeKb() == 0 // kraken
-          );
+              );
 
           // set quota
           RGW_ADMIN.setBucketQuota(userId, 1, 1);
@@ -936,7 +919,7 @@ public class RgwAdminImplTest extends BaseTest {
           assertTrue(
               quota.getMaxSizeKb() == -1 // jewel
                   || quota.getMaxSizeKb() == 0 // kraken
-          );
+              );
         });
 
     // user not exist
@@ -948,10 +931,14 @@ public class RgwAdminImplTest extends BaseTest {
           "InvalidArgument".equals(e.getMessage())
               || // kraken
               "NoSuchUser".equals(e.getMessage()) // luminous
-      );
+          );
     }
 
-    RGW_ADMIN.setBucketQuota(UUID.randomUUID().toString(), 1, 1);
+    RgwAdminException rgwAdminException =
+        Assert.assertThrows(
+            RgwAdminException.class,
+            () -> RGW_ADMIN.setBucketQuota(UUID.randomUUID().toString(), 1, 1));
+    assertEquals(rgwAdminException.status(), 404);
   }
 
   @Test
@@ -976,7 +963,7 @@ public class RgwAdminImplTest extends BaseTest {
           assertTrue(
               quota.getMaxSizeKb() == -1 // jewel
                   || quota.getMaxSizeKb() == 0 // kraken
-          );
+              );
 
           // set quota
           RGW_ADMIN.setIndividualBucketQuota(userId, bucketName, 1, 1);
@@ -988,7 +975,7 @@ public class RgwAdminImplTest extends BaseTest {
           assertTrue(
               quota.getMaxSizeKb() == -1 // jewel
                   || quota.getMaxSizeKb() == 0 // kraken
-          );
+              );
 
           // not shown by getBucketInfo()
           quota = RGW_ADMIN.getBucketInfo(bucketName).get().getBucketQuota();
