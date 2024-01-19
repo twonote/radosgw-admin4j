@@ -875,8 +875,6 @@ public class RgwAdminImplTest extends BaseTest {
             RgwAdminException.class,
             () -> RGW_ADMIN.setUserQuota(UUID.randomUUID().toString(), 1, 1));
     assertEquals(rgwAdminException.status(), 404);
-
-    RGW_ADMIN.setUserQuota(UUID.randomUUID().toString(), 1, 1);
   }
 
   @Test
