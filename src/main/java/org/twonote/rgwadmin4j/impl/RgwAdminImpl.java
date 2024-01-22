@@ -41,9 +41,7 @@ import org.twonote.rgwadmin4j.model.User;
 public class RgwAdminImpl implements RgwAdmin {
 
   private static final Gson gson = new Gson();
-  private static final JsonParser jsonParser = new JsonParser();
-
-  private static final RequestBody emptyBody = RequestBody.create(null, new byte[]{});
+  private static final RequestBody emptyBody = RequestBody.create(null, new byte[] {});
 
   private final String endpoint;
   private final OkHttpClient client;
@@ -53,7 +51,7 @@ public class RgwAdminImpl implements RgwAdmin {
    *
    * @param accessKey Access key of the admin who have proper administrative capabilities.
    * @param secretKey Secret key of the admin who have proper administrative capabilities.
-   * @param endpoint  Radosgw admin API endpoint, e.g., http://127.0.0.1:80/admin
+   * @param endpoint Radosgw admin API endpoint, e.g., http://127.0.0.1:80/admin
    */
   public RgwAdminImpl(String accessKey, String secretKey, String endpoint) {
     validEndpoint(endpoint);
@@ -79,9 +77,7 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   private static <T> Type setModelAndGetCorrespondingList2(Class<T> type) {
-    return new TypeToken<ArrayList<T>>() {
-    }.where(new TypeParameter<T>() {
-    }, type).getType();
+    return new TypeToken<ArrayList<T>>() {}.where(new TypeParameter<T>() {}, type).getType();
   }
 
   @Override
@@ -157,8 +153,7 @@ public class RgwAdminImpl implements RgwAdmin {
             .build();
 
     String resp = safeCall(request);
-    Type type = new TypeToken<List<Cap>>() {
-    }.getType();
+    Type type = new TypeToken<List<Cap>>() {}.getType();
     return gson.fromJson(resp, type);
   }
 
@@ -178,8 +173,7 @@ public class RgwAdminImpl implements RgwAdmin {
             .build();
 
     String resp = safeCall(request);
-    Type type = new TypeToken<List<Cap>>() {
-    }.getType();
+    Type type = new TypeToken<List<Cap>>() {}.getType();
     return gson.fromJson(resp, type);
   }
 
@@ -199,8 +193,7 @@ public class RgwAdminImpl implements RgwAdmin {
     Request request = new Request.Builder().put(emptyBody).url(urlBuilder.build()).build();
 
     String resp = safeCall(request);
-    Type type = new TypeToken<List<SubUser>>() {
-    }.getType();
+    Type type = new TypeToken<List<SubUser>>() {}.getType();
     return gson.fromJson(resp, type);
   }
 
@@ -240,8 +233,7 @@ public class RgwAdminImpl implements RgwAdmin {
     Request request = new Request.Builder().post(emptyBody).url(urlBuilder.build()).build();
 
     String resp = safeCall(request);
-    Type type = new TypeToken<List<SubUser>>() {
-    }.getType();
+    Type type = new TypeToken<List<SubUser>>() {}.getType();
     return gson.fromJson(resp, type);
   }
 
@@ -319,8 +311,7 @@ public class RgwAdminImpl implements RgwAdmin {
     Request request = new Request.Builder().put(emptyBody).url(urlBuilder.build()).build();
 
     String resp = safeCall(request);
-    Type type = new TypeToken<List<S3Credential>>() {
-    }.getType();
+    Type type = new TypeToken<List<S3Credential>>() {}.getType();
     return gson.fromJson(resp, type);
   }
 
@@ -377,8 +368,7 @@ public class RgwAdminImpl implements RgwAdmin {
                 "key-type", "s3"),
             S3Credential.class);
 
-    return s3Credentials
-        .stream()
+    return s3Credentials.stream()
         .filter(k -> absSubUserId(userId, subUserId).equals(k.getUserId()))
         .collect(Collectors.toList());
   }
@@ -394,8 +384,7 @@ public class RgwAdminImpl implements RgwAdmin {
                 "generate-key", "True"),
             S3Credential.class);
 
-    return s3Credentials
-        .stream()
+    return s3Credentials.stream()
         .filter(k -> absSubUserId(userId, subUserId).equals(k.getUserId()))
         .collect(Collectors.toList());
   }
@@ -421,8 +410,7 @@ public class RgwAdminImpl implements RgwAdmin {
                 "secret-key", password,
                 "key-type", "swift"),
             SwiftCredential.class);
-    return swiftCredentials
-        .stream()
+    return swiftCredentials.stream()
         .filter(k -> absSubUserId(userId, subUserId).equals(k.getUserId()))
         .collect(Collectors.toList())
         .get(0);
@@ -438,8 +426,7 @@ public class RgwAdminImpl implements RgwAdmin {
                 "key-type", "swift",
                 "generate-key", "True"),
             SwiftCredential.class);
-    return swiftCredentials
-        .stream()
+    return swiftCredentials.stream()
         .filter(k -> absSubUserId(userId, subUserId).equals(k.getUserId()))
         .collect(Collectors.toList())
         .get(0);
@@ -535,10 +522,7 @@ public class RgwAdminImpl implements RgwAdmin {
 
   @Override
   public List<String> listBucket(String userId) {
-    return listBucketInfo(userId)
-        .stream()
-        .map(BucketInfo::getBucket)
-        .collect(Collectors.toList());
+    return listBucketInfo(userId).stream().map(BucketInfo::getBucket).collect(Collectors.toList());
   }
 
   @Override
@@ -570,8 +554,7 @@ public class RgwAdminImpl implements RgwAdmin {
       return ret;
     }
 
-    Type type = new TypeToken<List<BucketInfo>>() {
-    }.getType();
+    Type type = new TypeToken<List<BucketInfo>>() {}.getType();
     return gson.fromJson(resp, type);
   }
 
@@ -587,36 +570,17 @@ public class RgwAdminImpl implements RgwAdmin {
     throw new RuntimeException("Server should not return more than one bucket");
   }
 
-  private String call(Request request) {
-    try (Response response = client.newCall(request).execute()) {
-      if (response.code() == 404) {
-        throw new RgwAdminException(404, "not found");
-      }
-      if (!response.isSuccessful()) {
-        throw ErrorUtils.parseError(response);
-      }
-      ResponseBody body = response.body();
-      if (body != null) {
-        return response.body().string();
-      } else {
-        return null;
-      }
-    } catch (IOException e) {
-      throw new RgwAdminException(500, "IOException", e);
-    }
-  }
-
   /**
    * Guarantee that the request is execute success and the connection is closed
    *
    * @param request request
-   * @return resp body in str; null if no body or status code == 404
-   * @throws RgwAdminException if resp code != (200||404)
+   * @return resp body in str; null if no body
+   * @throws RgwAdminException if resp code != 200
    */
   private String safeCall(Request request) {
     try (Response response = client.newCall(request).execute()) {
       if (response.code() == 404) {
-        return null;
+        throw new RgwAdminException(404, "not found");
       }
       if (!response.isSuccessful()) {
         throw ErrorUtils.parseError(response);
@@ -684,8 +648,7 @@ public class RgwAdminImpl implements RgwAdmin {
             .addPathSegment(metadataType.toString());
     Request request = new Request.Builder().get().url(urlBuilder.build()).build();
     String resp = safeCall(request);
-    Type type = new TypeToken<List<String>>() {
-    }.getType();
+    Type type = new TypeToken<List<String>>() {}.getType();
     return gson.fromJson(resp, type);
   }
 
@@ -695,7 +658,7 @@ public class RgwAdminImpl implements RgwAdmin {
    * <p>Equivalent to radosgw-admin metadata get --metadata-key bucket.instance:dsvdvdsv
    *
    * @param metadataType Specify the metadata type.
-   * @param key          Specify the metadata key.
+   * @param key Specify the metadata key.
    * @return Content of metadata in a json string.
    */
   private <T> T getMetadata(MetadataType metadataType, String key, Class<T> returnType) {
@@ -709,7 +672,7 @@ public class RgwAdminImpl implements RgwAdmin {
     String resp = safeCall(request);
 
     assert resp != null;
-    JsonObject jo = (JsonObject) jsonParser.parse(resp);
+    JsonObject jo = (JsonObject) JsonParser.parseString(resp);
     return gson.fromJson(jo.get("data").toString(), returnType);
   }
 
@@ -726,8 +689,7 @@ public class RgwAdminImpl implements RgwAdmin {
   @Override
   public List<User> listUserInfo() {
     List<String> userIds = listMetadata(MetadataType.USER);
-    return userIds
-        .stream()
+    return userIds.stream()
         .map(i -> getMetadata(MetadataType.USER, i, User.class))
         .collect(Collectors.toList());
   }
@@ -804,8 +766,8 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
-  public void setIndividualBucketQuota(String userId, String bucket, long maxObjects,
-      long maxSizeKB) {
+  public void setIndividualBucketQuota(
+      String userId, String bucket, long maxObjects, long maxSizeKB) {
     HttpUrl.Builder urlBuilder =
         HttpUrl.parse(endpoint)
             .newBuilder()
@@ -820,7 +782,7 @@ public class RgwAdminImpl implements RgwAdmin {
             .url(urlBuilder.build())
             .build();
 
-    call(request);
+    safeCall(request);
   }
 
   @Override
@@ -848,7 +810,7 @@ public class RgwAdminImpl implements RgwAdmin {
             .url(urlBuilder.build())
             .build();
 
-    call(request);
+    safeCall(request);
   }
 
   private String buildQuotaConfig(long maxObjects, long maxSizeKB) {
