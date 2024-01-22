@@ -580,7 +580,7 @@ public class RgwAdminImpl implements RgwAdmin {
   private String safeCall(Request request) {
     try (Response response = client.newCall(request).execute()) {
       if (response.code() == 404) {
-        throw new RgwAdminException(404, "not found");
+        return null;
       }
       if (!response.isSuccessful()) {
         throw ErrorUtils.parseError(response);
