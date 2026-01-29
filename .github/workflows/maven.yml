@@ -38,6 +38,11 @@ jobs:
           echo 'osd data = /var/lib/ceph/osd/ceph-0' >> /etc/ceph/ceph.conf;
           echo '[client.rgw.gateway]' >> /etc/ceph/ceph.conf;
           echo 'rgw frontends = beast port=8080' >> /etc/ceph/ceph.conf;
+          echo 'rgw enable usage log = true' >> /etc/ceph/ceph.conf;
+          echo 'rgw usage log tick interval = 1' >> /etc/ceph/ceph.conf;
+          echo 'rgw usage log flush threshold = 1' >> /etc/ceph/ceph.conf;
+          echo 'rgw usage max shards = 1' >> /etc/ceph/ceph.conf;
+          echo 'rgw usage max user shards = 1' >> /etc/ceph/ceph.conf;
           monmaptool --create --add a 127.0.0.1:6789 --fsid \$FSID /tmp/monmap;
           ceph-mon --mkfs -i a --monmap /tmp/monmap --keyring /dev/null;
           touch /var/lib/ceph/mon/ceph-a/done;
