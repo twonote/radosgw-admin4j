@@ -55,9 +55,45 @@ jobs:
               fi; 
               sleep 1; 
             done;
+            # Initialize a minimal OSD so that RGW has a working backend
+            OSD_ID=\$(ceph osd create);
+            OSD_DIR=/var/lib/ceph/osd/ceph-\${OSD_ID};
+            mkdir -p \"\${OSD_DIR}\";
+            ceph auth get-or-create osd.\${OSD_ID} osd 'allow *' mon 'allow profile osd' mgr 'allow profile osd' > \"\${OSD_DIR}/keyring\";
+            ceph-osd -i \${OSD_ID} --mkfs --osd-uuid \$(uuidgen) --setuser root --setgroup root;
+            ceph-osd -i \${OSD_ID} --setuser root --setgroup root &
+            # Add OSD to CRUSH map
+            ceph osd crush add-bucket localhost host || true;
+            ceph osd crush move localhost root=default || true;
+            ceph osd crush add osd.\${OSD_ID} 1.0 host=localhost || true;
+            echo 'Waiting for OSD to be up and in...';
+            for i in {1..60}; do
+              if ceph osd stat | grep -q '1 up, 1 in'; then
+                echo 'OSD is up and in';
+                break;
+              fi;
+              if [ \$i -eq 60 ]; then
+                echo 'OSD failed to become up and in' >&2;
+                exit 1;
+              fi;
+              sleep 1;
+            done;
             ceph-authtool --create-keyring /var/lib/ceph/radosgw/keyring --gen-key -n client.rgw.gateway;
-            radosgw-admin user create --uid=qqq --display-name=qqq --access-key=qqq --secret-key=qqq || echo 'User already exists';
-            radosgw-admin caps add --uid=qqq --caps='users=*;buckets=*;metadata=*;usage=*;zone=*' || true;
+            # Create user with proper error handling
+            tmpfile=\$(mktemp);
+            if ! radosgw-admin user create --uid=qqq --display-name=qqq --access-key=qqq --secret-key=qqq 2>\"\$tmpfile\"; then
+              if grep -qi 'user.*exist' \"\$tmpfile\"; then
+                echo 'User already exists';
+              else
+                echo 'Failed to create user; radosgw-admin returned an unexpected error:' >&2;
+                cat \"\$tmpfile\" >&2;
+                rm -f \"\$tmpfile\";
+                exit 1;
+              fi;
+            fi;
+            rm -f \"\$tmpfile\";
+            # Add capabilities with proper error handling
+            radosgw-admin caps add --uid=qqq --caps='users=*;buckets=*;metadata=*;usage=*;zone=*' || { echo 'Failed to add caps for user qqq' >&2; exit 1; };
             radosgw -n client.rgw.gateway --cluster ceph --setuser root --setgroup root &
             echo 'Waiting for radosgw to start...';
             for i in {1..60}; do 
