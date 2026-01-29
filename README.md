@@ -9,7 +9,7 @@
 # Highlights
 - **Full Support for All [Operations](http://docs.ceph.com/docs/master/radosgw/adminops/)**: We fully support all operations, including subuser and quota management, for the latest Ceph versions.
 - Simplified Radosgw Management: Manage your radosgw instance with ease, avoiding the complexities often associated with radosgw admin APIs.
-- Quality and Compatibility: Our codebase undergoes continuous integration and testing against active Ceph releases, including **Octopus**, **Pacific**, **Quincy**, and **Reef**.
+- Quality and Compatibility: Our codebase undergoes continuous integration and testing against active Ceph releases, including **Octopus**, **Pacific**, **Reef**, and **Squid**.
 - Contributor-Friendly: We welcome contributions with a straightforward contribution process and no unusual policies.
 
 # Getting Started
