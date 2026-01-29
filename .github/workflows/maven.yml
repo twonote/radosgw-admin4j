@@ -27,6 +27,7 @@ jobs:
             echo 'mon initial members = a' >> /etc/ceph/ceph.conf;
             echo 'mon host = 127.0.0.1' >> /etc/ceph/ceph.conf;
             echo 'public network = 127.0.0.1/32' >> /etc/ceph/ceph.conf;
+            # Disable authentication for CI testing only - DO NOT use in production
             echo 'auth cluster required = none' >> /etc/ceph/ceph.conf;
             echo 'auth service required = none' >> /etc/ceph/ceph.conf;
             echo 'auth client required = none' >> /etc/ceph/ceph.conf;
@@ -43,13 +44,33 @@ jobs:
             ceph-mon --cluster ceph --mkfs -i a --inject-monmap /tmp/monmap --setuser root --setgroup root;
             ceph-mon -i a --cluster ceph --public-addr 127.0.0.1 --setuser root --setgroup root &
             echo 'Waiting for ceph-mon to be ready...';
-            for i in {1..30}; do ceph mon stat && break || sleep 1; done;
+            for i in {1..30}; do 
+              if ceph mon stat; then 
+                echo 'ceph-mon is ready'; 
+                break; 
+              fi; 
+              if [ \$i -eq 30 ]; then 
+                echo 'ceph-mon failed to start' >&2; 
+                exit 1; 
+              fi; 
+              sleep 1; 
+            done;
             ceph-authtool --create-keyring /var/lib/ceph/radosgw/keyring --gen-key -n client.rgw.gateway;
             radosgw-admin user create --uid=qqq --display-name=qqq --access-key=qqq --secret-key=qqq || echo 'User already exists';
-            radosgw-admin caps add --uid=qqq --caps=\"users=*;buckets=*;metadata=*;usage=*;zone=*\" || true;
+            radosgw-admin caps add --uid=qqq --caps='users=*;buckets=*;metadata=*;usage=*;zone=*' || true;
             radosgw -n client.rgw.gateway --cluster ceph --setuser root --setgroup root &
             echo 'Waiting for radosgw to start...';
-            sleep 10;
+            for i in {1..60}; do 
+              if curl -s http://localhost:8080 > /dev/null 2>&1; then 
+                echo 'radosgw is ready'; 
+                break; 
+              fi; 
+              if [ \$i -eq 60 ]; then 
+                echo 'radosgw failed to start' >&2; 
+                exit 1; 
+              fi; 
+              sleep 1; 
+            done;
             tail -f /dev/null
             "
       - run: timeout 180 bash -c "until curl -s http://localhost:80 > /dev/null 2>&1; do echo 'Waiting for RGW...'; sleep 2; done"
