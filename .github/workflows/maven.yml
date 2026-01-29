@@ -109,7 +109,7 @@ jobs:
             done;
             tail -f /dev/null
             "
-      - run: timeout 180 bash -c "until curl -s http://localhost:80 > /dev/null 2>&1; do echo 'Waiting for RGW...'; sleep 2; done"
+      - run: timeout 180 bash -c "until curl -s http://localhost:80 > /dev/null 2>&1; do echo 'Waiting for RGW...'; sleep 2; done" || (echo "Timeout waiting for RGW. Container logs:" && docker logs rgw && exit 1)
       - run: docker ps
       - run: docker logs rgw
       - run: echo -e 'GET / HTTP/1.1\r\nHost:localhost\r\n\r\n' | nc localhost 80
