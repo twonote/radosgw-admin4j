@@ -7,11 +7,11 @@
 - This version is tested with Ceph Pacific
 
 2.0.2 (2019-11-13)
-- Bugfix: If a subUser have READWRITE permission, you will get a NULL. 
+- Bugfix: If a subUser has READWRITE permission, you will get a NULL. 
 - Compatible to Java 11
 
 2.0.0 (2019-06-04)
-- Breaking change: setBucketQuota(String userId, String bucket...) is now be
+- Breaking change: setBucketQuota(String userId, String bucket...) is now
   setIndividualBucketQuota(...) for disambiguation.
 
 1.3.0 (2019-05-23)
