@@ -743,6 +743,7 @@ public class RgwAdminImplTest extends BaseTest {
     assertFalse(RGW_ADMIN.getUserInfo(UUID.randomUUID().toString()).isPresent());
   }
 
+  @Ignore("Requires Ceph Squid (v19) or newer for fetch-keys parameter support")
   @Test
   public void getUserInfoWithFetchKeys() {
     testWithAUser(
@@ -766,6 +767,7 @@ public class RgwAdminImplTest extends BaseTest {
         });
   }
 
+  @Ignore("Requires Ceph Squid (v19) or newer for access-key parameter support in getUserInfo")
   @Test
   public void getUserInfoByAccessKey() {
     testWithAUser(
