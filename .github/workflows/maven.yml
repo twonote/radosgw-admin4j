@@ -77,6 +77,7 @@ jobs:
       - run: mvn install -Dgpg.skip=true
       - run: cat target/surefire-reports/*.txt
   squid-java25:
+  squid-java25:
     name: integration_test_squid_java25
     runs-on: ubuntu-latest
     steps:  
@@ -179,3 +180,4 @@ jobs:
       - uses: actions/checkout@v2
       - run: mvn install -Dgpg.skip=true
       - run: cat target/surefire-reports/*.txt
+
