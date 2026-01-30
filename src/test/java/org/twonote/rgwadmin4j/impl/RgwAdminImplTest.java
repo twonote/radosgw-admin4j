@@ -1047,6 +1047,7 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
+  @Ignore("Info endpoint requires Ceph version that supports /admin/info (Reef or later)")
   public void getInfo() {
     // Test the info endpoint
     Optional<ClusterInfo> response = RGW_ADMIN.getInfo();
