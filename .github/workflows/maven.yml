@@ -9,8 +9,8 @@ permissions:
 on: [push, pull_request]
   
 jobs:
-  tentacle-java21:
-    name: integration_test_tentacle_java21
+  tentacle-java25:
+    name: integration_test_tentacle_java25
     runs-on: ubuntu-latest
     steps:  
       # run ceph rgw using v20.2.0 image
@@ -67,16 +67,15 @@ jobs:
       - run: docker logs rgw
       - run: echo -e 'GET / HTTP/1.1\r\nHost:localhost\r\n\r\n' | nc localhost 80
       # setup java        
-      - name: Set up JDK 21
+      - name: Set up JDK 25
         uses: actions/setup-java@v2
         with:
-          java-version: '21'
+          java-version: '25'
           distribution: 'adopt'
       # run integration test
       - uses: actions/checkout@v2
       - run: mvn install -Dgpg.skip=true
       - run: cat target/surefire-reports/*.txt
-  squid-java25:
   squid-java25:
     name: integration_test_squid_java25
     runs-on: ubuntu-latest
