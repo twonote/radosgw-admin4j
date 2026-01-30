@@ -4,12 +4,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Test;
 import org.twonote.rgwadmin4j.model.Account;
 
@@ -17,16 +18,28 @@ import org.twonote.rgwadmin4j.model.Account;
  * Tests for Ceph Squid Account Management operations.
  *
  * <p>Note: These tests require a Ceph Squid or later instance with proper capabilities configured.
+ * Tests are automatically enabled for Squid+ versions and skipped for older versions.
  */
 public class RgwAdminAccountManagementTest extends BaseTest {
 
+  private static final String CEPH_VERSION_PROPERTY = "ceph.version";
+  
+  /**
+   * Check if the current Ceph version supports Account Management (Squid or later).
+   * Tests will be skipped if running on older Ceph versions.
+   */
+  @Before
+  public void checkCephVersion() {
+    String cephVersion = System.getProperty(CEPH_VERSION_PROPERTY, "");
+    boolean isSquidOrLater = cephVersion.contains("squid") || cephVersion.contains("tentacle");
+    assumeTrue("Account Management tests require Ceph Squid or later. Current version: " + cephVersion, 
+               isSquidOrLater);
+  }
+
   /**
    * Test creating an account with auto-generated ID.
-   *
-   * <p>This test is ignored by default as it requires Ceph Squid or later.
    */
   @Test
-  @Ignore("Requires Ceph Squid or later")
   public void testCreateAccountBasic() {
     String accountName = "test-account-" + UUID.randomUUID().toString();
     String accountId = null;
@@ -55,11 +68,8 @@ public class RgwAdminAccountManagementTest extends BaseTest {
 
   /**
    * Test creating an account with custom parameters.
-   *
-   * <p>This test is ignored by default as it requires Ceph Squid or later.
    */
   @Test
-  @Ignore("Requires Ceph Squid or later")
   public void testCreateAccountWithParameters() {
     String accountName = "test-account-" + UUID.randomUUID().toString();
     String accountId = null;
@@ -92,11 +102,8 @@ public class RgwAdminAccountManagementTest extends BaseTest {
 
   /**
    * Test getting account information.
-   *
-   * <p>This test is ignored by default as it requires Ceph Squid or later.
    */
   @Test
-  @Ignore("Requires Ceph Squid or later")
   public void testGetAccountInfo() {
     String accountName = "test-account-" + UUID.randomUUID().toString();
     String accountId = null;
@@ -123,11 +130,8 @@ public class RgwAdminAccountManagementTest extends BaseTest {
 
   /**
    * Test modifying an existing account.
-   *
-   * <p>This test is ignored by default as it requires Ceph Squid or later.
    */
   @Test
-  @Ignore("Requires Ceph Squid or later")
   public void testModifyAccount() {
     String accountName = "test-account-" + UUID.randomUUID().toString();
     String accountId = null;
@@ -159,11 +163,8 @@ public class RgwAdminAccountManagementTest extends BaseTest {
 
   /**
    * Test removing an account.
-   *
-   * <p>This test is ignored by default as it requires Ceph Squid or later.
    */
   @Test
-  @Ignore("Requires Ceph Squid or later")
   public void testRemoveAccount() {
     String accountName = "test-account-" + UUID.randomUUID().toString();
     String accountId = null;

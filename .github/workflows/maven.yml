@@ -74,7 +74,7 @@ jobs:
           distribution: 'adopt'
       # run integration test
       - uses: actions/checkout@v2
-      - run: mvn install -Dgpg.skip=true
+      - run: mvn install -Dgpg.skip=true -Dceph.version=tentacle
       - run: cat target/surefire-reports/*.txt
   squid-java25:
     name: integration_test_squid_java25
@@ -95,7 +95,7 @@ jobs:
           distribution: 'adopt'
       # run integration test
       - uses: actions/checkout@v2
-      - run: mvn install -Dgpg.skip=true
+      - run: mvn install -Dgpg.skip=true -Dceph.version=squid
       - run: cat target/surefire-reports/*.txt
   reef-java21:
     name: integration_test_reef_java21
@@ -116,7 +116,7 @@ jobs:
           distribution: 'adopt'
       # run integration test
       - uses: actions/checkout@v2
-      - run: mvn install -Dgpg.skip=true
+      - run: mvn install -Dgpg.skip=true -Dceph.version=reef
       - run: cat target/surefire-reports/*.txt
   reef-java11:
     name: integration_test_reef_java11
@@ -137,7 +137,7 @@ jobs:
           distribution: 'adopt'
       # run integration test
       - uses: actions/checkout@v2
-      - run: mvn install -Dgpg.skip=true
+      - run: mvn install -Dgpg.skip=true -Dceph.version=reef
       - run: cat target/surefire-reports/*.txt
   pacific-java8:
     name: integration_test_pacific_java8
@@ -157,7 +157,7 @@ jobs:
           java-version: 1.8
       # run integration test
       - uses: actions/checkout@v2
-      - run: mvn install -Dgpg.skip=true
+      - run: mvn install -Dgpg.skip=true -Dceph.version=pacific
       - run: cat target/surefire-reports/*.txt
   octopus:
     name: integration_test_octopus
@@ -177,6 +177,6 @@ jobs:
           java-version: 1.8
       # run integration test
       - uses: actions/checkout@v2
-      - run: mvn install -Dgpg.skip=true
+      - run: mvn install -Dgpg.skip=true -Dceph.version=octopus
       - run: cat target/surefire-reports/*.txt
 
