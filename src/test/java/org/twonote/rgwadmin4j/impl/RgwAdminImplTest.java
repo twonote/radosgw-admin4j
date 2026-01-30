@@ -1044,4 +1044,17 @@ public class RgwAdminImplTest extends BaseTest {
           RGW_ADMIN.removeObject(bucketName, objectKey);
         });
   }
+
+  @Test
+  public void getInfo() {
+    // Test the info endpoint
+    Optional<org.twonote.rgwadmin4j.model.ClusterInfo> response = RGW_ADMIN.getInfo();
+    
+    // The response should be present
+    assertTrue(response.isPresent());
+    
+    // The cluster_id should not be null or empty
+    assertNotNull(response.get().getClusterId());
+    assertFalse(response.get().getClusterId().isEmpty());
+  }
 }
