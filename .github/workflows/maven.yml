@@ -9,13 +9,80 @@ permissions:
 on: [push, pull_request]
   
 jobs:
+  tentacle-java25:
+    name: integration_test_tentacle_java25
+    runs-on: ubuntu-latest
+    steps:  
+      # run ceph rgw using v20.2.0 image
+      - run: docker pull quay.io/ceph/ceph:v20.2.0
+      - run: |
+          docker run -d -p 80:8080 --name rgw quay.io/ceph/ceph:v20.2.0 bash -c "
+          set -ex;
+          mkdir -p /var/lib/ceph/mon/ceph-a /var/lib/ceph/osd/ceph-0 /var/lib/ceph/radosgw /etc/ceph;
+          FSID=\$(uuidgen);
+          echo '[global]' > /etc/ceph/ceph.conf;
+          echo \"fsid = \$FSID\" >> /etc/ceph/ceph.conf;
+          echo 'mon initial members = a' >> /etc/ceph/ceph.conf;
+          echo 'mon host = 127.0.0.1' >> /etc/ceph/ceph.conf;
+          echo 'public network = 127.0.0.1/32' >> /etc/ceph/ceph.conf;
+          echo 'auth cluster required = none' >> /etc/ceph/ceph.conf;
+          echo 'auth service required = none' >> /etc/ceph/ceph.conf;
+          echo 'auth client required = none' >> /etc/ceph/ceph.conf;
+          echo 'osd pool default size = 1' >> /etc/ceph/ceph.conf;
+          echo 'osd pool default min size = 1' >> /etc/ceph/ceph.conf;
+          echo 'osd pool default pg num = 8' >> /etc/ceph/ceph.conf;
+          echo 'osd journal size = 100' >> /etc/ceph/ceph.conf;
+          echo '[mon.a]' >> /etc/ceph/ceph.conf;
+          echo 'mon addr = 127.0.0.1:6789' >> /etc/ceph/ceph.conf;
+          echo '[osd.0]' >> /etc/ceph/ceph.conf;
+          echo 'osd data = /var/lib/ceph/osd/ceph-0' >> /etc/ceph/ceph.conf;
+          echo '[client.rgw.gateway]' >> /etc/ceph/ceph.conf;
+          echo 'rgw frontends = beast port=8080' >> /etc/ceph/ceph.conf;
+          echo 'rgw enable usage log = true' >> /etc/ceph/ceph.conf;
+          echo 'rgw usage log tick interval = 1' >> /etc/ceph/ceph.conf;
+          echo 'rgw usage log flush threshold = 1' >> /etc/ceph/ceph.conf;
+          echo 'rgw usage max shards = 1' >> /etc/ceph/ceph.conf;
+          echo 'rgw usage max user shards = 1' >> /etc/ceph/ceph.conf;
+          monmaptool --create --add a 127.0.0.1:6789 --fsid \$FSID /tmp/monmap;
+          ceph-mon --mkfs -i a --monmap /tmp/monmap --keyring /dev/null;
+          touch /var/lib/ceph/mon/ceph-a/done;
+          ceph-mon -i a &
+          sleep 5;
+          for i in {1..30}; do ceph mon stat && break || sleep 1; done;
+          ceph osd create 0 || true;
+          ceph-osd --mkfs -i 0 --monmap /tmp/monmap;
+          ceph-osd -i 0 &
+          sleep 5;
+          for i in {1..60}; do ceph osd stat | grep -q '1 up' && break || sleep 1; done;
+          radosgw-admin user create --uid=qqq --display-name=qqq --access-key=qqq --secret-key=qqq || true;
+          radosgw-admin caps add --uid=qqq --caps='users=*;buckets=*;metadata=*;usage=*;zone=*' || true;
+          radosgw -n client.rgw.gateway &
+          sleep 5;
+          for i in {1..60}; do curl -s http://localhost:8080 && break || sleep 1; done;
+          echo 'Ceph is ready';
+          tail -f /dev/null
+          "
+      - run: timeout 180 bash -c "until curl -s http://localhost:80 > /dev/null 2>&1; do echo 'Waiting for RGW...'; sleep 2; done" || (echo "Timeout. Logs:" && docker logs rgw && exit 1)
+      - run: docker ps
+      - run: docker logs rgw
+      - run: echo -e 'GET / HTTP/1.1\r\nHost:localhost\r\n\r\n' | nc localhost 80
+      # setup java        
+      - name: Set up JDK 25
+        uses: actions/setup-java@v2
+        with:
+          java-version: '25'
+          distribution: 'adopt'
+      # run integration test
+      - uses: actions/checkout@v2
+      - run: mvn install -Dgpg.skip=true
+      - run: cat target/surefire-reports/*.txt
   squid-java25:
     name: integration_test_squid_java25
     runs-on: ubuntu-latest
     steps:  
       # run ceph rgw
       - run: docker pull quay.io/ceph/demo:latest-squid
-      - run: docker run -d -p 80:8080 -v /etc/ceph/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e MON_IP=127.0.0.1 -e CEPH_PUBLIC_NETWORK=127.0.0.1/32 -e NETWORK_AUTO_DETECT=4 --name rgw quay.io/ceph/demo:latest-reef demo
+      - run: docker run -d -p 80:8080 -v /etc/ceph/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e MON_IP=127.0.0.1 -e CEPH_PUBLIC_NETWORK=127.0.0.1/32 -e NETWORK_AUTO_DETECT=4 --name rgw quay.io/ceph/demo:latest-squid demo
       - run: timeout 180 bash -c "until docker logs rgw &> rgw.log && grep SUCCESS rgw.log; do sleep 1; done" 
       - run: docker ps
       - run: cat rgw.log
