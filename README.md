@@ -7,7 +7,7 @@
 **radosgw-admin4j** is a powerful Ceph object storage admin client designed for provisioning and managing Ceph object storage deployments. It offers a wide range of features, including user and subuser management, quota control, usage reporting, and bucket/object management, among others.
 
 # Highlights
-- **Full Support for All [Operations](http://docs.ceph.com/docs/master/radosgw/adminops/)**: We fully support all operations, including subuser and quota management, for the latest Ceph versions.
+- **Support for all [Operations](http://docs.ceph.com/docs/master/radosgw/adminops/)**: We fully support all operations, including subuser and quota management, for the latest Ceph versions.
 - Simplified Radosgw Management: Manage your radosgw instance with ease, avoiding the complexities often associated with radosgw admin APIs.
 - Quality and Compatibility: Our codebase undergoes continuous integration and testing against active Ceph releases, including **Tentacle**.
 - Contributor-Friendly: We welcome contributions with a straightforward contribution process and no unusual policies.
@@ -150,6 +150,6 @@ That's it!
 We welcome all contributions to the project. Our code style follows the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html), and we use [google-java-format](https://github.com/google/google-java-format) for code formatting. There are no unusual policies, and we encourage you to get involved.
 
 # Legal
-Copyright 2017-2023 [twonote](http://twonote.github.io/) & The "radosgw-admin4j" contributors.
+Copyright 2017-2026 [twonote](http://twonote.github.io/) & The "radosgw-admin4j" contributors.
 
 Licensed under the Apache License, Version 2.0. You may not use this file except in compliance with the License. You can obtain a copy of the License at [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0). Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, without warranties or conditions of any kind, either express or implied. See the License for the specific language governing permissions and limitations under the License.
