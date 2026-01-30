@@ -1,4 +1,8 @@
 2.0.10 (2026-01-30)
+- Add support for Ceph Squid Account Management operations (create/modify/get/remove account)
+- Add support for Cluster Info endpoint (/info)
+- Add getUserInfo overload with parameters for enhanced security options
+- Add Account and ClusterInfo model classes
 - Update dependencies for security vulnerabilities
 - This version is tested with Ceph Squid / Tentacle / Java 25
 
