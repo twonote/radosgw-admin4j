@@ -55,7 +55,7 @@ jobs:
           sleep 5;
           for i in {1..60}; do ceph osd stat | grep -q '1 up' && break || sleep 1; done;
           radosgw-admin user create --uid=qqq --display-name=qqq --access-key=qqq --secret-key=qqq || true;
-          radosgw-admin caps add --uid=qqq --caps='users=*;buckets=*;metadata=*;usage=*;zone=*' || true;
+          radosgw-admin caps add --uid=qqq --caps='users=*;buckets=*;metadata=*;usage=*;zone=*;accounts=*' || true;
           radosgw -n client.rgw.gateway &
           sleep 5;
           for i in {1..60}; do curl -s http://localhost:8080 && break || sleep 1; done;
@@ -84,6 +84,7 @@ jobs:
       - run: docker pull quay.io/ceph/demo:latest-squid
       - run: docker run -d -p 80:8080 -v /etc/ceph/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e MON_IP=127.0.0.1 -e CEPH_PUBLIC_NETWORK=127.0.0.1/32 -e NETWORK_AUTO_DETECT=4 --name rgw quay.io/ceph/demo:latest-squid demo
       - run: timeout 180 bash -c "until docker logs rgw &> rgw.log && grep SUCCESS rgw.log; do sleep 1; done" 
+      - run: docker exec rgw radosgw-admin caps add --uid=qqq --caps='users=*;buckets=*;metadata=*;usage=*;zone=*;accounts=*' || true
       - run: docker ps
       - run: cat rgw.log
       - run: echo -e 'GET / HTTP/1.1\r\nHost:localhost\r\n\r\n' | nc localhost 80
