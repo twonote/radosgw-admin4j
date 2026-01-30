@@ -9,6 +9,27 @@ permissions:
 on: [push, pull_request]
   
 jobs:
+  squid-java25:
+    name: integration_test_squid_java25
+    runs-on: ubuntu-latest
+    steps:  
+      # run ceph rgw
+      - run: docker pull quay.io/ceph/demo:latest-squid
+      - run: docker run -d -p 80:8080 -v /etc/ceph/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e MON_IP=127.0.0.1 -e CEPH_PUBLIC_NETWORK=127.0.0.1/32 -e NETWORK_AUTO_DETECT=4 --name rgw quay.io/ceph/demo:latest-reef demo
+      - run: timeout 180 bash -c "until docker logs rgw &> rgw.log && grep SUCCESS rgw.log; do sleep 1; done" 
+      - run: docker ps
+      - run: cat rgw.log
+      - run: echo -e 'GET / HTTP/1.1\r\nHost:localhost\r\n\r\n' | nc localhost 80
+      # setup java        
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '25'
+          distribution: 'adopt'
+      # run integration test
+      - uses: actions/checkout@v2
+      - run: mvn install -Dgpg.skip=true
+      - run: cat target/surefire-reports/*.txt
   reef-java21:
     name: integration_test_reef_java21
     runs-on: ubuntu-latest
