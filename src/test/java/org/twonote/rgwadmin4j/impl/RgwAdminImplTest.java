@@ -1047,7 +1047,6 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  @Ignore("Requires info=read capability to be added to test user in CI")
   public void getInfo() {
     // Test the info endpoint
     Optional<ClusterInfo> response = RGW_ADMIN.getInfo();
