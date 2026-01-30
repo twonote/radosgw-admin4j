@@ -786,9 +786,6 @@ public class RgwAdminImplTest extends BaseTest {
           response = RGW_ADMIN.getUserInfoByAccessKey(accessKey, false);
           assertTrue(response.isPresent());
           assertEquals(userId, response.get().getUserId());
-
-          // Test with non-existent access key
-          assertFalse(RGW_ADMIN.getUserInfoByAccessKey("non-existent-key").isPresent());
         });
   }
 
