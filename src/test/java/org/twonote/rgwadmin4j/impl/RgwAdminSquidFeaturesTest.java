@@ -46,6 +46,7 @@ public class RgwAdminSquidFeaturesTest extends BaseTest {
   @Ignore("Requires Ceph Squid or later")
   public void testCreateAccountBasic() {
     String accountName = "test-account-" + UUID.randomUUID().toString();
+    String accountId = null;
 
     try {
       Account account = RGW_ADMIN.createAccount(accountName);
@@ -56,12 +57,15 @@ public class RgwAdminSquidFeaturesTest extends BaseTest {
       assertTrue(
           "Account ID should have RGW prefix",
           account.getId() != null && account.getId().startsWith("RGW"));
+      
+      accountId = account.getId();
     } finally {
-      try {
-        // Clean up - retrieve account ID and remove
-        // Note: This is a simplified cleanup; actual implementation may need account listing
-      } catch (Exception e) {
-        // Ignore cleanup errors in test
+      if (accountId != null) {
+        try {
+          RGW_ADMIN.removeAccount(accountId);
+        } catch (Exception e) {
+          // Ignore cleanup errors in test
+        }
       }
     }
   }
@@ -179,14 +183,28 @@ public class RgwAdminSquidFeaturesTest extends BaseTest {
   @Ignore("Requires Ceph Squid or later")
   public void testRemoveAccount() {
     String accountName = "test-account-" + UUID.randomUUID().toString();
+    String accountId = null;
 
-    Account created = RGW_ADMIN.createAccount(accountName);
-    String accountId = created.getId();
+    try {
+      Account created = RGW_ADMIN.createAccount(accountName);
+      accountId = created.getId();
 
-    RGW_ADMIN.removeAccount(accountId);
+      RGW_ADMIN.removeAccount(accountId);
 
-    Optional<Account> retrieved = RGW_ADMIN.getAccountInfo(accountId);
-    assertFalse("Account should not exist after removal", retrieved.isPresent());
+      Optional<Account> retrieved = RGW_ADMIN.getAccountInfo(accountId);
+      assertFalse("Account should not exist after removal", retrieved.isPresent());
+      
+      // Mark as cleaned up so finally block doesn't attempt double removal
+      accountId = null;
+    } finally {
+      if (accountId != null) {
+        try {
+          RGW_ADMIN.removeAccount(accountId);
+        } catch (Exception e) {
+          // Ignore cleanup errors in test
+        }
+      }
+    }
   }
 
   /**
