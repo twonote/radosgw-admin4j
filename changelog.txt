@@ -1,6 +1,8 @@
-2.0.10 (2026-01-30)
+TBD/Latest
 - Add support for Ceph Squid Account Management operations (create/modify/get/remove account)
 - Add Account model class with quotas and resource limits
+
+2.0.10 (2026-01-30)
 - Update dependencies for security vulnerabilities
 - This version is tested with Ceph Squid / Tentacle / Java 25
 
