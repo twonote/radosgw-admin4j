@@ -179,4 +179,3 @@ jobs:
       - uses: actions/checkout@v2
       - run: mvn install -Dgpg.skip=true
       - run: cat target/surefire-reports/*.txt
-
