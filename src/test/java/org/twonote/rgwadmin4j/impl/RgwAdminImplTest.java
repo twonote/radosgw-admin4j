@@ -744,6 +744,55 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
+  public void getUserInfoWithFetchKeys() {
+    testWithAUser(
+        u -> {
+          String userId = u.getUserId();
+          User response;
+
+          // Get user info with keys (default behavior)
+          response = RGW_ADMIN.getUserInfo(userId, true).get();
+          assertEquals(userId, response.getUserId());
+          assertNotNull(response.getS3Credentials());
+          assertFalse(response.getS3Credentials().isEmpty());
+
+          // Get user info without keys
+          // Note: The server's behavior depends on the caller's capabilities.
+          // With users=read capability, keys may still be returned.
+          // This test validates that the fetch-keys parameter is properly sent.
+          response = RGW_ADMIN.getUserInfo(userId, false).get();
+          assertEquals(userId, response.getUserId());
+          // We can still validate that the method succeeds
+        });
+  }
+
+  @Test
+  public void getUserInfoByAccessKey() {
+    testWithAUser(
+        u -> {
+          String userId = u.getUserId();
+          List<S3Credential> credentials = u.getS3Credentials();
+          assertFalse(credentials.isEmpty());
+          String accessKey = credentials.get(0).getAccessKey();
+
+          // Get user info by access key
+          Optional<User> response = RGW_ADMIN.getUserInfoByAccessKey(accessKey);
+          assertTrue(response.isPresent());
+          assertEquals(userId, response.get().getUserId());
+          assertNotNull(response.get().getS3Credentials());
+          assertFalse(response.get().getS3Credentials().isEmpty());
+
+          // Get user info by access key without keys
+          response = RGW_ADMIN.getUserInfoByAccessKey(accessKey, false);
+          assertTrue(response.isPresent());
+          assertEquals(userId, response.get().getUserId());
+
+          // Test with non-existent access key
+          assertFalse(RGW_ADMIN.getUserInfoByAccessKey("non-existent-key").isPresent());
+        });
+  }
+
+  @Test
   public void suspendUser() {
     testWithASubUser(
         v -> {

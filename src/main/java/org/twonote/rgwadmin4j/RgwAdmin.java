@@ -468,10 +468,60 @@ public interface RgwAdmin {
   /**
    * Get user information.
    *
+   * <p>Note: Requires cap {@code users=read} or {@code user-info-without-keys=read}.
+   * If the cap {@code user-info-without-keys} is set and the caller is not the system user, 
+   * an admin user, or lacks {@code users=read} capability, S3 keys and Swift keys will not 
+   * be included in the response.
+   *
    * @param userId The user for which the information is requested.
    * @return The user information.
    */
   Optional<User> getUserInfo(String userId);
+
+  /**
+   * Get user information with optional key fetching control.
+   *
+   * <p>Note: Requires cap {@code users=read} or {@code user-info-without-keys=read}.
+   * When {@code fetchKeys} is false, S3 keys and Swift keys will not be included in the response.
+   * This is useful when you want to retrieve user metadata without exposing sensitive credentials.
+   *
+   * @param userId The user for which the information is requested.
+   * @param fetchKeys Whether to include S3 and Swift keys in the response.
+   * @return The user information.
+   */
+  Optional<User> getUserInfo(String userId, boolean fetchKeys);
+
+  /**
+   * Get user information by S3 access key.
+   *
+   * <p>Note: Requires cap {@code users=read} or {@code user-info-without-keys=read}.
+   * If the cap {@code user-info-without-keys} is set and the caller is not the system user, 
+   * an admin user, or lacks {@code users=read} capability, S3 keys and Swift keys will not 
+   * be included in the response.
+   *
+   * <p>If both {@code uid} and {@code access-key} are provided to the underlying API, 
+   * the user specified by {@code uid} will be returned.
+   *
+   * @param accessKey The S3 access key of the user for which the information is requested.
+   * @return The user information.
+   */
+  Optional<User> getUserInfoByAccessKey(String accessKey);
+
+  /**
+   * Get user information by S3 access key with optional key fetching control.
+   *
+   * <p>Note: Requires cap {@code users=read} or {@code user-info-without-keys=read}.
+   * When {@code fetchKeys} is false, S3 keys and Swift keys will not be included in the response.
+   * This is useful when you want to retrieve user metadata without exposing sensitive credentials.
+   *
+   * <p>If both {@code uid} and {@code access-key} are provided to the underlying API, 
+   * the user specified by {@code uid} will be returned.
+   *
+   * @param accessKey The S3 access key of the user for which the information is requested.
+   * @param fetchKeys Whether to include S3 and Swift keys in the response.
+   * @return The user information.
+   */
+  Optional<User> getUserInfoByAccessKey(String accessKey, boolean fetchKeys);
 
   /**
    * Get the user list
