@@ -20,6 +20,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.twonote.rgwadmin4j.model.BucketInfo;
@@ -1047,8 +1048,11 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  @Ignore("Info endpoint requires Ceph version that supports /admin/info (Reef or later)")
   public void getInfo() {
+    // Skip test unless running against Squid or newer (which supports /admin/info endpoint)
+    Assume.assumeTrue("Info endpoint test requires Ceph Squid or newer", 
+        Boolean.parseBoolean(System.getProperty("test.info.endpoint", "false")));
+    
     // Test the info endpoint
     Optional<ClusterInfo> response = RGW_ADMIN.getInfo();
     
