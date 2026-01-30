@@ -24,6 +24,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.twonote.rgwadmin4j.model.BucketInfo;
 import org.twonote.rgwadmin4j.model.Cap;
+import org.twonote.rgwadmin4j.model.ClusterInfo;
 import org.twonote.rgwadmin4j.model.CredentialType;
 import org.twonote.rgwadmin4j.model.Quota;
 import org.twonote.rgwadmin4j.model.S3Credential;
@@ -1049,7 +1050,7 @@ public class RgwAdminImplTest extends BaseTest {
   @Ignore("Requires info=read capability to be added to test user in CI")
   public void getInfo() {
     // Test the info endpoint
-    Optional<org.twonote.rgwadmin4j.model.ClusterInfo> response = RGW_ADMIN.getInfo();
+    Optional<ClusterInfo> response = RGW_ADMIN.getInfo();
     
     // The response should be present
     assertTrue(response.isPresent());
