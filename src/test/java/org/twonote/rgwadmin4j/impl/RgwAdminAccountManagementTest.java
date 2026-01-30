@@ -7,11 +7,14 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 import com.google.common.collect.ImmutableMap;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.UUID;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.twonote.rgwadmin4j.RgwAdmin;
 import org.twonote.rgwadmin4j.model.Account;
 
 /**
@@ -20,19 +23,44 @@ import org.twonote.rgwadmin4j.model.Account;
  * <p>Note: These tests require a Ceph Squid or later instance with proper capabilities configured.
  * Tests are automatically enabled for Squid+ versions and skipped for older versions.
  */
-public class RgwAdminAccountManagementTest extends BaseTest {
+public class RgwAdminAccountManagementTest {
 
   private static final String CEPH_VERSION_PROPERTY = "ceph.version";
+  private static boolean isSquidOrLater = false;
+  private static RgwAdmin rgwAdmin;
+  
+  /**
+   * Initialize test environment. Only connects to radosgw if running on Squid+.
+   */
+  @BeforeClass
+  public static void initAccountManagementTests() throws IOException {
+    String cephVersion = System.getProperty(CEPH_VERSION_PROPERTY, "");
+    isSquidOrLater = cephVersion.contains("squid") || cephVersion.contains("tentacle");
+    
+    // Only initialize connection to radosgw if running on Squid+
+    if (isSquidOrLater) {
+      String env = System.getProperty("env", "");
+      if (!"".equals(env)) {
+        env = "." + env;
+      }
+      Properties properties = new Properties();
+      properties.load(RgwAdminAccountManagementTest.class.getResourceAsStream("/rgwadmin.properties" + env));
+      
+      String adminAccessKey = properties.getProperty("radosgw.adminAccessKey");
+      String adminSecretKey = properties.getProperty("radosgw.adminSecretKey");
+      String adminEndpoint = properties.getProperty("radosgw.adminEndpoint");
+      
+      rgwAdmin = new RgwAdminImpl(adminAccessKey, adminSecretKey, adminEndpoint);
+    }
+  }
   
   /**
    * Check if the current Ceph version supports Account Management (Squid or later).
    * Tests will be skipped if running on older Ceph versions.
    */
-  @Before
-  public void checkCephVersion() {
-    String cephVersion = System.getProperty(CEPH_VERSION_PROPERTY, "");
-    boolean isSquidOrLater = cephVersion.contains("squid") || cephVersion.contains("tentacle");
-    assumeTrue("Account Management tests require Ceph Squid or later. Current version: " + cephVersion, 
+  private void checkCephVersion() {
+    assumeTrue("Account Management tests require Ceph Squid or later. Current version: " 
+               + System.getProperty(CEPH_VERSION_PROPERTY, ""), 
                isSquidOrLater);
   }
 
@@ -41,11 +69,12 @@ public class RgwAdminAccountManagementTest extends BaseTest {
    */
   @Test
   public void testCreateAccountBasic() {
+    checkCephVersion();
     String accountName = "test-account-" + UUID.randomUUID().toString();
     String accountId = null;
 
     try {
-      Account account = RGW_ADMIN.createAccount(accountName);
+      Account account = rgwAdmin.createAccount(accountName);
 
       assertNotNull("Account should not be null", account);
       assertEquals("Account name should match", accountName, account.getName());
@@ -58,7 +87,7 @@ public class RgwAdminAccountManagementTest extends BaseTest {
     } finally {
       if (accountId != null) {
         try {
-          RGW_ADMIN.removeAccount(accountId);
+          rgwAdmin.removeAccount(accountId);
         } catch (Exception e) {
           // Ignore cleanup errors in test
         }
@@ -71,6 +100,7 @@ public class RgwAdminAccountManagementTest extends BaseTest {
    */
   @Test
   public void testCreateAccountWithParameters() {
+    checkCephVersion();
     String accountName = "test-account-" + UUID.randomUUID().toString();
     String accountId = null;
 
@@ -81,7 +111,7 @@ public class RgwAdminAccountManagementTest extends BaseTest {
               "max-users", "10",
               "max-buckets", "100");
 
-      Account account = RGW_ADMIN.createAccount(accountName, parameters);
+      Account account = rgwAdmin.createAccount(accountName, parameters);
       accountId = account.getId();
 
       assertNotNull("Account should not be null", account);
@@ -92,7 +122,7 @@ public class RgwAdminAccountManagementTest extends BaseTest {
     } finally {
       if (accountId != null) {
         try {
-          RGW_ADMIN.removeAccount(accountId);
+          rgwAdmin.removeAccount(accountId);
         } catch (Exception e) {
           // Ignore cleanup errors in test
         }
@@ -105,14 +135,15 @@ public class RgwAdminAccountManagementTest extends BaseTest {
    */
   @Test
   public void testGetAccountInfo() {
+    checkCephVersion();
     String accountName = "test-account-" + UUID.randomUUID().toString();
     String accountId = null;
 
     try {
-      Account created = RGW_ADMIN.createAccount(accountName);
+      Account created = rgwAdmin.createAccount(accountName);
       accountId = created.getId();
 
-      Optional<Account> retrieved = RGW_ADMIN.getAccountInfo(accountId);
+      Optional<Account> retrieved = rgwAdmin.getAccountInfo(accountId);
 
       assertTrue("Account should be found", retrieved.isPresent());
       assertEquals("Account ID should match", accountId, retrieved.get().getId());
@@ -120,7 +151,7 @@ public class RgwAdminAccountManagementTest extends BaseTest {
     } finally {
       if (accountId != null) {
         try {
-          RGW_ADMIN.removeAccount(accountId);
+          rgwAdmin.removeAccount(accountId);
         } catch (Exception e) {
           // Ignore cleanup errors in test
         }
@@ -133,11 +164,12 @@ public class RgwAdminAccountManagementTest extends BaseTest {
    */
   @Test
   public void testModifyAccount() {
+    checkCephVersion();
     String accountName = "test-account-" + UUID.randomUUID().toString();
     String accountId = null;
 
     try {
-      Account created = RGW_ADMIN.createAccount(accountName);
+      Account created = rgwAdmin.createAccount(accountName);
       accountId = created.getId();
 
       Map<String, String> modifications =
@@ -145,7 +177,7 @@ public class RgwAdminAccountManagementTest extends BaseTest {
               "email", "modified@example.com",
               "max-buckets", "200");
 
-      Account modified = RGW_ADMIN.modifyAccount(accountId, modifications);
+      Account modified = rgwAdmin.modifyAccount(accountId, modifications);
 
       assertEquals("Account ID should remain the same", accountId, modified.getId());
       assertEquals("Email should be updated", "modified@example.com", modified.getEmail());
@@ -153,7 +185,7 @@ public class RgwAdminAccountManagementTest extends BaseTest {
     } finally {
       if (accountId != null) {
         try {
-          RGW_ADMIN.removeAccount(accountId);
+          rgwAdmin.removeAccount(accountId);
         } catch (Exception e) {
           // Ignore cleanup errors in test
         }
@@ -166,16 +198,17 @@ public class RgwAdminAccountManagementTest extends BaseTest {
    */
   @Test
   public void testRemoveAccount() {
+    checkCephVersion();
     String accountName = "test-account-" + UUID.randomUUID().toString();
     String accountId = null;
 
     try {
-      Account created = RGW_ADMIN.createAccount(accountName);
+      Account created = rgwAdmin.createAccount(accountName);
       accountId = created.getId();
 
-      RGW_ADMIN.removeAccount(accountId);
+      rgwAdmin.removeAccount(accountId);
 
-      Optional<Account> retrieved = RGW_ADMIN.getAccountInfo(accountId);
+      Optional<Account> retrieved = rgwAdmin.getAccountInfo(accountId);
       assertFalse("Account should not exist after removal", retrieved.isPresent());
       
       // Mark as cleaned up so finally block doesn't attempt double removal
@@ -183,7 +216,7 @@ public class RgwAdminAccountManagementTest extends BaseTest {
     } finally {
       if (accountId != null) {
         try {
-          RGW_ADMIN.removeAccount(accountId);
+          rgwAdmin.removeAccount(accountId);
         } catch (Exception e) {
           // Ignore cleanup errors in test
         }
