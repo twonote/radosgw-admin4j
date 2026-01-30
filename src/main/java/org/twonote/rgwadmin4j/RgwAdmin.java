@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Optional;
 import org.twonote.rgwadmin4j.model.BucketInfo;
 import org.twonote.rgwadmin4j.model.Cap;
+import org.twonote.rgwadmin4j.model.ClusterInfo;
 import org.twonote.rgwadmin4j.model.CredentialType;
 import org.twonote.rgwadmin4j.model.Quota;
 import org.twonote.rgwadmin4j.model.S3Credential;
@@ -702,4 +703,14 @@ public interface RgwAdmin {
    * @return If successful returns the policy.
    */
   Optional<String> getBucketPolicy(String bucketName);
+
+  /**
+   * Get RGW cluster/endpoint information.
+   *
+   * <p>This endpoint returns cluster ID information and RGW cluster/endpoint metadata.
+   * It requires the info=read capability.
+   *
+   * @return The cluster information if successful.
+   */
+  Optional<ClusterInfo> getInfo();
 }
