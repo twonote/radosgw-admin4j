@@ -6,7 +6,6 @@ import java.util.Optional;
 import org.twonote.rgwadmin4j.model.Account;
 import org.twonote.rgwadmin4j.model.BucketInfo;
 import org.twonote.rgwadmin4j.model.Cap;
-import org.twonote.rgwadmin4j.model.ClusterInfo;
 import org.twonote.rgwadmin4j.model.CredentialType;
 import org.twonote.rgwadmin4j.model.Quota;
 import org.twonote.rgwadmin4j.model.S3Credential;
@@ -706,19 +705,6 @@ public interface RgwAdmin {
   Optional<String> getBucketPolicy(String bucketName);
 
   /**
-   * Get cluster information from the /info endpoint.
-   *
-   * <p>Returns metadata about the RADOS Gateway cluster including cluster ID, realm, zonegroup,
-   * and zone information.
-   *
-   * <p>Note: Requires the 'info=read' capability.
-   *
-   * @return The cluster information.
-   * @since Ceph Squid
-   */
-  Optional<ClusterInfo> getClusterInfo();
-
-  /**
    * Create a new account.
    *
    * <p>Creates an account with optional parameters for quotas and limits. Account IDs have the
@@ -793,24 +779,4 @@ public interface RgwAdmin {
    * @since Ceph Squid
    */
   void removeAccount(String accountId);
-
-  /**
-   * Get user information with optional parameters for enhanced security.
-   *
-   * <p>This method supports the 'user-info-without-keys' capability which allows retrieving user
-   * information without exposing S3 and Swift credentials.
-   *
-   * <p>Available parameters include:
-   *
-   * <ul>
-   *   <li>access-key: Filter by access key instead of user ID.
-   *   <li>stats: Include usage statistics in the response.
-   * </ul>
-   *
-   * @param userId     The user for which the information is requested.
-   * @param parameters Optional parameters for the query.
-   * @return The user information.
-   * @since Ceph Squid
-   */
-  Optional<User> getUserInfo(String userId, Map<String, String> parameters);
 }

@@ -12,30 +12,13 @@ import java.util.UUID;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.twonote.rgwadmin4j.model.Account;
-import org.twonote.rgwadmin4j.model.ClusterInfo;
-import org.twonote.rgwadmin4j.model.User;
 
 /**
- * Tests for new Ceph Squid features: Account Management and Info endpoint.
+ * Tests for Ceph Squid Account Management operations.
  *
  * <p>Note: These tests require a Ceph Squid or later instance with proper capabilities configured.
  */
-public class RgwAdminSquidFeaturesTest extends BaseTest {
-
-  /**
-   * Test the /info endpoint to retrieve cluster information.
-   *
-   * <p>This test is ignored by default as it requires Ceph Squid or later and the 'info=read'
-   * capability.
-   */
-  @Test
-  @Ignore("Requires Ceph Squid or later with info=read capability")
-  public void testGetClusterInfo() {
-    Optional<ClusterInfo> clusterInfo = RGW_ADMIN.getClusterInfo();
-
-    assertTrue("Cluster info should be present", clusterInfo.isPresent());
-    assertNotNull("Cluster ID should not be null", clusterInfo.get().getClusterId());
-  }
+public class RgwAdminAccountManagementTest extends BaseTest {
 
   /**
    * Test creating an account with auto-generated ID.
@@ -204,53 +187,6 @@ public class RgwAdminSquidFeaturesTest extends BaseTest {
           // Ignore cleanup errors in test
         }
       }
-    }
-  }
-
-  /**
-   * Test getUserInfo with parameters for enhanced security.
-   *
-   * <p>This test verifies that the new getUserInfo overload with parameters works correctly.
-   */
-  @Test
-  public void testGetUserInfoWithParameters() {
-    String userId = "rgwAdmin4jTest-" + UUID.randomUUID().toString();
-
-    try {
-      User created = RGW_ADMIN.createUser(userId);
-
-      // Test with empty parameters - should behave like the original method
-      Map<String, String> parameters = ImmutableMap.of();
-      Optional<User> retrieved = RGW_ADMIN.getUserInfo(userId, parameters);
-
-      assertTrue("User should be found", retrieved.isPresent());
-      assertEquals("User ID should match", userId, retrieved.get().getUserId());
-      assertNotNull("S3 credentials should be present", retrieved.get().getS3Credentials());
-      assertFalse("S3 credentials should not be empty", retrieved.get().getS3Credentials().isEmpty());
-    } finally {
-      RGW_ADMIN.removeUser(userId);
-    }
-  }
-
-  /**
-   * Test getUserInfo with stats parameter.
-   *
-   * <p>This test verifies parameter passing works correctly.
-   */
-  @Test
-  public void testGetUserInfoWithStatsParameter() {
-    String userId = "rgwAdmin4jTest-" + UUID.randomUUID().toString();
-
-    try {
-      User created = RGW_ADMIN.createUser(userId);
-
-      Map<String, String> parameters = ImmutableMap.of("stats", "true");
-      Optional<User> retrieved = RGW_ADMIN.getUserInfo(userId, parameters);
-
-      assertTrue("User should be found", retrieved.isPresent());
-      assertEquals("User ID should match", userId, retrieved.get().getUserId());
-    } finally {
-      RGW_ADMIN.removeUser(userId);
     }
   }
 }

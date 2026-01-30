@@ -8,7 +8,7 @@
 
 # Highlights
 - **Support for all [Operations](http://docs.ceph.com/docs/master/radosgw/adminops/)**: We fully support all operations, including subuser and quota management, for the latest Ceph versions.
-- **Ceph Squid Support**: Full support for new Ceph Squid features including Account Management and Cluster Info endpoint.
+- **Ceph Squid Account Management**: Full support for Account Management operations introduced in Ceph Squid.
 - Simplified Radosgw Management: Manage your radosgw instance with ease, avoiding the complexities often associated with radosgw admin APIs.
 - Quality and Compatibility: Our codebase undergoes continuous integration and testing against active Ceph releases, including **Tentacle**.
 - Contributor-Friendly: We welcome contributions with a straightforward contribution process and no unusual policies.
@@ -117,18 +117,6 @@ Account updated = rgwAdmin.modifyAccount("RGW12345678901234567",
 // Remove an account
 rgwAdmin.removeAccount("RGW12345678901234567");
 ```
-
-### Cluster Information (Ceph Squid and later)
-
-```java
-// Get cluster information (requires 'info=read' capability)
-Optional<ClusterInfo> clusterInfo = rgwAdmin.getClusterInfo();
-clusterInfo.ifPresent(info -> {
-    System.out.println("Cluster ID: " + info.getClusterId());
-    System.out.println("Zone: " + info.getZoneName());
-});
-```
-
 
 ## One More Thing: Radosgw Setup
 
