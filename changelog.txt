@@ -1,3 +1,7 @@
+2.0.10 (2026-01-30)
+- Update dependencies for security vulnerabilities
+- This version is tested with Ceph Squid / Tentacle / Java 25
+
 2.0.9 (2023-11-06)
 - Update dependencies for security vulnerabilities
 - This version is tested with Ceph Reef / Java 21

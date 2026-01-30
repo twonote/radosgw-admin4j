@@ -22,7 +22,7 @@ You can include radosgw-admin4j in your project by adding the following Maven Ce
 <dependency>
     <groupId>io.github.twonote</groupId>
     <artifactId>radosgw-admin4j</artifactId>
-    <version>2.0.9</version> <!-- Replace with the latest version -->
+    <version>2.0.10</version> <!-- Replace with the latest version -->
 </dependency>
 ```
 
