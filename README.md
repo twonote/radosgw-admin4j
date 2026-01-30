@@ -53,6 +53,17 @@ rgwAdmin.createUser(userId);
 User user = rgwAdmin.getUserInfo(userId).get();
 user.getS3Credentials().forEach(System.out::println);
 
+// Get user information without keys (enhanced security)
+// This is useful when you only need user metadata without exposing sensitive credentials
+User userWithoutKeys = rgwAdmin.getUserInfo(userId, false).get();
+
+// Get user information by access key
+String accessKey = user.getS3Credentials().get(0).getAccessKey();
+User userByKey = rgwAdmin.getUserInfoByAccessKey(accessKey).get();
+
+// Get user information by access key without credentials
+User userByKeyWithoutKeys = rgwAdmin.getUserInfoByAccessKey(accessKey, false).get();
+
 // Create a subuser
 SubUser subUser = rgwAdmin.createSubUser(userId, "subUserId", SubUser.Permission.FULL, CredentialType.SWIFT);
 
@@ -62,6 +73,8 @@ rgwAdmin.suspendUser(userId, true);
 // Remove a user
 rgwAdmin.removeUser(userId);
 ```
+
+**Note on Enhanced Security:** The new `getUserInfo` overloads support the `user-info-without-keys` capability. When `fetchKeys` is set to `false`, or when the caller only has the `user-info-without-keys=read` capability (without `users=read`), S3 and Swift keys will be excluded from the response unless the caller is a system user or admin user.
 
 ### Quota Management
 
