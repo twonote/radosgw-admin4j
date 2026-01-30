@@ -3,8 +3,10 @@ package org.twonote.rgwadmin4j;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.twonote.rgwadmin4j.model.Account;
 import org.twonote.rgwadmin4j.model.BucketInfo;
 import org.twonote.rgwadmin4j.model.Cap;
+import org.twonote.rgwadmin4j.model.ClusterInfo;
 import org.twonote.rgwadmin4j.model.CredentialType;
 import org.twonote.rgwadmin4j.model.Quota;
 import org.twonote.rgwadmin4j.model.S3Credential;
@@ -702,4 +704,113 @@ public interface RgwAdmin {
    * @return If successful returns the policy.
    */
   Optional<String> getBucketPolicy(String bucketName);
+
+  /**
+   * Get cluster information from the /info endpoint.
+   *
+   * <p>Returns metadata about the RADOS Gateway cluster including cluster ID, realm, zonegroup,
+   * and zone information.
+   *
+   * <p>Note: Requires the 'info=read' capability.
+   *
+   * @return The cluster information.
+   * @since Ceph Squid
+   */
+  Optional<ClusterInfo> getClusterInfo();
+
+  /**
+   * Create a new account.
+   *
+   * <p>Creates an account with optional parameters for quotas and limits. Account IDs have the
+   * format: "RGW" + 17 numeric characters (auto-generated if not provided).
+   *
+   * <p>Available parameters include:
+   *
+   * <ul>
+   *   <li>id: Account ID (format: RGW + 17 digits). If not provided, will be auto-generated.
+   *   <li>tenant: Tenant name for the account.
+   *   <li>email: Email address for the account.
+   *   <li>max-users: Maximum number of users allowed in the account.
+   *   <li>max-roles: Maximum number of roles allowed in the account.
+   *   <li>max-groups: Maximum number of groups allowed in the account.
+   *   <li>max-access-keys: Maximum number of access keys allowed in the account.
+   *   <li>max-buckets: Maximum number of buckets allowed in the account.
+   * </ul>
+   *
+   * @param accountName The account name to be created.
+   * @param parameters  Optional parameters for account configuration.
+   * @return The created account information.
+   * @since Ceph Squid
+   */
+  Account createAccount(String accountName, Map<String, String> parameters);
+
+  /**
+   * Create a new account with just a name.
+   *
+   * <p>Creates an account with default settings. Account ID will be auto-generated.
+   *
+   * @param accountName The account name to be created.
+   * @return The created account information.
+   * @since Ceph Squid
+   */
+  Account createAccount(String accountName);
+
+  /**
+   * Get account information.
+   *
+   * @param accountId The account ID to retrieve information for.
+   * @return The account information.
+   * @since Ceph Squid
+   */
+  Optional<Account> getAccountInfo(String accountId);
+
+  /**
+   * Modify an existing account.
+   *
+   * <p>Updates account settings such as quotas and limits. Available parameters include:
+   *
+   * <ul>
+   *   <li>name: Update the account name.
+   *   <li>email: Update the email address.
+   *   <li>max-users: Update maximum number of users.
+   *   <li>max-roles: Update maximum number of roles.
+   *   <li>max-groups: Update maximum number of groups.
+   *   <li>max-access-keys: Update maximum number of access keys.
+   *   <li>max-buckets: Update maximum number of buckets.
+   * </ul>
+   *
+   * @param accountId  The account ID to be modified.
+   * @param parameters Parameters to update.
+   * @return The updated account information.
+   * @since Ceph Squid
+   */
+  Account modifyAccount(String accountId, Map<String, String> parameters);
+
+  /**
+   * Remove an existing account.
+   *
+   * @param accountId The account ID to be removed.
+   * @since Ceph Squid
+   */
+  void removeAccount(String accountId);
+
+  /**
+   * Get user information with optional parameters for enhanced security.
+   *
+   * <p>This method supports the 'user-info-without-keys' capability which allows retrieving user
+   * information without exposing S3 and Swift credentials.
+   *
+   * <p>Available parameters include:
+   *
+   * <ul>
+   *   <li>access-key: Filter by access key instead of user ID.
+   *   <li>stats: Include usage statistics in the response.
+   * </ul>
+   *
+   * @param userId     The user for which the information is requested.
+   * @param parameters Optional parameters for the query.
+   * @return The user information.
+   * @since Ceph Squid
+   */
+  Optional<User> getUserInfo(String userId, Map<String, String> parameters);
 }

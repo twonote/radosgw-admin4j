@@ -43,4 +43,32 @@ public class Quota {
   public void setMaxObjects(Long maxObjects) {
     this.maxObjects = maxObjects;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    Quota quota = (Quota) o;
+
+    if (enabled != null ? !enabled.equals(quota.enabled) : quota.enabled != null) {
+      return false;
+    }
+    if (maxSizeKb != null ? !maxSizeKb.equals(quota.maxSizeKb) : quota.maxSizeKb != null) {
+      return false;
+    }
+    return maxObjects != null ? maxObjects.equals(quota.maxObjects) : quota.maxObjects == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = enabled != null ? enabled.hashCode() : 0;
+    result = 31 * result + (maxSizeKb != null ? maxSizeKb.hashCode() : 0);
+    result = 31 * result + (maxObjects != null ? maxObjects.hashCode() : 0);
+    return result;
+  }
 }
