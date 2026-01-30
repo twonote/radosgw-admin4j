@@ -92,6 +92,14 @@ UsageInfo userUsage = rgwAdmin.getUserUsage(userId).get();
 userUsage.getSummary().forEach(System.out::println);
 ```
 
+### Cluster Information
+
+```java
+// Retrieve and display the cluster information
+ClusterInfo info = rgwAdmin.getInfo().get();
+System.out.println("Cluster ID: " + info.getClusterId());
+```
+
 ## One More Thing: Radosgw Setup
 
 To get started, you need a ready-to-use radosgw instance and an admin account with the necessary capabilities. Here's how you can set up a radosgw instance:
@@ -126,7 +134,7 @@ To get started, you need a ready-to-use radosgw instance and an admin account wi
 
    ```bash
    $ radosgw-admin user create --uid=qqq --display-name="qqq" --access-key=qqq --secret-key=qqq
-   $ radosgw-admin --id admin caps add --caps="buckets=*;users=*;usage=*;metadata=*" --uid=qqq
+   $ radosgw-admin --id admin caps add --caps="buckets=*;users=*;usage=*;metadata=*;info=read" --uid=qqq
    ```
 
 2. Enter the key pair (qqq,qqq) and add your radosgw endpoint to the [config file](https://github.com/twonote/radosgw-admin4j/blob/master/src/test/resources/rgwadmin.properties).

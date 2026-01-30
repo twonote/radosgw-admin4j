@@ -85,6 +85,15 @@ public class Example extends BaseTest {
     userUsage.getSummary().stream().peek(System.out::println);
   }
 
+  /*
+   * Cluster information
+   */
+  private static void clusterInfo() {
+    // Retrieve and show the cluster information
+    org.twonote.rgwadmin4j.model.ClusterInfo info = RGW_ADMIN.getInfo().get();
+    System.out.println("Cluster ID: " + info.getClusterId());
+  }
+
   // Remove @Ignore before run
   @Test
   @Ignore("Not a test")
@@ -101,5 +110,6 @@ public class Example extends BaseTest {
     testWithAUser(Example::quota);
     testWithAUser(Example::store);
     testWithAUser(Example::usage);
+    clusterInfo();
   }
 }
