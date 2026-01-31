@@ -710,11 +710,15 @@ public class RgwAdminImplTest extends BaseTest {
     assertNotNull("Op-mask should not be null", userInfo.getOpMask());
     
     // Verify the op-mask value contains the expected operations
-    // Note: The server may return the op-mask in different formats (e.g., "read, write" or "*")
-    // depending on the Ceph version and configuration
+    // Note: The server may return the op-mask in different formats depending on the Ceph version
+    // It could be "read, write", "read,write", "*" (if all permissions granted), etc.
     String opMask = userInfo.getOpMask();
-    assertTrue("Op-mask should contain operations", 
-        opMask.contains("read") || opMask.contains("write") || opMask.equals("*"));
+    assertTrue("Op-mask should not be empty", opMask != null && !opMask.isEmpty());
+    // Verify that either it contains the requested operations or it's set to all operations
+    boolean hasRequestedOps = (opMask.contains("read") && opMask.contains("write"));
+    boolean hasAllOps = opMask.equals("*");
+    assertTrue("Op-mask should contain 'read' and 'write' or be set to '*' for all operations", 
+        hasRequestedOps || hasAllOps);
     
     // Clean up
     RGW_ADMIN.removeUser(userId);
