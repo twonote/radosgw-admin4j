@@ -25,6 +25,7 @@ import okhttp3.ResponseBody;
 import org.twonote.rgwadmin4j.RgwAdmin;
 import org.twonote.rgwadmin4j.model.BucketInfo;
 import org.twonote.rgwadmin4j.model.Cap;
+import org.twonote.rgwadmin4j.model.ClusterInfo;
 import org.twonote.rgwadmin4j.model.CredentialType;
 import org.twonote.rgwadmin4j.model.Quota;
 import org.twonote.rgwadmin4j.model.S3Credential;
@@ -917,6 +918,18 @@ public class RgwAdminImpl implements RgwAdmin {
     Request request = new Request.Builder().get().url(urlBuilder.build()).build();
 
     return Optional.ofNullable(safeCall(request));
+  }
+
+  @Override
+  public Optional<ClusterInfo> getInfo() {
+    HttpUrl.Builder urlBuilder = HttpUrl.parse(endpoint).newBuilder().addPathSegment("info");
+
+    Request request = new Request.Builder().get().url(urlBuilder.build()).build();
+
+    String resp = safeCall(request);
+    ClusterInfo clusterInfo = gson.fromJson(resp, ClusterInfo.class);
+    
+    return Optional.ofNullable(clusterInfo);
   }
 
   enum MetadataType {

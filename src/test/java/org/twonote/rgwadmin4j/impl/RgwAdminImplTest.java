@@ -20,10 +20,12 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.twonote.rgwadmin4j.model.BucketInfo;
 import org.twonote.rgwadmin4j.model.Cap;
+import org.twonote.rgwadmin4j.model.ClusterInfo;
 import org.twonote.rgwadmin4j.model.CredentialType;
 import org.twonote.rgwadmin4j.model.Quota;
 import org.twonote.rgwadmin4j.model.S3Credential;
@@ -1061,5 +1063,24 @@ public class RgwAdminImplTest extends BaseTest {
           // not exist
           RGW_ADMIN.removeObject(bucketName, objectKey);
         });
+  }
+
+  @Test
+  public void getInfo() {
+    // Skip test unless running against Squid or newer (which supports /admin/info endpoint)
+    Assume.assumeTrue("Info endpoint test requires Ceph Squid or newer", 
+        Boolean.parseBoolean(System.getProperty("test.info.endpoint", "false")));
+    
+    // Test the info endpoint
+    Optional<ClusterInfo> response = RGW_ADMIN.getInfo();
+    
+    // The response should be present
+    assertTrue(response.isPresent());
+    
+    ClusterInfo clusterInfo = response.get();
+    
+    // The cluster_id should not be null or empty
+    assertNotNull("cluster_id should not be null", clusterInfo.getClusterId());
+    assertFalse("cluster_id should not be empty", clusterInfo.getClusterId().isEmpty());
   }
 }

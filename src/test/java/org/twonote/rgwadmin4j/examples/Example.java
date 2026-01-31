@@ -85,6 +85,20 @@ public class Example extends BaseTest {
     userUsage.getSummary().stream().peek(System.out::println);
   }
 
+  /*
+   * Cluster information
+   * Note: Only works with Ceph Squid (v19) or newer versions
+   */
+  private static void clusterInfo() {
+    // Retrieve and show the cluster information
+    try {
+      org.twonote.rgwadmin4j.model.ClusterInfo info = RGW_ADMIN.getInfo().get();
+      System.out.println("Cluster ID: " + info.getClusterId());
+    } catch (Exception e) {
+      System.err.println("Failed to get cluster info (requires Ceph Squid v19+): " + e.getMessage());
+    }
+  }
+
   // Remove @Ignore before run
   @Test
   @Ignore("Not a test")
@@ -101,5 +115,6 @@ public class Example extends BaseTest {
     testWithAUser(Example::quota);
     testWithAUser(Example::store);
     testWithAUser(Example::usage);
+    clusterInfo();
   }
 }
