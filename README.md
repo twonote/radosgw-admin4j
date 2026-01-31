@@ -101,7 +101,7 @@ To get started, you need a ready-to-use radosgw instance and an admin account wi
 1. You can refer to the [Ceph official manual](http://docs.ceph.com/docs/master/start/) for a quick Ceph cluster setup. If you're not familiar with Ceph, this may be a bit challenging. An easier approach is available if you have **Docker** in your environment. To set up a standalone instance with an admin account using the [Ceph demo Docker image](https://quay.io/repository/ceph/demo), follow these instructions:
 
    ```bash
-   $ docker run -d -p 80:8080 -v /etc/ceph/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e MON_IP=127.0.0.1 -e CEPH_PUBLIC_NETWORK=127.0.0.1/32 -e NETWORK_AUTO_DETECT=4 --name rgw quay.io/ceph/demo:latest-squid demo
+   $ docker run -d -p 80:8080 -v /etc/ceph/:/etc/ceph/ -e CEPH_DEMO_UID=qqq -e CEPH_DEMO_ACCESS_KEY=qqq -e CEPH_DEMO_SECRET_KEY=qqq -e NETWORK_AUTO_DETECT=4 --name rgw quay.io/ceph/demo:latest-squid demo
    ```
 
    Note that port 80 should be available.
