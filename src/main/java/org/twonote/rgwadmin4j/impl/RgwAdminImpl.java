@@ -253,6 +253,22 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
+  public List<SubUser> setSubUserPermission(SubUser subUser) {
+    if (subUser == null) {
+      throw new IllegalArgumentException("subUser cannot be null");
+    }
+    if (subUser.getId() == null) {
+      throw new IllegalArgumentException("subUser.id cannot be null");
+    }
+    if (subUser.getPermission() == null) {
+      throw new IllegalArgumentException("subUser.permission cannot be null");
+    }
+    String userId = subUser.getParentUserId();
+    String subUserId = subUser.getRelativeSubUserId();
+    return setSubUserPermission(userId, subUserId, subUser.getPermission());
+  }
+
+  @Override
   public List<SubUser> listSubUserInfo(String userId) {
     Optional<User> userInfo = getUserInfo(userId);
     if (userInfo.isPresent()) {
@@ -583,7 +599,13 @@ public class RgwAdminImpl implements RgwAdmin {
     if (responses.size() == 0) {
       return Optional.empty();
     } else if (responses.size() == 1) {
-      return Optional.of(responses.get(0));
+      BucketInfo bucketInfo = responses.get(0);
+      // Set bucket and userId on the quota if present
+      if (bucketInfo.getBucketQuota() != null) {
+        bucketInfo.getBucketQuota().setBucket(bucketInfo.getBucket());
+        bucketInfo.getBucketQuota().setUserId(bucketInfo.getOwner());
+      }
+      return Optional.of(bucketInfo);
     }
     throw new RuntimeException("Server should not return more than one bucket");
   }
@@ -815,7 +837,11 @@ public class RgwAdminImpl implements RgwAdmin {
       throw new RgwAdminException(404, "NoSuchUser");
     }
 
-    return Optional.ofNullable(gson.fromJson(resp, Quota.class));
+    Quota quota = gson.fromJson(resp, Quota.class);
+    if (quota != null) {
+      quota.setUserId(userId);
+    }
+    return Optional.ofNullable(quota);
   }
 
   @Override
@@ -839,13 +865,55 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
+  public void setIndividualBucketQuota(Quota quota) {
+    if (quota == null) {
+      throw new IllegalArgumentException("quota cannot be null");
+    }
+    if (quota.getUserId() == null) {
+      throw new IllegalArgumentException("quota.userId cannot be null");
+    }
+    if (quota.getBucket() == null) {
+      throw new IllegalArgumentException("quota.bucket cannot be null");
+    }
+    long maxObjects = quota.getMaxObjects() != null ? quota.getMaxObjects() : -1;
+    long maxSizeKB = quota.getMaxSizeKb() != null ? quota.getMaxSizeKb() : -1;
+    setIndividualBucketQuota(quota.getUserId(), quota.getBucket(), maxObjects, maxSizeKB);
+  }
+
+  @Override
   public void setBucketQuota(String userId, long maxObjects, long maxSizeKB) {
     setUserQuota(userId, "bucket", maxObjects, maxSizeKB);
   }
 
   @Override
+  public void setBucketQuota(Quota quota) {
+    if (quota == null) {
+      throw new IllegalArgumentException("quota cannot be null");
+    }
+    if (quota.getUserId() == null) {
+      throw new IllegalArgumentException("quota.userId cannot be null");
+    }
+    long maxObjects = quota.getMaxObjects() != null ? quota.getMaxObjects() : -1;
+    long maxSizeKB = quota.getMaxSizeKb() != null ? quota.getMaxSizeKb() : -1;
+    setBucketQuota(quota.getUserId(), maxObjects, maxSizeKB);
+  }
+
+  @Override
   public void setUserQuota(String userId, long maxObjects, long maxSizeKB) {
     setUserQuota(userId, "user", maxObjects, maxSizeKB);
+  }
+
+  @Override
+  public void setUserQuota(Quota quota) {
+    if (quota == null) {
+      throw new IllegalArgumentException("quota cannot be null");
+    }
+    if (quota.getUserId() == null) {
+      throw new IllegalArgumentException("quota.userId cannot be null");
+    }
+    long maxObjects = quota.getMaxObjects() != null ? quota.getMaxObjects() : -1;
+    long maxSizeKB = quota.getMaxSizeKb() != null ? quota.getMaxSizeKb() : -1;
+    setUserQuota(quota.getUserId(), maxObjects, maxSizeKB);
   }
 
   public void setUserQuota(String userId, String quotaType, long maxObjects, long maxSizeKB) {

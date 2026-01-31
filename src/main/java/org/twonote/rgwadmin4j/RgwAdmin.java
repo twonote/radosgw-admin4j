@@ -202,6 +202,17 @@ public interface RgwAdmin {
       String userId, String subUserId, SubUser.Permission permission);
 
   /**
+   * Modify an existing subuser permission using a SubUser object.
+   *
+   * <p>Note that you can get the SubUser by {@link #getSubUserInfo(String, String)}
+   *
+   * @param subUser The SubUser object containing the ID and permission to set.
+   *                The subUser must have a valid ID in the form "userId:subUserId".
+   * @return Subusers associated with the user account.
+   */
+  List<SubUser> setSubUserPermission(SubUser subUser);
+
+  /**
    * Retrieve the sub-user information under a user
    *
    * @param userId The user ID under which subusers we interested to
@@ -591,6 +602,18 @@ public interface RgwAdmin {
   void setIndividualBucketQuota(String userId, String bucket, long maxObjects, long maxSizeKB);
 
   /**
+   * Set or modify a quota on a given bucket using a Quota object.
+   * <p>
+   * Note that you can get this quota via {@link #getBucketInfo(String)}
+   *
+   * <p>Tips: To use this feature, you need Ceph v13.0.2 (mimic) or above.
+   *
+   * @param quota The quota object containing userId, bucket, maxObjects and maxSizeKb.
+   *              The userId and bucket fields must be set.
+   */
+  void setIndividualBucketQuota(Quota quota);
+
+  /**
    * Set or modify quotas on all buckets owned by a user.
    *
    * @param userId     The bucket owner to set quota.
@@ -602,6 +625,14 @@ public interface RgwAdmin {
   void setBucketQuota(String userId, long maxObjects, long maxSizeKB);
 
   /**
+   * Set or modify quotas on all buckets owned by a user using a Quota object.
+   *
+   * @param quota The quota object containing userId, maxObjects and maxSizeKb.
+   *              The userId field must be set.
+   */
+  void setBucketQuota(Quota quota);
+
+  /**
    * Set or modify a quota on a user.
    *
    * @param userId     The user to set quota.
@@ -611,6 +642,14 @@ public interface RgwAdmin {
    *                   bytes. A negative value disables this setting.
    */
   void setUserQuota(String userId, long maxObjects, long maxSizeKB);
+
+  /**
+   * Set or modify a quota on a user using a Quota object.
+   *
+   * @param quota The quota object containing userId, maxObjects and maxSizeKb.
+   *              The userId field must be set.
+   */
+  void setUserQuota(Quota quota);
 
   /**
    * Remove an existing object.
