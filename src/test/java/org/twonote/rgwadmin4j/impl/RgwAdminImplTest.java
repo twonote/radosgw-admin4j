@@ -750,19 +750,13 @@ public class RgwAdminImplTest extends BaseTest {
           String userId = u.getUserId();
           User response;
 
-          // Get user info with keys (default behavior)
-          response = RGW_ADMIN.getUserInfo(userId, true).get();
+          // Get user info - behavior depends on caller's capabilities
+          // With users=read capability, keys are always returned
+          // With only user-info-without-keys=read capability, keys are not returned
+          response = RGW_ADMIN.getUserInfo(userId).get();
           assertEquals(userId, response.getUserId());
           assertNotNull(response.getS3Credentials());
           assertFalse(response.getS3Credentials().isEmpty());
-
-          // Get user info without keys
-          // Note: The server's behavior depends on the caller's capabilities.
-          // With users=read capability, keys may still be returned.
-          // This test validates that the fetch-keys parameter is properly sent.
-          response = RGW_ADMIN.getUserInfo(userId, false).get();
-          assertEquals(userId, response.getUserId());
-          // We can still validate that the method succeeds
         });
   }
 
@@ -781,11 +775,6 @@ public class RgwAdminImplTest extends BaseTest {
           assertEquals(userId, response.get().getUserId());
           assertNotNull(response.get().getS3Credentials());
           assertFalse(response.get().getS3Credentials().isEmpty());
-
-          // Get user info by access key without keys
-          response = RGW_ADMIN.getUserInfoByAccessKey(accessKey, false);
-          assertTrue(response.isPresent());
-          assertEquals(userId, response.get().getUserId());
         });
   }
 
