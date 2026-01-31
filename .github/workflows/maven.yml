@@ -20,9 +20,35 @@ jobs:
       - run: docker ps
       - run: cat rgw.log
       - run: echo -e 'GET / HTTP/1.1\r\nHost:localhost\r\n\r\n' | nc localhost 80
-      # Verify admin user exists and grant account management capability
-      - run: docker exec rgw radosgw-admin user info --uid=qqq
-      - run: docker exec rgw radosgw-admin caps add --uid=qqq --caps="accounts=write"
+      # Debug: Check Ceph version and account capability support
+      - name: Debug Ceph and Account Capability
+        run: |
+          echo "=== Docker Image Info ==="
+          docker images quay.io/ceph/demo:latest-squid
+          
+          echo ""
+          echo "=== Ceph Version in Container ==="
+          docker exec rgw ceph --version
+          
+          echo ""
+          echo "=== radosgw-admin Version ==="
+          docker exec rgw radosgw-admin --version
+          
+          echo ""
+          echo "=== Check if 'accounts' string exists in binary ==="
+          docker exec rgw strings /usr/bin/radosgw-admin | grep -w accounts || echo "NOT FOUND"
+          
+          echo ""
+          echo "=== Current User Capabilities ==="
+          docker exec rgw radosgw-admin user info --uid=qqq | grep -A20 caps
+          
+          echo ""
+          echo "=== Try Adding accounts cap ==="
+          docker exec rgw radosgw-admin caps add --uid=qqq --caps="accounts=write" 2>&1
+          
+          echo ""
+          echo "=== Container Image Build Date ==="
+          docker inspect quay.io/ceph/demo:latest-squid | grep -i created
       # setup java        
       - name: Set up JDK
         uses: actions/setup-java@v2
