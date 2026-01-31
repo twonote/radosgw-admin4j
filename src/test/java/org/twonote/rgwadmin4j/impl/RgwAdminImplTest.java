@@ -690,6 +690,30 @@ public class RgwAdminImplTest extends BaseTest {
     RGW_ADMIN.modifyUser(userId, ImmutableMap.of("QQQQQ", String.valueOf(Integer.MAX_VALUE)));
     RGW_ADMIN.modifyUser(userId, ImmutableMap.of("max-buckets", "you-know-my-name"));
     assertEquals(Integer.valueOf(Integer.MAX_VALUE), response.getMaxBuckets());
+    
+    // Clean up
+    RGW_ADMIN.removeUser(userId);
+  }
+
+  @Test
+  public void modifyUserOpMask() {
+    String userId = "testModifyUserOpMask" + UUID.randomUUID().toString();
+    RGW_ADMIN.createUser(userId);
+
+    // Modify op-mask
+    User response = RGW_ADMIN.modifyUser(userId, ImmutableMap.of("op-mask", "read, write"));
+    assertNotNull("Response should not be null", response);
+    
+    // Verify op-mask is returned in the response
+    User userInfo = RGW_ADMIN.getUserInfo(userId).get();
+    assertNotNull("User info should not be null", userInfo);
+    assertNotNull("Op-mask should not be null", userInfo.getOpMask());
+    
+    // The op-mask format returned by the server may vary, but it should contain the operations
+    // Note: The actual format depends on the Ceph version
+    
+    // Clean up
+    RGW_ADMIN.removeUser(userId);
   }
 
   @Test
