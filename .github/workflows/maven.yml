@@ -20,8 +20,8 @@ jobs:
       - run: docker ps
       - run: cat rgw.log
       - run: echo -e 'GET / HTTP/1.1\r\nHost:localhost\r\n\r\n' | nc localhost 80
-      # Grant account management capabilities to admin user
-      - run: docker exec rgw radosgw-admin caps add --uid=qqq --caps="accounts=*"
+      # Make admin user a system admin to allow account management
+      - run: docker exec rgw radosgw-admin user modify --uid=qqq --admin=true --system
       # setup java        
       - name: Set up JDK
         uses: actions/setup-java@v2
