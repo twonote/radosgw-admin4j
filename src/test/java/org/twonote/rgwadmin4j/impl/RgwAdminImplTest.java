@@ -1061,12 +1061,13 @@ public class RgwAdminImplTest extends BaseTest {
     
     ClusterInfo clusterInfo = response.get();
     
-    // Debug: Print the actual response structure
-    System.out.println("ClusterInfo object: " + clusterInfo);
-    System.out.println("ClusterInfo.getClusterId(): " + clusterInfo.getClusterId());
-    
     // The cluster_id should not be null or empty
-    assertNotNull("cluster_id is null", clusterInfo.getClusterId());
+    // If it is null, fail with diagnostic information
+    if (clusterInfo.getClusterId() == null) {
+      fail("cluster_id is null. ClusterInfo object: " + clusterInfo + 
+           ". This means the API returned a response but it doesn't contain cluster_id field. " +
+           "Check if the response structure matches the model.");
+    }
     assertFalse("cluster_id is empty", clusterInfo.getClusterId().isEmpty());
   }
 }

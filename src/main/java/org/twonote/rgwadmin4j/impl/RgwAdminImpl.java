@@ -913,10 +913,16 @@ public class RgwAdminImpl implements RgwAdmin {
     Request request = new Request.Builder().get().url(urlBuilder.build()).build();
 
     String resp = safeCall(request);
-    System.out.println("DEBUG: Raw /info response: " + resp);
-    ClusterInfo clusterInfo = gson.fromJson(resp, ClusterInfo.class);
-    System.out.println("DEBUG: Parsed ClusterInfo: " + clusterInfo);
-    return Optional.ofNullable(clusterInfo);
+    try {
+      System.err.println("DEBUG: Raw /info response: " + resp);
+      ClusterInfo clusterInfo = gson.fromJson(resp, ClusterInfo.class);
+      System.err.println("DEBUG: Parsed ClusterInfo: " + clusterInfo);
+      System.err.println("DEBUG: Cluster ID from parsed object: " + clusterInfo.getClusterId());
+      return Optional.ofNullable(clusterInfo);
+    } catch (Exception e) {
+      System.err.println("ERROR parsing /info response: " + resp);
+      throw new RuntimeException("Failed to parse /info response: " + resp, e);
+    }
   }
 
   enum MetadataType {
