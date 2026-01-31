@@ -9,7 +9,7 @@
 # Highlights
 - **Support for all [Operations](http://docs.ceph.com/docs/master/radosgw/adminops/)**: We fully support all operations, including subuser, account (Squid+), and quota management, for the latest Ceph versions.
 - Simplified Radosgw Management: Manage your radosgw instance with ease, avoiding the complexities often associated with radosgw admin APIs.
-- Quality and Compatibility: Our codebase undergoes continuous integration and testing against active Ceph releases, including **Squid** and **Tentacle**.
+- Quality and Compatibility: Our codebase undergoes continuous integration and testing against Ceph **Squid** release. Account management features require Ceph Squid (v19) or later.
 - Contributor-Friendly: We welcome contributions with a straightforward contribution process and no unusual policies.
 
 # Getting Started
