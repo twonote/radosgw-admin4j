@@ -1063,7 +1063,6 @@ public class RgwAdminImplTest extends BaseTest {
     
     // Debug: Print the actual response structure
     System.out.println("ClusterInfo object: " + clusterInfo);
-    System.out.println("ClusterInfo.getInfo(): " + clusterInfo.getInfo());
     System.out.println("ClusterInfo.getClusterId(): " + clusterInfo.getClusterId());
     
     // The cluster_id should not be null or empty

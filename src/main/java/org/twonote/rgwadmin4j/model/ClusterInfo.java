@@ -6,82 +6,36 @@ import com.google.gson.annotations.SerializedName;
 /**
  * Represents RGW cluster/endpoint information.
  * 
- * <p>Example response:
- * <pre>
- * {
- *   "info": {
- *     "cluster_id": "ceph-cluster-id"
- *   }
- * }
- * </pre>
+ * <p>The /info endpoint returns cluster identification information.
+ * According to the Ceph documentation, the response should contain an info section
+ * with a cluster_id field, but the actual implementation may vary.
  */
 public class ClusterInfo {
 
-  @SerializedName("info")
+  @SerializedName("cluster_id")
   @Expose
-  private Info info;
+  private String clusterId;
 
   /**
-   * Gets the info container.
+   * Gets the cluster ID.
    * 
-   * @return The info container with cluster metadata
-   */
-  public Info getInfo() {
-    return info;
-  }
-
-  /**
-   * Sets the info container.
-   * 
-   * @param info The info container to set
-   */
-  public void setInfo(Info info) {
-    this.info = info;
-  }
-
-  /**
-   * Gets the cluster ID directly for convenience.
-   * 
-   * @return The cluster ID, or null if info is not set
+   * @return The cluster ID, typically the value returned from librados::rados::cluster_fsid()
    */
   public String getClusterId() {
-    return info != null ? info.getClusterId() : null;
+    return clusterId;
+  }
+
+  /**
+   * Sets the cluster ID.
+   * 
+   * @param clusterId The cluster ID to set
+   */
+  public void setClusterId(String clusterId) {
+    this.clusterId = clusterId;
   }
 
   @Override
   public String toString() {
-    return "ClusterInfo{info=" + info + "}";
-  }
-
-  /**
-   * Inner class representing the info section.
-   */
-  public static class Info {
-    @SerializedName("cluster_id")
-    @Expose
-    private String clusterId;
-
-    /**
-     * Gets the cluster ID.
-     * 
-     * @return The cluster ID, typically the value returned from librados::rados::cluster_fsid()
-     */
-    public String getClusterId() {
-      return clusterId;
-    }
-
-    /**
-     * Sets the cluster ID.
-     * 
-     * @param clusterId The cluster ID to set
-     */
-    public void setClusterId(String clusterId) {
-      this.clusterId = clusterId;
-    }
-
-    @Override
-    public String toString() {
-      return "Info{clusterId='" + clusterId + "'}";
-    }
+    return "ClusterInfo{clusterId='" + clusterId + "'}";
   }
 }
