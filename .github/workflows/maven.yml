@@ -72,7 +72,7 @@ jobs:
         with:
           java-version: '25'
           distribution: 'adopt'
-      # run integration test
+      # run integration test (info endpoint test disabled for Tentacle due to development version instability)
       - uses: actions/checkout@v2
       - run: mvn install -Dgpg.skip=true
       - run: cat target/surefire-reports/*.txt
