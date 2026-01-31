@@ -1,4 +1,5 @@
 2.0.10 (2026-01-30)
+- Add support for /info endpoint to retrieve cluster metadata (requires info=read capability)
 - Update dependencies for security vulnerabilities
 - This version is tested with Ceph Squid / Tentacle / Java 25
 
