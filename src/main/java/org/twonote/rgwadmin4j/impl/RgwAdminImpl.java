@@ -948,8 +948,7 @@ public class RgwAdminImpl implements RgwAdmin {
     Request request = new Request.Builder().get().url(urlBuilder.build()).build();
 
     String resp = safeCall(request);
-    Type type = new TypeToken<List<Account>>() {
-    }.getType();
+    Type type = new TypeToken<List<Account>>() {}.getType();
     List<Account> accounts = gson.fromJson(resp, type);
     return accounts != null ? accounts : new ArrayList<>();
   }
