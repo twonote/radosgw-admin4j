@@ -697,7 +697,7 @@ public class RgwAdminImplTest extends BaseTest {
 
   @Test
   public void modifyUserOpMask() {
-    String userId = "testModifyUserOpMask" + UUID.randomUUID().toString();
+    String userId = "testModifyUserOpMask-" + UUID.randomUUID().toString();
     RGW_ADMIN.createUser(userId);
 
     // Modify op-mask
@@ -709,8 +709,12 @@ public class RgwAdminImplTest extends BaseTest {
     assertNotNull("User info should not be null", userInfo);
     assertNotNull("Op-mask should not be null", userInfo.getOpMask());
     
-    // The op-mask format returned by the server may vary, but it should contain the operations
-    // Note: The actual format depends on the Ceph version
+    // Verify the op-mask value contains the expected operations
+    // Note: The server may return the op-mask in different formats (e.g., "read, write" or "*")
+    // depending on the Ceph version and configuration
+    String opMask = userInfo.getOpMask();
+    assertTrue("Op-mask should contain operations", 
+        opMask.contains("read") || opMask.contains("write") || opMask.equals("*"));
     
     // Clean up
     RGW_ADMIN.removeUser(userId);
