@@ -1,4 +1,6 @@
 2.0.10 (2026-01-30)
+- Add user-info-without-keys capability type support
+- Add getUserInfoByAccessKey() method to query user info by S3 access key
 - Update dependencies for security vulnerabilities
 - This version is tested with Ceph Squid / Tentacle / Java 25
 

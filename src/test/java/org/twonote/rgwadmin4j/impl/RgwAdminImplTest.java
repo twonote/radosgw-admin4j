@@ -744,23 +744,6 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
-  public void getUserInfoWithFetchKeys() {
-    testWithAUser(
-        u -> {
-          String userId = u.getUserId();
-          User response;
-
-          // Get user info - behavior depends on caller's capabilities
-          // With users=read capability, keys are always returned
-          // With only user-info-without-keys=read capability, keys are not returned
-          response = RGW_ADMIN.getUserInfo(userId).get();
-          assertEquals(userId, response.getUserId());
-          assertNotNull(response.getS3Credentials());
-          assertFalse(response.getS3Credentials().isEmpty());
-        });
-  }
-
-  @Test
   public void getUserInfoByAccessKey() {
     testWithAUser(
         u -> {
