@@ -915,11 +915,6 @@ public class RgwAdminImpl implements RgwAdmin {
     String resp = safeCall(request);
     ClusterInfo clusterInfo = gson.fromJson(resp, ClusterInfo.class);
     
-    // DEBUG: If cluster_id is null, throw exception with raw response
-    if (clusterInfo != null && clusterInfo.getClusterId() == null) {
-      throw new RuntimeException("Parsed ClusterInfo has null cluster_id. Raw response was: " + resp);
-    }
-    
     return Optional.ofNullable(clusterInfo);
   }
 
