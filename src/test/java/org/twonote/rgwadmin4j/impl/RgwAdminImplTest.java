@@ -743,7 +743,6 @@ public class RgwAdminImplTest extends BaseTest {
     assertFalse(RGW_ADMIN.getUserInfo(UUID.randomUUID().toString()).isPresent());
   }
 
-  @Ignore("Requires Ceph Squid or newer for access-key parameter support")
   @Test
   public void getUserInfoByAccessKey() {
     testWithAUser(
