@@ -23,6 +23,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.twonote.rgwadmin4j.RgwAdmin;
+import org.twonote.rgwadmin4j.model.Account;
 import org.twonote.rgwadmin4j.model.BucketInfo;
 import org.twonote.rgwadmin4j.model.Cap;
 import org.twonote.rgwadmin4j.model.CredentialType;
@@ -903,6 +904,91 @@ public class RgwAdminImpl implements RgwAdmin {
     Request request = new Request.Builder().get().url(urlBuilder.build()).build();
 
     return Optional.ofNullable(safeCall(request));
+  }
+
+  @Override
+  public Account createAccount(String accountName, String email) {
+    return createAccount(accountName, ImmutableMap.of("email", email));
+  }
+
+  @Override
+  public Account createAccount(String accountName, Map<String, String> parameters) {
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("account")
+            .addQueryParameter("account-name", accountName);
+
+    appendParameters(parameters, urlBuilder);
+
+    Request request = new Request.Builder().put(emptyBody).url(urlBuilder.build()).build();
+
+    String resp = safeCall(request);
+    return gson.fromJson(resp, Account.class);
+  }
+
+  @Override
+  public Optional<Account> getAccountInfo(String accountId) {
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("account")
+            .addQueryParameter("account-id", accountId);
+
+    Request request = new Request.Builder().get().url(urlBuilder.build()).build();
+
+    String resp = safeCall(request);
+    return Optional.ofNullable(gson.fromJson(resp, Account.class));
+  }
+
+  @Override
+  public List<Account> listAccounts() {
+    HttpUrl.Builder urlBuilder = HttpUrl.parse(endpoint).newBuilder().addPathSegment("account");
+
+    Request request = new Request.Builder().get().url(urlBuilder.build()).build();
+
+    String resp = safeCall(request);
+    Type type = new TypeToken<List<Account>>() {
+    }.getType();
+    List<Account> accounts = gson.fromJson(resp, type);
+    return accounts != null ? accounts : new ArrayList<>();
+  }
+
+  @Override
+  public Account modifyAccount(String accountId, Map<String, String> parameters) {
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("account")
+            .addQueryParameter("account-id", accountId);
+
+    parameters.forEach(urlBuilder::addQueryParameter);
+
+    Request request = new Request.Builder().post(emptyBody).url(urlBuilder.build()).build();
+
+    String resp = safeCall(request);
+    return gson.fromJson(resp, Account.class);
+  }
+
+  @Override
+  public void removeAccount(String accountId) {
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("account")
+            .addQueryParameter("account-id", accountId);
+
+    Request request = new Request.Builder().delete().url(urlBuilder.build()).build();
+
+    safeCall(request);
+  }
+
+  @Override
+  public User createAccountRootUser(String accountId, String userId, Map<String, String> parameters) {
+    Map<String, String> params = new HashMap<>(parameters != null ? parameters : new HashMap<>());
+    params.put("account-id", accountId);
+    params.put("account-root", "true");
+    return createUser(userId, params);
   }
 
   enum MetadataType {

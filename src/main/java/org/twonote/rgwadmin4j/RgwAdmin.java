@@ -3,6 +3,7 @@ package org.twonote.rgwadmin4j;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.twonote.rgwadmin4j.model.Account;
 import org.twonote.rgwadmin4j.model.BucketInfo;
 import org.twonote.rgwadmin4j.model.Cap;
 import org.twonote.rgwadmin4j.model.CredentialType;
@@ -702,4 +703,98 @@ public interface RgwAdmin {
    * @return If successful returns the policy.
    */
   Optional<String> getBucketPolicy(String bucketName);
+
+  /**
+   * Create a new account.
+   *
+   * <p>An account is a higher-level organizational container that can contain multiple users with
+   * configurable resource limits and IAM-like capabilities.
+   *
+   * <p>Note: This feature requires Ceph Squid or later.
+   *
+   * @param accountName The account name to be created.
+   * @param email       The email address associated with the account.
+   * @return The account information.
+   */
+  Account createAccount(String accountName, String email);
+
+  /**
+   * Create a new account with optional parameters.
+   *
+   * <p>Available parameters include:
+   *
+   * <ul>
+   *   <li>email: The email address associated with the account.
+   *   <li>tenant: The tenant associated with the account.
+   * </ul>
+   *
+   * <p>Note: This feature requires Ceph Squid or later.
+   *
+   * @param accountName The account name to be created.
+   * @param parameters  The account properties.
+   * @return The account information.
+   */
+  Account createAccount(String accountName, Map<String, String> parameters);
+
+  /**
+   * Get account information.
+   *
+   * <p>Note: This feature requires Ceph Squid or later.
+   *
+   * @param accountId The account ID for which the information is requested.
+   * @return The account information.
+   */
+  Optional<Account> getAccountInfo(String accountId);
+
+  /**
+   * List all accounts in the system.
+   *
+   * <p>Note: This feature requires Ceph Squid or later.
+   *
+   * @return List of account information.
+   */
+  List<Account> listAccounts();
+
+  /**
+   * Modify an existing account.
+   *
+   * <p>Available parameters include:
+   *
+   * <ul>
+   *   <li>account-name: The new account name.
+   *   <li>email: The email address associated with the account.
+   * </ul>
+   *
+   * <p>Note: This feature requires Ceph Squid or later.
+   *
+   * @param accountId  The account ID to be modified.
+   * @param parameters Optional parameters.
+   * @return The account information.
+   */
+  Account modifyAccount(String accountId, Map<String, String> parameters);
+
+  /**
+   * Remove an existing account.
+   *
+   * <p>Note: This feature requires Ceph Squid or later.
+   *
+   * @param accountId The account ID to be removed.
+   */
+  void removeAccount(String accountId);
+
+  /**
+   * Create an account root user.
+   *
+   * <p>An account root user is a special user designated as the account administrator with full
+   * permissions to manage resources within the account via IAM APIs.
+   *
+   * <p>Note: This feature requires Ceph Squid or later.
+   *
+   * @param accountId  The account ID under which the root user will be created.
+   * @param userId     The user ID to be created.
+   * @param parameters Optional parameters for user creation (e.g., display-name, email,
+   *                   access-key, secret-key).
+   * @return The user information.
+   */
+  User createAccountRootUser(String accountId, String userId, Map<String, String> parameters);
 }

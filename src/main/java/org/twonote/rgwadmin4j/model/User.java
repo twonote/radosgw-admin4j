@@ -45,6 +45,14 @@ public class User {
   @Expose
   private List<Cap> caps = null;
 
+  @SerializedName("account_id")
+  @Expose
+  private String accountId;
+
+  @SerializedName("account_root")
+  @Expose
+  private Boolean accountRoot;
+
   public String getUserId() {
     return userId;
   }
@@ -117,6 +125,22 @@ public class User {
     this.caps = caps;
   }
 
+  public String getAccountId() {
+    return accountId;
+  }
+
+  public void setAccountId(String accountId) {
+    this.accountId = accountId;
+  }
+
+  public Boolean getAccountRoot() {
+    return accountRoot;
+  }
+
+  public void setAccountRoot(Boolean accountRoot) {
+    this.accountRoot = accountRoot;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -156,7 +180,13 @@ public class User {
         : user.swiftCredentials != null) {
       return false;
     }
-    return caps != null ? caps.equals(user.caps) : user.caps == null;
+    if (caps != null ? !caps.equals(user.caps) : user.caps != null) {
+      return false;
+    }
+    if (accountId != null ? !accountId.equals(user.accountId) : user.accountId != null) {
+      return false;
+    }
+    return accountRoot != null ? accountRoot.equals(user.accountRoot) : user.accountRoot == null;
   }
 
   @Override
@@ -170,6 +200,8 @@ public class User {
     result = 31 * result + (s3Credentials != null ? s3Credentials.hashCode() : 0);
     result = 31 * result + (swiftCredentials != null ? swiftCredentials.hashCode() : 0);
     result = 31 * result + (caps != null ? caps.hashCode() : 0);
+    result = 31 * result + (accountId != null ? accountId.hashCode() : 0);
+    result = 31 * result + (accountRoot != null ? accountRoot.hashCode() : 0);
     return result;
   }
 }
