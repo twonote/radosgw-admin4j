@@ -661,20 +661,11 @@ public class RgwAdminImpl implements RgwAdmin {
 
   @Override
   public Optional<User> getUserInfo(String userId, boolean fetchKeys) {
-    HttpUrl.Builder urlBuilder =
-        HttpUrl.parse(endpoint)
-            .newBuilder()
-            .addPathSegment("user")
-            .addQueryParameter("uid", userId);
-
-    if (!fetchKeys) {
-      urlBuilder.addQueryParameter("fetch-keys", "false");
-    }
-
-    Request request = new Request.Builder().get().url(urlBuilder.build()).build();
-
-    String resp = safeCall(request);
-    return Optional.ofNullable(gson.fromJson(resp, User.class));
+    // Note: The fetchKeys parameter is maintained for API consistency but does not affect
+    // the server response. The server-side behavior is controlled by the caller's capabilities:
+    // - With users=read capability, keys are always returned
+    // - With only user-info-without-keys=read capability, keys are not returned
+    return getUserInfo(userId);
   }
 
   @Override
@@ -684,20 +675,11 @@ public class RgwAdminImpl implements RgwAdmin {
 
   @Override
   public Optional<User> getUserInfoByAccessKey(String accessKey, boolean fetchKeys) {
-    HttpUrl.Builder urlBuilder =
-        HttpUrl.parse(endpoint)
-            .newBuilder()
-            .addPathSegment("user")
-            .addQueryParameter("access-key", accessKey);
-
-    if (!fetchKeys) {
-      urlBuilder.addQueryParameter("fetch-keys", "false");
-    }
-
-    Request request = new Request.Builder().get().url(urlBuilder.build()).build();
-
-    String resp = safeCall(request);
-    return Optional.ofNullable(gson.fromJson(resp, User.class));
+    // Note: The fetchKeys parameter is maintained for API consistency but does not affect
+    // the server response. The server-side behavior is controlled by the caller's capabilities:
+    // - With users=read capability, keys are always returned
+    // - With only user-info-without-keys=read capability, keys are not returned
+    return getUserInfoByAccessKey(accessKey);
   }
 
   /**

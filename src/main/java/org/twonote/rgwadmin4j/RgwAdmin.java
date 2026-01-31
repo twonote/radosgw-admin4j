@@ -482,11 +482,18 @@ public interface RgwAdmin {
    * Get user information with optional key fetching control.
    *
    * <p>Note: Requires cap {@code users=read} or {@code user-info-without-keys=read}.
-   * When {@code fetchKeys} is false, S3 keys and Swift keys will not be included in the response.
-   * This is useful when you want to retrieve user metadata without exposing sensitive credentials.
+   * The {@code fetchKeys} parameter does not send any query parameter to the server.
+   * Whether S3 and Swift keys are included in the response depends on the caller's capabilities:
+   * <ul>
+   * <li>With {@code users=read} capability, keys are always returned</li>
+   * <li>With only {@code user-info-without-keys=read} capability (and not system/admin user),
+   * keys are not returned</li>
+   * </ul>
+   * This method is provided for API consistency and to allow client-side filtering if needed.
    *
    * @param userId The user for which the information is requested.
-   * @param fetchKeys Whether to include S3 and Swift keys in the response.
+   * @param fetchKeys This parameter does not affect the server response; key inclusion is
+   *                  determined by caller capabilities.
    * @return The user information.
    */
   Optional<User> getUserInfo(String userId, boolean fetchKeys);
@@ -511,14 +518,20 @@ public interface RgwAdmin {
    * Get user information by S3 access key with optional key fetching control.
    *
    * <p>Note: Requires cap {@code users=read} or {@code user-info-without-keys=read}.
-   * When {@code fetchKeys} is false, S3 keys and Swift keys will not be included in the response.
-   * This is useful when you want to retrieve user metadata without exposing sensitive credentials.
+   * The {@code fetchKeys} parameter does not send any query parameter to the server.
+   * Whether S3 and Swift keys are included in the response depends on the caller's capabilities:
+   * <ul>
+   * <li>With {@code users=read} capability, keys are always returned</li>
+   * <li>With only {@code user-info-without-keys=read} capability (and not system/admin user),
+   * keys are not returned</li>
+   * </ul>
    *
    * <p>If both {@code uid} and {@code access-key} are provided to the underlying API, 
    * the user specified by {@code uid} will be returned.
    *
    * @param accessKey The S3 access key of the user for which the information is requested.
-   * @param fetchKeys Whether to include S3 and Swift keys in the response.
+   * @param fetchKeys This parameter does not affect the server response; key inclusion is
+   *                  determined by caller capabilities.
    * @return The user information.
    */
   Optional<User> getUserInfoByAccessKey(String accessKey, boolean fetchKeys);

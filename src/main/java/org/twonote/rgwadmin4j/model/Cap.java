@@ -81,7 +81,7 @@ public class Cap {
 
     @Override
     public String toString() {
-      if (this.equals(Type.USER_INFO_WITHOUT_KEYS)) {
+      if (this == USER_INFO_WITHOUT_KEYS) {
         return "user-info-without-keys";
       }
       return super.toString().toLowerCase();
