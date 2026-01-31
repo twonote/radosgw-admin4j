@@ -93,6 +93,14 @@ jobs:
           docker exec rgw radosgw-admin caps add --uid=qqq --caps="accounts=write" 2>&1
           
           echo ""
+          echo "=== Make user a system admin (may be required for account management) ==="
+          docker exec rgw radosgw-admin user modify --uid=qqq --system 2>&1
+          
+          echo ""
+          echo "=== Verify user is now system admin ==="
+          docker exec rgw radosgw-admin user info --uid=qqq | grep -E '"system"|"caps"' -A 10
+          
+          echo ""
           echo "=== Container Image Build Date ==="
           docker inspect quay.io/ceph/ceph:v20.2.0 | grep -i created
       # Debug: Test /admin/account endpoint directly
