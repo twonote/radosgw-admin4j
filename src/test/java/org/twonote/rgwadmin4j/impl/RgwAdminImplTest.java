@@ -609,6 +609,32 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
+  public void linkBucketWithoutBucketId() {
+    testWithAUser(
+        v -> {
+          String userId = "linkbkusr2" + UUID.randomUUID().toString();
+          String bucketName = "linkbkusrbk2" + UUID.randomUUID().toString();
+          User response = RGW_ADMIN.createUser(userId);
+          AmazonS3 s3 =
+              createS3(
+                  response.getS3Credentials().get(0).getAccessKey(),
+                  response.getS3Credentials().get(0).getSecretKey());
+          s3.createBucket(bucketName);
+
+          BucketInfo _response = RGW_ADMIN.getBucketInfo(bucketName).get();
+          assertEquals(userId, _response.getOwner());
+
+          // Link bucket without providing bucketId (should be inferred by radosgw)
+          RGW_ADMIN.linkBucket(bucketName, adminUserId);
+          BucketInfo __response = RGW_ADMIN.getBucketInfo(bucketName).get();
+          assertEquals(adminUserId, __response.getOwner());
+
+          // execute again
+          RGW_ADMIN.linkBucket(bucketName, adminUserId);
+        });
+  }
+
+  @Test
   public void listBucketInfo() {
     testWithASubUser(
         v -> {

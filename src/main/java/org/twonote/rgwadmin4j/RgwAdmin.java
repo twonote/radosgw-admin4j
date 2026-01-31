@@ -344,10 +344,18 @@ public interface RgwAdmin {
    *
    * @param bucketName The bucket name to unlink.
    * @param bucketId   The bucket id to unlink. Example: dev.6607669.420. (You can get this by
-   *                   {@link #getBucketInfo(String)})
+   *                   {@link #getBucketInfo(String)}). This parameter is optional and can be null.
    * @param userId     The user ID to link the bucket to.
    */
   void linkBucket(String bucketName, String bucketId, String userId);
+
+  /**
+   * Link a bucket to a specified user, unlinking the bucket from any previous user.
+   *
+   * @param bucketName The bucket name to link.
+   * @param userId     The user ID to link the bucket to.
+   */
+  void linkBucket(String bucketName, String userId);
 
   /**
    * Unlink a bucket from a specified user. Primarily useful for changing bucket ownership.

@@ -475,20 +475,30 @@ public class RgwAdminImpl implements RgwAdmin {
 
   @Override
   public void linkBucket(String bucketName, String bucketId, String userId) {
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("bucket")
+            .addQueryParameter("bucket", bucketName);
+    
+    if (bucketId != null) {
+      urlBuilder.addQueryParameter("bucket-id", bucketId);
+    }
+    
+    urlBuilder.addQueryParameter("uid", userId);
+    
     Request request =
         new Request.Builder()
             .put(emptyBody)
-            .url(
-                HttpUrl.parse(endpoint)
-                    .newBuilder()
-                    .addPathSegment("bucket")
-                    .addQueryParameter("bucket", bucketName)
-                    .addQueryParameter("bucket-id", bucketId)
-                    .addQueryParameter("uid", userId)
-                    .build())
+            .url(urlBuilder.build())
             .build();
 
     safeCall(request);
+  }
+
+  @Override
+  public void linkBucket(String bucketName, String userId) {
+    linkBucket(bucketName, null, userId);
   }
 
   @Override
