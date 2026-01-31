@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.twonote.rgwadmin4j.model.Account;
 import org.twonote.rgwadmin4j.model.BucketInfo;
 import org.twonote.rgwadmin4j.model.Cap;
 import org.twonote.rgwadmin4j.model.CredentialType;
@@ -1043,5 +1044,168 @@ public class RgwAdminImplTest extends BaseTest {
           // not exist
           RGW_ADMIN.removeObject(bucketName, objectKey);
         });
+  }
+
+  @Test
+  public void createAccount() {
+    String accountName = "test-account-" + UUID.randomUUID().toString();
+    String email = "test@example.com";
+
+    try {
+      Account account = RGW_ADMIN.createAccount(accountName, email);
+      assertNotNull(account);
+      assertNotNull(account.getAccountId());
+      assertEquals(accountName, account.getAccountName());
+      assertEquals(email, account.getEmail());
+    } finally {
+      try {
+        // Try to clean up by getting the account and removing it
+        List<Account> accounts = RGW_ADMIN.listAccounts();
+        accounts.stream()
+            .filter(a -> accountName.equals(a.getAccountName()))
+            .findFirst()
+            .ifPresent(a -> RGW_ADMIN.removeAccount(a.getAccountId()));
+      } catch (Exception e) {
+        // Ignore cleanup failures
+      }
+    }
+  }
+
+  @Test
+  public void getAccountInfo() {
+    String accountName = "test-account-" + UUID.randomUUID().toString();
+    String email = "test@example.com";
+
+    try {
+      Account createdAccount = RGW_ADMIN.createAccount(accountName, email);
+      assertNotNull(createdAccount);
+
+      Optional<Account> fetchedAccount = RGW_ADMIN.getAccountInfo(createdAccount.getAccountId());
+      assertTrue(fetchedAccount.isPresent());
+      assertEquals(createdAccount.getAccountId(), fetchedAccount.get().getAccountId());
+      assertEquals(accountName, fetchedAccount.get().getAccountName());
+    } finally {
+      try {
+        List<Account> accounts = RGW_ADMIN.listAccounts();
+        accounts.stream()
+            .filter(a -> accountName.equals(a.getAccountName()))
+            .findFirst()
+            .ifPresent(a -> RGW_ADMIN.removeAccount(a.getAccountId()));
+      } catch (Exception e) {
+        // Ignore cleanup failures
+      }
+    }
+  }
+
+  @Test
+  public void listAccounts() {
+    String accountName = "test-account-" + UUID.randomUUID().toString();
+    String email = "test@example.com";
+
+    try {
+      Account createdAccount = RGW_ADMIN.createAccount(accountName, email);
+      assertNotNull(createdAccount);
+
+      List<Account> accounts = RGW_ADMIN.listAccounts();
+      assertNotNull(accounts);
+      assertTrue(
+          accounts.stream()
+              .anyMatch(a -> createdAccount.getAccountId().equals(a.getAccountId())));
+    } finally {
+      try {
+        List<Account> accounts = RGW_ADMIN.listAccounts();
+        accounts.stream()
+            .filter(a -> accountName.equals(a.getAccountName()))
+            .findFirst()
+            .ifPresent(a -> RGW_ADMIN.removeAccount(a.getAccountId()));
+      } catch (Exception e) {
+        // Ignore cleanup failures
+      }
+    }
+  }
+
+  @Test
+  public void modifyAccount() {
+    String accountName = "test-account-" + UUID.randomUUID().toString();
+    String email = "test@example.com";
+    String newEmail = "newemail@example.com";
+
+    try {
+      Account createdAccount = RGW_ADMIN.createAccount(accountName, email);
+      assertNotNull(createdAccount);
+
+      Account modifiedAccount =
+          RGW_ADMIN.modifyAccount(
+              createdAccount.getAccountId(), ImmutableMap.of("email", newEmail));
+      assertNotNull(modifiedAccount);
+      assertEquals(newEmail, modifiedAccount.getEmail());
+    } finally {
+      try {
+        List<Account> accounts = RGW_ADMIN.listAccounts();
+        accounts.stream()
+            .filter(a -> accountName.equals(a.getAccountName()))
+            .findFirst()
+            .ifPresent(a -> RGW_ADMIN.removeAccount(a.getAccountId()));
+      } catch (Exception e) {
+        // Ignore cleanup failures
+      }
+    }
+  }
+
+  @Test
+  public void removeAccount() {
+    String accountName = "test-account-" + UUID.randomUUID().toString();
+    String email = "test@example.com";
+
+    Account createdAccount = RGW_ADMIN.createAccount(accountName, email);
+    assertNotNull(createdAccount);
+
+    RGW_ADMIN.removeAccount(createdAccount.getAccountId());
+
+    Optional<Account> fetchedAccount = RGW_ADMIN.getAccountInfo(createdAccount.getAccountId());
+    assertFalse(fetchedAccount.isPresent());
+  }
+
+  @Test
+  public void createAccountRootUser() {
+    String accountName = "test-account-" + UUID.randomUUID().toString();
+    String email = "test@example.com";
+    String userId = "root-user-" + UUID.randomUUID().toString();
+
+    try {
+      Account createdAccount = RGW_ADMIN.createAccount(accountName, email);
+      assertNotNull(createdAccount);
+
+      User rootUser =
+          RGW_ADMIN.createAccountRootUser(
+              createdAccount.getAccountId(),
+              userId,
+              ImmutableMap.of("display-name", "Root User", "email", email));
+      assertNotNull(rootUser);
+      assertEquals(userId, rootUser.getUserId());
+      assertEquals(createdAccount.getAccountId(), rootUser.getAccountId());
+      assertTrue(rootUser.getAccountRoot());
+
+      // Verify the user was created as account root
+      Optional<User> fetchedUser = RGW_ADMIN.getUserInfo(userId);
+      assertTrue(fetchedUser.isPresent());
+      assertEquals(createdAccount.getAccountId(), fetchedUser.get().getAccountId());
+      assertTrue(fetchedUser.get().getAccountRoot());
+    } finally {
+      try {
+        RGW_ADMIN.removeUser(userId);
+      } catch (Exception e) {
+        // Ignore cleanup failures
+      }
+      try {
+        List<Account> accounts = RGW_ADMIN.listAccounts();
+        accounts.stream()
+            .filter(a -> accountName.equals(a.getAccountName()))
+            .findFirst()
+            .ifPresent(a -> RGW_ADMIN.removeAccount(a.getAccountId()));
+      } catch (Exception e) {
+        // Ignore cleanup failures
+      }
+    }
   }
 }
