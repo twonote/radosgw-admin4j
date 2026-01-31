@@ -207,7 +207,8 @@ public interface RgwAdmin {
    * <p>Note that you can get the SubUser by {@link #getSubUserInfo(String, String)}
    *
    * @param subUser The SubUser object containing the ID and permission to set.
-   *                The subUser must have a valid ID in the form "userId:subUserId".
+   *                The subUser must have a valid ID in the form "userId:subUserId"
+   *                and a non-null permission.
    * @return Subusers associated with the user account.
    */
   List<SubUser> setSubUserPermission(SubUser subUser);

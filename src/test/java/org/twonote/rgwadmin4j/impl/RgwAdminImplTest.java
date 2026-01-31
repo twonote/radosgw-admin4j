@@ -1022,7 +1022,7 @@ public class RgwAdminImplTest extends BaseTest {
 
           // Verify the changes
           Quota updatedQuota = RGW_ADMIN.getUserQuota(userId).get();
-          assertEquals(true, updatedQuota.getEnabled());
+          assertTrue(updatedQuota.getEnabled());
           assertEquals(Long.valueOf(5566), updatedQuota.getMaxObjects());
           assertEquals(Long.valueOf(1024), updatedQuota.getMaxSizeKb());
         });
@@ -1073,7 +1073,7 @@ public class RgwAdminImplTest extends BaseTest {
 
           // Verify the changes
           Quota updatedQuota = RGW_ADMIN.getBucketQuota(userId).get();
-          assertEquals(true, updatedQuota.getEnabled());
+          assertTrue(updatedQuota.getEnabled());
           assertEquals(Long.valueOf(10), updatedQuota.getMaxObjects());
           assertEquals(Long.valueOf(2048), updatedQuota.getMaxSizeKb());
         });
@@ -1108,7 +1108,7 @@ public class RgwAdminImplTest extends BaseTest {
 
           // Verify the changes
           Quota updatedQuota = RGW_ADMIN.getBucketInfo(bucketName).get().getBucketQuota();
-          assertEquals(true, updatedQuota.getEnabled());
+          assertTrue(updatedQuota.getEnabled());
           assertEquals(Long.valueOf(20), updatedQuota.getMaxObjects());
           assertEquals(Long.valueOf(4096), updatedQuota.getMaxSizeKb());
         });
