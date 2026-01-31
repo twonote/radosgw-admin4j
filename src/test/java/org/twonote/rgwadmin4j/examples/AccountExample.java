@@ -21,9 +21,9 @@ public class AccountExample extends BaseTest {
   /*
    * Account management
    */
-  private static void accountManagement() {
+  private void accountManagement(String accountName, String userId) {
     // Create an account
-    Account account = RGW_ADMIN.createAccount("mycompany", "admin@mycompany.com");
+    Account account = RGW_ADMIN.createAccount(accountName, "admin@mycompany.com");
 
     // Get account information
     Optional<Account> accountInfo = RGW_ADMIN.getAccountInfo(account.getAccountId());
@@ -34,7 +34,7 @@ public class AccountExample extends BaseTest {
     // Create an account root user (admin user for the account)
     User rootUser =
         RGW_ADMIN.createUser(
-            "admin-user",
+            userId,
             ImmutableMap.of(
                 "display-name",
                 "Admin User",
@@ -61,7 +61,7 @@ public class AccountExample extends BaseTest {
     String accountName = "example-account-" + UUID.randomUUID().toString();
     String userId = "example-user-" + UUID.randomUUID().toString();
     try {
-      accountManagement();
+      accountManagement(accountName, userId);
     } catch (Exception e) {
       e.printStackTrace();
     } finally {
