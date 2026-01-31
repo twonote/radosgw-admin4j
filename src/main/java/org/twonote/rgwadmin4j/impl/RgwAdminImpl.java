@@ -982,14 +982,6 @@ public class RgwAdminImpl implements RgwAdmin {
     safeCall(request);
   }
 
-  @Override
-  public User createAccountRootUser(String accountId, String userId, Map<String, String> parameters) {
-    Map<String, String> params = new HashMap<>(parameters != null ? parameters : new HashMap<>());
-    params.put("account-id", accountId);
-    params.put("account-root", "true");
-    return createUser(userId, params);
-  }
-
   enum MetadataType {
     USER("user"),
     BUCKET("bucket"),

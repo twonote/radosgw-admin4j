@@ -1177,10 +1177,13 @@ public class RgwAdminImplTest extends BaseTest {
       assertNotNull(createdAccount);
 
       User rootUser =
-          RGW_ADMIN.createAccountRootUser(
-              createdAccount.getAccountId(),
+          RGW_ADMIN.createUser(
               userId,
-              ImmutableMap.of("display-name", "Root User", "email", email));
+              ImmutableMap.of(
+                  "display-name", "Root User",
+                  "email", email,
+                  "account-id", createdAccount.getAccountId(),
+                  "account-root", "true"));
       assertNotNull(rootUser);
       assertEquals(userId, rootUser.getUserId());
       assertEquals(createdAccount.getAccountId(), rootUser.getAccountId());

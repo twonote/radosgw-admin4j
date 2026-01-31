@@ -12,12 +12,6 @@
 - Quality and Compatibility: Our codebase undergoes continuous integration and testing against active Ceph releases, including **Squid** and **Tentacle**.
 - Contributor-Friendly: We welcome contributions with a straightforward contribution process and no unusual policies.
 
-# Version Compatibility
-
-- **Ceph Squid (v19) and later**: Full support including account management features
-- **Ceph Tentacle (v20)**: Full support including all latest features
-- **Ceph Reef and earlier**: Legacy support without account management (use version 2.0.10 or earlier)
-
 # Getting Started
 
 ## Add Dependency
@@ -67,35 +61,6 @@ rgwAdmin.suspendUser(userId, true);
 
 // Remove a user
 rgwAdmin.removeUser(userId);
-```
-
-### Account Management (Ceph Squid+)
-
-```java
-// Create an account
-Account account = rgwAdmin.createAccount("mycompany", "admin@mycompany.com");
-
-// Get account information
-Optional<Account> accountInfo = rgwAdmin.getAccountInfo(account.getAccountId());
-
-// List all accounts
-List<Account> accounts = rgwAdmin.listAccounts();
-
-// Create an account root user (admin user for the account)
-User rootUser = rgwAdmin.createAccountRootUser(
-    account.getAccountId(), 
-    "admin-user",
-    ImmutableMap.of("display-name", "Admin User", "email", "admin@mycompany.com")
-);
-
-// Modify account
-Account modifiedAccount = rgwAdmin.modifyAccount(
-    account.getAccountId(), 
-    ImmutableMap.of("email", "newemail@mycompany.com")
-);
-
-// Remove account
-rgwAdmin.removeAccount(account.getAccountId());
 ```
 
 ### Quota Management

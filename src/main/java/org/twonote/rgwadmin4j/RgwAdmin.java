@@ -453,6 +453,8 @@ public interface RgwAdmin {
    *       [True]
    *   <li>max-buckets: Specify the maximum number of buckets the user can own. Example: 500 [1000]
    *   <li>suspended: Specify whether the user should be suspended. Example: False [False]
+   *   <li>account-id: Associate the user with an account. Requires Ceph Squid or later.
+   *   <li>account-root: Set to true to create an account root user. Requires Ceph Squid or later.
    * </ul>
    *
    * <p>If only one of access-key or secret-key is provided, the omitted key will be automatically
@@ -781,20 +783,4 @@ public interface RgwAdmin {
    * @param accountId The account ID to be removed.
    */
   void removeAccount(String accountId);
-
-  /**
-   * Create an account root user.
-   *
-   * <p>An account root user is a special user designated as the account administrator with full
-   * permissions to manage resources within the account via IAM APIs.
-   *
-   * <p>Note: This feature requires Ceph Squid or later.
-   *
-   * @param accountId  The account ID under which the root user will be created.
-   * @param userId     The user ID to be created.
-   * @param parameters Optional parameters for user creation (e.g., display-name, email,
-   *                   access-key, secret-key).
-   * @return The user information.
-   */
-  User createAccountRootUser(String accountId, String userId, Map<String, String> parameters);
 }
