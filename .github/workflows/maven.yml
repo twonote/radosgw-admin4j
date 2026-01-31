@@ -95,6 +95,30 @@ jobs:
           echo ""
           echo "=== Container Image Build Date ==="
           docker inspect quay.io/ceph/ceph:v20.2.0 | grep -i created
+      # Debug: Test /admin/account endpoint directly
+      - name: Test Account Management HTTP Endpoint
+        run: |
+          echo "=== Testing /admin/account endpoint directly ==="
+          echo ""
+          echo "=== GET /admin/account (list accounts) ==="
+          curl -v -X GET "http://localhost:80/admin/account?format=json" \
+            -H "Authorization: AWS qqq:$(echo -n 'GET\n\n\n\n/admin/account' | openssl dgst -sha1 -hmac 'qqq' -binary | base64)" 2>&1 || echo "Request failed"
+          
+          echo ""
+          echo "=== PUT /admin/account (create account) ==="
+          curl -v -X PUT "http://localhost:80/admin/account?account-name=testaccount&email=test@example.com&format=json" \
+            -H "Authorization: AWS qqq:$(echo -n 'PUT\n\n\n\n/admin/account' | openssl dgst -sha1 -hmac 'qqq' -binary | base64)" 2>&1 || echo "Request failed"
+          
+          echo ""
+          echo "=== Check if endpoint exists (test with invalid method) ==="
+          HTTP_CODE=$(curl -s -o /tmp/response.txt -w '%{http_code}' -X GET "http://localhost:80/admin/account?format=json")
+          echo "HTTP Status Code: $HTTP_CODE"
+          echo "Response body:"
+          cat /tmp/response.txt || echo "No response body"
+          
+          echo ""
+          echo "=== Test radosgw-admin account command ==="
+          docker exec rgw radosgw-admin account list 2>&1 || echo "radosgw-admin account command not available"
       # setup java        
       - name: Set up JDK 25
         uses: actions/setup-java@v2
