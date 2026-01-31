@@ -3,6 +3,7 @@ package org.twonote.rgwadmin4j;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.twonote.rgwadmin4j.model.Account;
 import org.twonote.rgwadmin4j.model.BucketInfo;
 import org.twonote.rgwadmin4j.model.Cap;
 import org.twonote.rgwadmin4j.model.CredentialType;
@@ -452,6 +453,8 @@ public interface RgwAdmin {
    *       [True]
    *   <li>max-buckets: Specify the maximum number of buckets the user can own. Example: 500 [1000]
    *   <li>suspended: Specify whether the user should be suspended. Example: False [False]
+   *   <li>account-id: Associate the user with an account. Requires Ceph Squid or later.
+   *   <li>account-root: Set to true to create an account root user. Requires Ceph Squid or later.
    * </ul>
    *
    * <p>If only one of access-key or secret-key is provided, the omitted key will be automatically
@@ -468,31 +471,10 @@ public interface RgwAdmin {
   /**
    * Get user information.
    *
-   * <p>Note: Requires cap {@code users=read} or {@code user-info-without-keys=read}.
-   * If the cap {@code user-info-without-keys} is set and the caller is not the system user, 
-   * an admin user, or lacks {@code users=read} capability, S3 keys and Swift keys will not 
-   * be included in the response.
-   *
    * @param userId The user for which the information is requested.
    * @return The user information.
    */
   Optional<User> getUserInfo(String userId);
-
-  /**
-   * Get user information by S3 access key.
-   *
-   * <p>Note: Requires cap {@code users=read} or {@code user-info-without-keys=read}.
-   * If the cap {@code user-info-without-keys} is set and the caller is not the system user, 
-   * an admin user, or lacks {@code users=read} capability, S3 keys and Swift keys will not 
-   * be included in the response.
-   *
-   * <p>If both {@code uid} and {@code access-key} are provided to the underlying API, 
-   * the user specified by {@code uid} will be returned.
-   *
-   * @param accessKey The S3 access key of the user for which the information is requested.
-   * @return The user information.
-   */
-  Optional<User> getUserInfoByAccessKey(String accessKey);
 
   /**
    * Get the user list
@@ -723,4 +705,82 @@ public interface RgwAdmin {
    * @return If successful returns the policy.
    */
   Optional<String> getBucketPolicy(String bucketName);
+
+  /**
+   * Create a new account.
+   *
+   * <p>An account is a higher-level organizational container that can contain multiple users with
+   * configurable resource limits and IAM-like capabilities.
+   *
+   * <p>Note: This feature requires Ceph Squid or later.
+   *
+   * @param accountName The account name to be created.
+   * @param email       The email address associated with the account.
+   * @return The account information.
+   */
+  Account createAccount(String accountName, String email);
+
+  /**
+   * Create a new account with optional parameters.
+   *
+   * <p>Available parameters include:
+   *
+   * <ul>
+   *   <li>email: The email address associated with the account.
+   *   <li>tenant: The tenant associated with the account.
+   * </ul>
+   *
+   * <p>Note: This feature requires Ceph Squid or later.
+   *
+   * @param accountName The account name to be created.
+   * @param parameters  The account properties.
+   * @return The account information.
+   */
+  Account createAccount(String accountName, Map<String, String> parameters);
+
+  /**
+   * Get account information.
+   *
+   * <p>Note: This feature requires Ceph Squid or later.
+   *
+   * @param accountId The account ID for which the information is requested.
+   * @return The account information.
+   */
+  Optional<Account> getAccountInfo(String accountId);
+
+  /**
+   * List all accounts in the system.
+   *
+   * <p>Note: This feature requires Ceph Squid or later.
+   *
+   * @return List of account information.
+   */
+  List<Account> listAccounts();
+
+  /**
+   * Modify an existing account.
+   *
+   * <p>Available parameters include:
+   *
+   * <ul>
+   *   <li>account-name: The new account name.
+   *   <li>email: The email address associated with the account.
+   * </ul>
+   *
+   * <p>Note: This feature requires Ceph Squid or later.
+   *
+   * @param accountId  The account ID to be modified.
+   * @param parameters Optional parameters.
+   * @return The account information.
+   */
+  Account modifyAccount(String accountId, Map<String, String> parameters);
+
+  /**
+   * Remove an existing account.
+   *
+   * <p>Note: This feature requires Ceph Squid or later.
+   *
+   * @param accountId The account ID to be removed.
+   */
+  void removeAccount(String accountId);
 }

@@ -4,12 +4,12 @@
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.twonote/radosgw-admin4j.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.twonote/radosgw-admin4j)
 
 # About
-**radosgw-admin4j** is a powerful Ceph object storage admin client designed for provisioning and managing Ceph object storage deployments. It offers a wide range of features, including user and subuser management, quota control, usage reporting, and bucket/object management, among others.
+**radosgw-admin4j** is a powerful Ceph object storage admin client designed for provisioning and managing Ceph object storage deployments. It offers a wide range of features, including user and subuser management, account management (Squid+), quota control, usage reporting, and bucket/object management, among others.
 
 # Highlights
-- **Support for all [Operations](http://docs.ceph.com/docs/master/radosgw/adminops/)**: We fully support all operations, including subuser and quota management, for the latest Ceph versions.
+- **Support for all [Operations](http://docs.ceph.com/docs/master/radosgw/adminops/)**: We fully support all operations, including subuser, account (Squid+), and quota management, for the latest Ceph versions.
 - Simplified Radosgw Management: Manage your radosgw instance with ease, avoiding the complexities often associated with radosgw admin APIs.
-- Quality and Compatibility: Our codebase undergoes continuous integration and testing against active Ceph releases, including **Tentacle**.
+- Quality and Compatibility: Our codebase undergoes continuous integration and testing against Ceph **Squid** release. Account management features require Ceph Squid (v19) or later.
 - Contributor-Friendly: We welcome contributions with a straightforward contribution process and no unusual policies.
 
 # Getting Started
@@ -52,10 +52,6 @@ rgwAdmin.createUser(userId);
 // Get user information and display keys
 User user = rgwAdmin.getUserInfo(userId).get();
 user.getS3Credentials().forEach(System.out::println);
-
-// Get user information by access key
-String accessKey = user.getS3Credentials().get(0).getAccessKey();
-User userByKey = rgwAdmin.getUserInfoByAccessKey(accessKey).get();
 
 // Create a subuser
 SubUser subUser = rgwAdmin.createSubUser(userId, "subUserId", SubUser.Permission.FULL, CredentialType.SWIFT);
