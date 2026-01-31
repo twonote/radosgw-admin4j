@@ -48,6 +48,11 @@ public class ClusterInfo {
     return info != null ? info.getClusterId() : null;
   }
 
+  @Override
+  public String toString() {
+    return "ClusterInfo{info=" + info + "}";
+  }
+
   /**
    * Inner class representing the info section.
    */
@@ -72,6 +77,11 @@ public class ClusterInfo {
      */
     public void setClusterId(String clusterId) {
       this.clusterId = clusterId;
+    }
+
+    @Override
+    public String toString() {
+      return "Info{clusterId='" + clusterId + "'}";
     }
   }
 }

@@ -1059,9 +1059,15 @@ public class RgwAdminImplTest extends BaseTest {
     // The response should be present
     assertTrue(response.isPresent());
     
-    ClusterInfo info = response.get();
+    ClusterInfo clusterInfo = response.get();
+    
+    // Debug: Print the actual response structure
+    System.out.println("ClusterInfo object: " + clusterInfo);
+    System.out.println("ClusterInfo.getInfo(): " + clusterInfo.getInfo());
+    System.out.println("ClusterInfo.getClusterId(): " + clusterInfo.getClusterId());
+    
     // The cluster_id should not be null or empty
-    assertNotNull(info.getClusterId());
-    assertFalse(info.getClusterId().isEmpty());
+    assertNotNull("cluster_id is null", clusterInfo.getClusterId());
+    assertFalse("cluster_id is empty", clusterInfo.getClusterId().isEmpty());
   }
 }
