@@ -656,7 +656,16 @@ public class RgwAdminImpl implements RgwAdmin {
 
   @Override
   public Optional<User> getUserInfo(String userId) {
-    return getUserInfo(userId, true);
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("user")
+            .addQueryParameter("uid", userId);
+
+    Request request = new Request.Builder().get().url(urlBuilder.build()).build();
+
+    String resp = safeCall(request);
+    return Optional.ofNullable(gson.fromJson(resp, User.class));
   }
 
   @Override
@@ -670,7 +679,16 @@ public class RgwAdminImpl implements RgwAdmin {
 
   @Override
   public Optional<User> getUserInfoByAccessKey(String accessKey) {
-    return getUserInfoByAccessKey(accessKey, true);
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("user")
+            .addQueryParameter("access-key", accessKey);
+
+    Request request = new Request.Builder().get().url(urlBuilder.build()).build();
+
+    String resp = safeCall(request);
+    return Optional.ofNullable(gson.fromJson(resp, User.class));
   }
 
   @Override
