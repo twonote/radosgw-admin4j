@@ -53,6 +53,10 @@ rgwAdmin.createUser(userId);
 User user = rgwAdmin.getUserInfo(userId).get();
 user.getS3Credentials().forEach(System.out::println);
 
+// Get user information by access key
+String accessKey = user.getS3Credentials().get(0).getAccessKey();
+User userByKey = rgwAdmin.getUserInfoByAccessKey(accessKey).get();
+
 // Create a subuser
 SubUser subUser = rgwAdmin.createSubUser(userId, "subUserId", SubUser.Permission.FULL, CredentialType.SWIFT);
 
