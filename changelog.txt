@@ -1,6 +1,6 @@
 Unreleased
-- Add user-info-without-keys capability type support
-- Add getUserInfoByAccessKey() method to query user info by S3 access key
+- Add user-info-without-keys capability type support (available since Ceph Quincy)
+- Add getUserInfoByAccessKey() method to query user info by S3 access key (available since Ceph Quincy)
 
 2.0.10 (2026-01-30)
 - Update dependencies for security vulnerabilities
