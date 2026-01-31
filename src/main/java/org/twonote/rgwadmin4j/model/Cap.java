@@ -74,10 +74,16 @@ public class Cap {
     USAGE,
 
     @SerializedName("zone")
-    ZONE;
+    ZONE,
+
+    @SerializedName("user-info-without-keys")
+    USER_INFO_WITHOUT_KEYS;
 
     @Override
     public String toString() {
+      if (this == USER_INFO_WITHOUT_KEYS) {
+        return "user-info-without-keys";
+      }
       return super.toString().toLowerCase();
     }
   }

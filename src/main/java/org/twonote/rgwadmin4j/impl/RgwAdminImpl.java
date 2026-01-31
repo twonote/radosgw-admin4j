@@ -669,6 +669,20 @@ public class RgwAdminImpl implements RgwAdmin {
     return Optional.ofNullable(gson.fromJson(resp, User.class));
   }
 
+  @Override
+  public Optional<User> getUserInfoByAccessKey(String accessKey) {
+    HttpUrl.Builder urlBuilder =
+        HttpUrl.parse(endpoint)
+            .newBuilder()
+            .addPathSegment("user")
+            .addQueryParameter("access-key", accessKey);
+
+    Request request = new Request.Builder().get().url(urlBuilder.build()).build();
+
+    String resp = safeCall(request);
+    return Optional.ofNullable(gson.fromJson(resp, User.class));
+  }
+
   /**
    * Retrieve keys in a given metadata type
    *

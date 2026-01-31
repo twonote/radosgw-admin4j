@@ -746,6 +746,24 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
+  public void getUserInfoByAccessKey() {
+    testWithAUser(
+        u -> {
+          String userId = u.getUserId();
+          List<S3Credential> credentials = u.getS3Credentials();
+          assertFalse(credentials.isEmpty());
+          String accessKey = credentials.get(0).getAccessKey();
+
+          // Get user info by access key
+          Optional<User> response = RGW_ADMIN.getUserInfoByAccessKey(accessKey);
+          assertTrue(response.isPresent());
+          assertEquals(userId, response.get().getUserId());
+          assertNotNull(response.get().getS3Credentials());
+          assertFalse(response.get().getS3Credentials().isEmpty());
+        });
+  }
+
+  @Test
   public void suspendUser() {
     testWithASubUser(
         v -> {
