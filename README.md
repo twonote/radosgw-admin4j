@@ -98,6 +98,8 @@ userUsage.getSummary().forEach(System.out::println);
 
 ### Cluster Information
 
+**Note:** This feature requires Ceph RGW Squid (v19) or newer.
+
 ```java
 // Retrieve and display the cluster information
 ClusterInfo info = rgwAdmin.getInfo().get();

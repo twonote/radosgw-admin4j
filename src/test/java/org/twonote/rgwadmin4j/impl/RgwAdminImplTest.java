@@ -1067,8 +1067,8 @@ public class RgwAdminImplTest extends BaseTest {
 
   @Test
   public void getInfo() {
-    // Skip test unless running against Quincy or newer (which supports /admin/info endpoint)
-    Assume.assumeTrue("Info endpoint test requires Ceph Quincy or newer", 
+    // Skip test unless running against Squid or newer (which supports /admin/info endpoint)
+    Assume.assumeTrue("Info endpoint test requires Ceph Squid or newer", 
         Boolean.parseBoolean(System.getProperty("test.info.endpoint", "false")));
     
     // Test the info endpoint
