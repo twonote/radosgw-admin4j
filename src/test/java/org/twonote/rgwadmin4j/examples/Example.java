@@ -87,11 +87,16 @@ public class Example extends BaseTest {
 
   /*
    * Cluster information
+   * Note: Only works with Ceph Squid (v19) or newer versions
    */
   private static void clusterInfo() {
     // Retrieve and show the cluster information
-    org.twonote.rgwadmin4j.model.ClusterInfo info = RGW_ADMIN.getInfo().get();
-    System.out.println("Cluster ID: " + info.getClusterId());
+    try {
+      org.twonote.rgwadmin4j.model.ClusterInfo info = RGW_ADMIN.getInfo().get();
+      System.out.println("Cluster ID: " + info.getClusterId());
+    } catch (Exception e) {
+      System.err.println("Failed to get cluster info (requires Ceph Squid v19+): " + e.getMessage());
+    }
   }
 
   // Remove @Ignore before run

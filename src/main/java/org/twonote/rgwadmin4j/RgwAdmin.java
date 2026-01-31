@@ -731,6 +731,8 @@ public interface RgwAdmin {
    * <p>This endpoint returns cluster ID information and RGW cluster/endpoint metadata.
    * It requires the info=read capability.
    *
+   * <p>Note: This endpoint is only available in Ceph Squid (v19) or newer versions.
+   *
    * @return The cluster information if successful.
    */
   Optional<ClusterInfo> getInfo();
