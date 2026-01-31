@@ -72,9 +72,9 @@ jobs:
         with:
           java-version: '25'
           distribution: 'adopt'
-      # run integration test (info endpoint test disabled for Tentacle due to development version instability)
+      # run integration test (info endpoint test enabled for Tentacle)
       - uses: actions/checkout@v2
-      - run: mvn install -Dgpg.skip=true
+      - run: mvn install -Dgpg.skip=true -Dtest.info.endpoint=true
       - run: cat target/surefire-reports/*.txt
   squid-java25:
     name: integration_test_squid_java25
