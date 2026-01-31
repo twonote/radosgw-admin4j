@@ -1004,6 +1004,166 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
+  public void setUserQuotaWithModel() {
+    testWithAUser(
+        (v) -> {
+          String userId = v.getUserId();
+          Quota quota;
+
+          // Get initial quota
+          quota = RGW_ADMIN.getUserQuota(userId).get();
+          assertNotNull(quota.getUserId());
+          assertEquals(userId, quota.getUserId());
+
+          // Modify and set quota using model
+          quota.setMaxObjects(5566L);
+          quota.setMaxSizeKb(1024L);
+          RGW_ADMIN.setUserQuota(quota);
+
+          // Verify the changes
+          Quota updatedQuota = RGW_ADMIN.getUserQuota(userId).get();
+          assertEquals(true, updatedQuota.getEnabled());
+          assertEquals(Long.valueOf(5566), updatedQuota.getMaxObjects());
+          assertEquals(Long.valueOf(1024), updatedQuota.getMaxSizeKb());
+        });
+
+    // Test with null quota
+    try {
+      RGW_ADMIN.setUserQuota(null);
+      fail("null quota should throw exception");
+    } catch (IllegalArgumentException e) {
+      assertEquals("quota cannot be null", e.getMessage());
+    }
+
+    // Test with null userId
+    try {
+      Quota quota = new Quota();
+      quota.setMaxObjects(100L);
+      RGW_ADMIN.setUserQuota(quota);
+      fail("quota without userId should throw exception");
+    } catch (IllegalArgumentException e) {
+      assertEquals("quota.userId cannot be null", e.getMessage());
+    }
+  }
+
+  @Test
+  public void setBucketQuotaWithModel() {
+    testWithAUser(
+        (v) -> {
+          String userId = v.getUserId();
+
+          AmazonS3 s3 =
+              createS3(
+                  v.getS3Credentials().get(0).getAccessKey(),
+                  v.getS3Credentials().get(0).getSecretKey());
+          String bucketName = userId.toLowerCase();
+          s3.createBucket(bucketName);
+
+          Quota quota;
+
+          // Get initial quota
+          quota = RGW_ADMIN.getBucketQuota(userId).get();
+          assertNotNull(quota.getUserId());
+          assertEquals(userId, quota.getUserId());
+
+          // Modify and set quota using model
+          quota.setMaxObjects(10L);
+          quota.setMaxSizeKb(2048L);
+          RGW_ADMIN.setBucketQuota(quota);
+
+          // Verify the changes
+          Quota updatedQuota = RGW_ADMIN.getBucketQuota(userId).get();
+          assertEquals(true, updatedQuota.getEnabled());
+          assertEquals(Long.valueOf(10), updatedQuota.getMaxObjects());
+          assertEquals(Long.valueOf(2048), updatedQuota.getMaxSizeKb());
+        });
+  }
+
+  @Test
+  public void setIndividualBucketQuotaWithModel() {
+    testWithAUser(
+        (v) -> {
+          String userId = v.getUserId();
+
+          AmazonS3 s3 =
+              createS3(
+                  v.getS3Credentials().get(0).getAccessKey(),
+                  v.getS3Credentials().get(0).getSecretKey());
+          String bucketName = userId.toLowerCase();
+          s3.createBucket(bucketName);
+
+          Quota quota;
+
+          // Get initial quota from bucket info
+          quota = RGW_ADMIN.getBucketInfo(bucketName).get().getBucketQuota();
+          assertNotNull(quota.getUserId());
+          assertEquals(userId, quota.getUserId());
+          assertNotNull(quota.getBucket());
+          assertEquals(bucketName, quota.getBucket());
+
+          // Modify and set quota using model
+          quota.setMaxObjects(20L);
+          quota.setMaxSizeKb(4096L);
+          RGW_ADMIN.setIndividualBucketQuota(quota);
+
+          // Verify the changes
+          Quota updatedQuota = RGW_ADMIN.getBucketInfo(bucketName).get().getBucketQuota();
+          assertEquals(true, updatedQuota.getEnabled());
+          assertEquals(Long.valueOf(20), updatedQuota.getMaxObjects());
+          assertEquals(Long.valueOf(4096), updatedQuota.getMaxSizeKb());
+        });
+
+    // Test with null bucket
+    try {
+      Quota quota = new Quota();
+      quota.setUserId("testuser");
+      quota.setMaxObjects(100L);
+      RGW_ADMIN.setIndividualBucketQuota(quota);
+      fail("quota without bucket should throw exception");
+    } catch (IllegalArgumentException e) {
+      assertEquals("quota.bucket cannot be null", e.getMessage());
+    }
+  }
+
+  @Test
+  public void setSubUserPermissionWithModel() {
+    testWithASubUser(
+        (v) -> {
+          SubUser subUser = v.getSubusers().get(0);
+          assertNotNull(subUser.getId());
+
+          // Modify permission and set using model
+          subUser.setPermission(SubUser.Permission.READ);
+          List<SubUser> result = RGW_ADMIN.setSubUserPermission(subUser);
+
+          // Verify the changes
+          assertNotNull(result);
+          Optional<SubUser> updated =
+              result.stream().filter(su -> su.getId().equals(subUser.getId())).findFirst();
+          assertTrue(updated.isPresent());
+          assertEquals(SubUser.Permission.READ, updated.get().getPermission());
+        });
+
+    // Test with null subUser
+    try {
+      RGW_ADMIN.setSubUserPermission(null);
+      fail("null subUser should throw exception");
+    } catch (IllegalArgumentException e) {
+      assertEquals("subUser cannot be null", e.getMessage());
+    }
+
+    // Test with null id
+    try {
+      SubUser subUser = new SubUser();
+      subUser.setPermission(SubUser.Permission.READ);
+      RGW_ADMIN.setSubUserPermission(subUser);
+      fail("subUser without id should throw exception");
+    } catch (IllegalArgumentException e) {
+      assertEquals("subUser.id cannot be null", e.getMessage());
+    }
+  }
+
+  @Test
   public void getObjectPolicy() {
     testWithAUser(
         (v) -> {
