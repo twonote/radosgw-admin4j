@@ -263,6 +263,15 @@ public class RgwAdminImpl implements RgwAdmin {
     if (subUser.getPermission() == null) {
       throw new IllegalArgumentException("subUser.permission cannot be null");
     }
+    String fullId = subUser.getId();
+    int colonIndex = fullId.indexOf(':');
+    // Validate that the ID is in the expected "userId:subUserId" format.
+    if (colonIndex <= 0
+        || colonIndex == fullId.length() - 1
+        || fullId.indexOf(':', colonIndex + 1) != -1) {
+      throw new IllegalArgumentException(
+          "subUser.id must be in the format \"userId:subUserId\"");
+    }
     String userId = subUser.getParentUserId();
     String subUserId = subUser.getRelativeSubUserId();
     return setSubUserPermission(userId, subUserId, subUser.getPermission());

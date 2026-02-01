@@ -1194,6 +1194,50 @@ public class RgwAdminImplTest extends BaseTest {
     } catch (IllegalArgumentException e) {
       assertEquals("subUser.id cannot be null", e.getMessage());
     }
+
+    // Test with invalid id format (no colon)
+    try {
+      SubUser subUser = new SubUser();
+      subUser.setId("invalidformat");
+      subUser.setPermission(SubUser.Permission.READ);
+      RGW_ADMIN.setSubUserPermission(subUser);
+      fail("subUser with invalid id format should throw exception");
+    } catch (IllegalArgumentException e) {
+      assertEquals("subUser.id must be in the format \"userId:subUserId\"", e.getMessage());
+    }
+
+    // Test with invalid id format (starts with colon)
+    try {
+      SubUser subUser = new SubUser();
+      subUser.setId(":subuser");
+      subUser.setPermission(SubUser.Permission.READ);
+      RGW_ADMIN.setSubUserPermission(subUser);
+      fail("subUser with id starting with colon should throw exception");
+    } catch (IllegalArgumentException e) {
+      assertEquals("subUser.id must be in the format \"userId:subUserId\"", e.getMessage());
+    }
+
+    // Test with invalid id format (ends with colon)
+    try {
+      SubUser subUser = new SubUser();
+      subUser.setId("user:");
+      subUser.setPermission(SubUser.Permission.READ);
+      RGW_ADMIN.setSubUserPermission(subUser);
+      fail("subUser with id ending with colon should throw exception");
+    } catch (IllegalArgumentException e) {
+      assertEquals("subUser.id must be in the format \"userId:subUserId\"", e.getMessage());
+    }
+
+    // Test with invalid id format (multiple colons)
+    try {
+      SubUser subUser = new SubUser();
+      subUser.setId("user:sub:extra");
+      subUser.setPermission(SubUser.Permission.READ);
+      RGW_ADMIN.setSubUserPermission(subUser);
+      fail("subUser with multiple colons should throw exception");
+    } catch (IllegalArgumentException e) {
+      assertEquals("subUser.id must be in the format \"userId:subUserId\"", e.getMessage());
+    }
   }
 
   @Test
