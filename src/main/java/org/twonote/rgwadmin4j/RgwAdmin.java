@@ -102,7 +102,7 @@ public interface RgwAdmin {
    *       (non-inclusive). Example: 2012-09-25 16:00:00
    *   <li>show-entries: Specifies whether data entries should be returned. Example: False [True]
    *   <li>show-summary: Specifies whether data summary should be returned. Example: False [True]
-   *   <li>categories: Comma-separated list of usage categories to filter by. If specified, only 
+   *   <li>categories: Comma-separated list of usage categories to filter by. If specified, only
    *       usage statistics for the given categories will be returned. Example: create_bucket,put_obj
    * </ul>
    *

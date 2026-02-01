@@ -355,7 +355,7 @@ public class RgwAdminImplTest extends BaseTest {
           // Get usage filtered by specific categories
           responseFiltered = RGW_ADMIN.getUserUsage(userId, ImmutableMap.of("categories", "create_bucket,put_obj")).get();
           assertNotNull(responseFiltered);
-          
+
           // Verify that when categories are specified, entries contain only those categories
           if (responseFiltered.getEntries() != null && !responseFiltered.getEntries().isEmpty()) {
             responseFiltered.getEntries().forEach(entry -> {
@@ -370,6 +370,8 @@ public class RgwAdminImplTest extends BaseTest {
                 });
               }
             });
+          } else {
+            fail("Expected entries with filtered categories, but entries were null or empty");
           }
         });
   }
