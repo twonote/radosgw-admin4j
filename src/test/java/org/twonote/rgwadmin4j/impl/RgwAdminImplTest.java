@@ -732,6 +732,39 @@ public class RgwAdminImplTest extends BaseTest {
     RGW_ADMIN.modifyUser(userId, ImmutableMap.of("QQQQQ", String.valueOf(Integer.MAX_VALUE)));
     RGW_ADMIN.modifyUser(userId, ImmutableMap.of("max-buckets", "you-know-my-name"));
     assertEquals(Integer.valueOf(Integer.MAX_VALUE), response.getMaxBuckets());
+    
+    // Clean up
+    RGW_ADMIN.removeUser(userId);
+  }
+
+  @Test
+  public void modifyUserOpMask() {
+    String userId = "testModifyUserOpMask-" + UUID.randomUUID().toString();
+    RGW_ADMIN.createUser(userId);
+
+    // Modify op-mask
+    User response = RGW_ADMIN.modifyUser(userId, ImmutableMap.of("op-mask", "read, write"));
+    assertNotNull(response);
+    assertNotNull(response.getOpMask());
+    
+    // Verify op-mask is returned in getUserInfo response
+    Optional<User> userInfoOpt = RGW_ADMIN.getUserInfo(userId);
+    assertTrue(userInfoOpt.isPresent());
+    User userInfo = userInfoOpt.get();
+    assertNotNull(userInfo.getOpMask());
+    
+    // Verify the op-mask value contains the expected operations
+    // Note: The server may return the op-mask in different formats depending on the Ceph version
+    // It could be "read, write", "read,write", "*" (if all permissions granted), etc.
+    String opMask = userInfo.getOpMask();
+    assertFalse(opMask.isEmpty());
+    // Verify that either it contains the requested operations or it's set to all operations
+    boolean hasRequestedOps = (opMask.contains("read") && opMask.contains("write"));
+    boolean hasAllOps = opMask.equals("*");
+    assertTrue(hasRequestedOps || hasAllOps);
+    
+    // Clean up
+    RGW_ADMIN.removeUser(userId);
   }
 
   @Test
