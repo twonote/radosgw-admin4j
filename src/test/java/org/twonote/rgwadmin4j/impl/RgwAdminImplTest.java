@@ -702,24 +702,24 @@ public class RgwAdminImplTest extends BaseTest {
 
     // Modify op-mask
     User response = RGW_ADMIN.modifyUser(userId, ImmutableMap.of("op-mask", "read, write"));
-    assertNotNull("Response should not be null", response);
+    assertNotNull(response);
+    assertNotNull(response.getOpMask());
     
-    // Verify op-mask is returned in the response
+    // Verify op-mask is returned in getUserInfo response
     Optional<User> userInfoOpt = RGW_ADMIN.getUserInfo(userId);
-    assertTrue("User info should be present", userInfoOpt.isPresent());
+    assertTrue(userInfoOpt.isPresent());
     User userInfo = userInfoOpt.get();
-    assertNotNull("Op-mask should not be null", userInfo.getOpMask());
+    assertNotNull(userInfo.getOpMask());
     
     // Verify the op-mask value contains the expected operations
     // Note: The server may return the op-mask in different formats depending on the Ceph version
     // It could be "read, write", "read,write", "*" (if all permissions granted), etc.
     String opMask = userInfo.getOpMask();
-    assertTrue("Op-mask should not be empty", !opMask.isEmpty());
+    assertFalse(opMask.isEmpty());
     // Verify that either it contains the requested operations or it's set to all operations
     boolean hasRequestedOps = (opMask.contains("read") && opMask.contains("write"));
     boolean hasAllOps = opMask.equals("*");
-    assertTrue("Op-mask should contain 'read' and 'write' or be set to '*' for all operations", 
-        hasRequestedOps || hasAllOps);
+    assertTrue(hasRequestedOps || hasAllOps);
     
     // Clean up
     RGW_ADMIN.removeUser(userId);
