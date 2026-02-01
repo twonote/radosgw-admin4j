@@ -480,13 +480,12 @@ public class RgwAdminImpl implements RgwAdmin {
             .newBuilder()
             .addPathSegment("bucket")
             .addQueryParameter("bucket", bucketName);
-    
+
     if (bucketId != null) {
       urlBuilder.addQueryParameter("bucket-id", bucketId);
     }
-    
+
     urlBuilder.addQueryParameter("uid", userId);
-    
     Request request =
         new Request.Builder()
             .put(emptyBody)
