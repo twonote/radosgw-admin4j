@@ -2,6 +2,7 @@ Unreleased
 - Add user-info-without-keys capability type support (available since Ceph Quincy)
 - Add getUserInfoByAccessKey() method to query user info by S3 access key (available since Ceph Quincy)
 - Add support for /info endpoint to retrieve cluster metadata (requires info=read capability, Ceph Squid v19 or newer)
+- Make bucketId parameter optional in linkBucket() method to align with Ceph RadosGW API changes
 
 2.0.10 (2026-01-30)
 - Update dependencies for security vulnerabilities
