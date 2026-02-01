@@ -353,10 +353,7 @@ public class RgwAdminImplTest extends BaseTest {
           }
 
           // Get usage filtered by specific categories
-          // Use HashMap instead of ImmutableMap since getUserUsage modifies the map
-          java.util.HashMap<String, String> params = new java.util.HashMap<>();
-          params.put("categories", "create_bucket,put_obj");
-          responseFiltered = RGW_ADMIN.getUserUsage(userId, params).get();
+          responseFiltered = RGW_ADMIN.getUserUsage(userId, ImmutableMap.of("categories", "create_bucket,put_obj")).get();
           assertNotNull(responseFiltered);
           
           // Verify that when categories are specified, entries contain only those categories

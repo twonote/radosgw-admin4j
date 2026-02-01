@@ -87,24 +87,19 @@ public class RgwAdminImpl implements RgwAdmin {
 
   @Override
   public void trimUserUsage(String userId, Map<String, String> parameters) {
-    if (parameters == null) {
-      parameters = new HashMap<>();
-    }
-    parameters.put("uid", userId);
-    trimUsage(parameters);
+    Map<String, String> params = parameters == null ? new HashMap<>() : new HashMap<>(parameters);
+    params.put("uid", userId);
+    trimUsage(params);
   }
 
   @Override
   public void trimUsage(Map<String, String> parameters) {
     HttpUrl.Builder urlBuilder = HttpUrl.parse(endpoint).newBuilder().addPathSegment("usage");
 
-    if (parameters == null) {
-      parameters = new HashMap<>();
-    }
+    Map<String, String> params = parameters == null ? new HashMap<>() : new HashMap<>(parameters);
+    params.put("remove-all", "True");
 
-    parameters.put("remove-all", "True");
-
-    appendParameters(parameters, urlBuilder);
+    appendParameters(params, urlBuilder);
 
     Request request = new Request.Builder().delete().url(urlBuilder.build()).build();
 
@@ -118,11 +113,9 @@ public class RgwAdminImpl implements RgwAdmin {
 
   @Override
   public Optional<UsageInfo> getUserUsage(String userId, Map<String, String> parameters) {
-    if (parameters == null) {
-      parameters = new HashMap<>();
-    }
-    parameters.put("uid", userId);
-    return getUsage(parameters);
+    Map<String, String> params = parameters == null ? new HashMap<>() : new HashMap<>(parameters);
+    params.put("uid", userId);
+    return getUsage(params);
   }
 
   @Override
