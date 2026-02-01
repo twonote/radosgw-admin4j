@@ -545,6 +545,7 @@ public interface RgwAdmin {
    *       [True]
    *   <li>max-buckets: Specify the maximum number of buckets the user can own. Example: 500 [1000]
    *   <li>suspended: Specify whether the user should be suspended. Example: False [False]
+   *   <li>op-mask: The op-mask of the user to be modified. Example: read, write, delete, *
    * </ul>
    *
    * @param userId     The user ID to be modified.
