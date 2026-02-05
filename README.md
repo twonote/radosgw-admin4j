@@ -26,6 +26,20 @@ You can include radosgw-admin4j in your project by adding the following Maven Ce
 </dependency>
 ```
 
+## Java 9+ Module Support
+
+As of version 2.0.10, radosgw-admin4j supports Java 9+ modules while maintaining full backward compatibility with Java 8. If you're using Java 9 or later with the module system, you can declare the dependency in your `module-info.java`:
+
+```java
+module com.example.myapp {
+    requires org.twonote.rgwadmin4j;
+}
+```
+
+The library is packaged as a Multi-Release JAR, which means:
+- **Java 8 users**: The library works as before with automatic module name `org.twonote.rgwadmin4j`
+- **Java 9+ users**: The library provides a proper module descriptor with explicit exports and dependencies
+
 ## Configuration
 
 ```java
