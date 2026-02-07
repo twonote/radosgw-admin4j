@@ -3,6 +3,8 @@ Unreleased
 - Add getUserInfoByAccessKey() method to query user info by S3 access key (available since Ceph Quincy)
 - Add support for /info endpoint to retrieve cluster metadata (requires info=read capability, Ceph Squid v19 or newer)
 - Add op-mask field to User model to support user operation permissions control
+- Document categories parameter in getUsage() method for filtering usage statistics by operation type
+- Bugfix: getUserUsage(), trimUserUsage(), and trimUsage() now create defensive copies of parameters map to avoid modifying caller's input
 
 2.0.10 (2026-01-30)
 - Update dependencies for security vulnerabilities

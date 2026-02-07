@@ -335,6 +335,48 @@ public class RgwAdminImplTest extends BaseTest {
   }
 
   @Test
+  public void getUsageWithCategories() {
+    testWithAUser(
+        v -> {
+          String userId = v.getUserId();
+
+          // Do something to let usage log generated.
+          createSomeObjects(v);
+
+          UsageInfo responseAll;
+          UsageInfo responseFiltered;
+
+          // Get all usage without filtering
+          responseAll = RGW_ADMIN.getUserUsage(userId, null).get();
+          if (responseAll.getSummary().stream().noneMatch(vv -> userId.equals(vv.getUser()))) {
+            fail("No usage log corresponding to the given user id...need more sleep?");
+          }
+
+          // Get usage filtered by specific categories
+          responseFiltered = RGW_ADMIN.getUserUsage(userId, ImmutableMap.of("categories", "create_bucket,put_obj")).get();
+          assertNotNull(responseFiltered);
+
+          // Verify that when categories are specified, entries contain only those categories
+          if (responseFiltered.getEntries() != null && !responseFiltered.getEntries().isEmpty()) {
+            responseFiltered.getEntries().forEach(entry -> {
+              if (entry.getBuckets() != null) {
+                entry.getBuckets().forEach(bucket -> {
+                  if (bucket.getCategories() != null) {
+                    bucket.getCategories().forEach(usage -> {
+                      assertTrue("Category should be create_bucket or put_obj, but was: " + usage.getCategory(),
+                          "create_bucket".equals(usage.getCategory()) || "put_obj".equals(usage.getCategory()));
+                    });
+                  }
+                });
+              }
+            });
+          } else {
+            fail("Expected entries with filtered categories, but entries were null or empty");
+          }
+        });
+  }
+
+  @Test
   public void setSubUserPermission() {
     testWithASubUser(
         su -> {
