@@ -45,6 +45,10 @@ public class User {
   @Expose
   private List<Cap> caps = null;
 
+  @SerializedName("op_mask")
+  @Expose
+  private String opMask;
+
   public String getUserId() {
     return userId;
   }
@@ -117,6 +121,14 @@ public class User {
     this.caps = caps;
   }
 
+  public String getOpMask() {
+    return opMask;
+  }
+
+  public void setOpMask(String opMask) {
+    this.opMask = opMask;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -156,7 +168,10 @@ public class User {
         : user.swiftCredentials != null) {
       return false;
     }
-    return caps != null ? caps.equals(user.caps) : user.caps == null;
+    if (caps != null ? !caps.equals(user.caps) : user.caps != null) {
+      return false;
+    }
+    return opMask != null ? opMask.equals(user.opMask) : user.opMask == null;
   }
 
   @Override
@@ -170,6 +185,7 @@ public class User {
     result = 31 * result + (s3Credentials != null ? s3Credentials.hashCode() : 0);
     result = 31 * result + (swiftCredentials != null ? swiftCredentials.hashCode() : 0);
     result = 31 * result + (caps != null ? caps.hashCode() : 0);
+    result = 31 * result + (opMask != null ? opMask.hashCode() : 0);
     return result;
   }
 }
