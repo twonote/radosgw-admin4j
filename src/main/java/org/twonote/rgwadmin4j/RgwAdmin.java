@@ -355,7 +355,9 @@ public interface RgwAdmin {
    * @param bucketName The bucket name to link.
    * @param userId     The user ID to link the bucket to.
    */
-  void linkBucket(String bucketName, String userId);
+  default void linkBucket(String bucketName, String userId) {
+    linkBucket(bucketName, null, userId);
+  }
 
   /**
    * Unlink a bucket from a specified user. Primarily useful for changing bucket ownership.

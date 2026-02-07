@@ -496,11 +496,6 @@ public class RgwAdminImpl implements RgwAdmin {
   }
 
   @Override
-  public void linkBucket(String bucketName, String userId) {
-    linkBucket(bucketName, null, userId);
-  }
-
-  @Override
   public void unlinkBucket(String bucketName, String userId) {
     Request request =
         new Request.Builder()
