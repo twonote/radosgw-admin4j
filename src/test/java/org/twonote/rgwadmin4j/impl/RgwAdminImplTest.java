@@ -632,7 +632,7 @@ public class RgwAdminImplTest extends BaseTest {
 
             // execute again
             RGW_ADMIN.linkBucket(bucketName, adminUserId);
-            
+
             // Clean up bucket
             RGW_ADMIN.removeBucket(bucketName);
           } finally {
