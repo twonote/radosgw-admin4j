@@ -55,6 +55,12 @@ public class Example extends BaseTest {
     // Set the quota that causes the user can have at most one thousand objects and the maximal
     // usage is 1 GiB
     RGW_ADMIN.setUserQuota(userId, 1000, 1048576);
+    
+    // Alternative: Set quota using model object (new in this version)
+    // Quota quota = RGW_ADMIN.getUserQuota(userId).get();
+    // quota.setMaxObjects(1000L);
+    // quota.setMaxSizeKb(1048576L);
+    // RGW_ADMIN.setUserQuota(quota);
   }
 
   /*
