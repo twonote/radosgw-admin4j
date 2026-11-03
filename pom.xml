@@ -182,11 +182,14 @@
             </plugin>
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>2.3.1</version>
+                <version>3.3.0</version>
                 <configuration>
                     <archive>
                         <manifestEntries>
+                            <!-- Keep Automatic-Module-Name for backward compatibility with non-modular builds -->
                             <Automatic-Module-Name>org.twonote.rgwadmin4j</Automatic-Module-Name>
+                            <!-- Enable Multi-Release JAR -->
+                            <Multi-Release>true</Multi-Release>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -194,10 +197,34 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
+                <version>3.11.0</version>
+                <executions>
+                    <!-- Compile main code with Java 8 -->
+                    <execution>
+                        <id>default-compile</id>
+                        <configuration>
+                            <release>8</release>
+                        </configuration>
+                    </execution>
+                    <!-- Compile module-info with Java 9 -->
+                    <execution>
+                        <id>compile-java9</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <release>9</release>
+                            <compileSourceRoots>
+                                <compileSourceRoot>${project.basedir}/src/main/java9</compileSourceRoot>
+                            </compileSourceRoots>
+                            <multiReleaseOutput>true</multiReleaseOutput>
+                        </configuration>
+                    </execution>
+                </executions>
+                <!-- Default configuration for other goals like testCompile -->
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <release>8</release>
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
