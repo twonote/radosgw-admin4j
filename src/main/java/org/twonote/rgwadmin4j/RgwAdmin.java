@@ -156,6 +156,11 @@ public interface RgwAdmin {
    *   <li>To create subuser for S3, you need Ceph v11.2.0-kraken or above.
    * </ol>
    *
+   * <p>A tenant name may also be specified as part of {@code userId}, by following the syntax
+   * {@code tenant$user}. Refer to the
+   * <a href="https://docs.ceph.com/en/latest/radosgw/multitenancy/">Ceph Multitenancy
+   * Documentation</a> for more details.
+   *
    * @param userId     The user ID under which a subuser is to be created.
    * @param subUserId  Specify the subuser ID to be created.
    * @param parameters The subuser parameters.
@@ -176,6 +181,11 @@ public interface RgwAdmin {
    *   <li>You can get subuser credentials by {@link #getUserInfo(String)} after creation.
    *   <li>To create subuser for S3, you need Ceph v11.2.0-kraken or above.
    * </ol>
+   *
+   * <p>A tenant name may also be specified as part of {@code userId}, by following the syntax
+   * {@code tenant$user}. Refer to the
+   * <a href="https://docs.ceph.com/en/latest/radosgw/multitenancy/">Ceph Multitenancy
+   * Documentation</a> for more details.
    *
    * @param userId         The user ID under which a subuser is to be created.
    * @param subUserId      Specify the subuser ID to be created. Should be in the relative form,
@@ -443,6 +453,11 @@ public interface RgwAdmin {
    * customize user properties or create a Swift user, use {@link #createUser(String, Map)}
    * instead.
    *
+   * <p>A tenant name may also be specified as part of {@code userId}, by following the syntax
+   * {@code tenant$user}. Refer to the
+   * <a href="https://docs.ceph.com/en/latest/radosgw/multitenancy/">Ceph Multitenancy
+   * Documentation</a> for more details.
+   *
    * @param userId The user ID to be created.
    * @return The user information.
    */
@@ -472,6 +487,11 @@ public interface RgwAdmin {
    * key pair. If access-key is specified and refers to an existing key owned by the user then it
    * will be modified.
    *
+   * <p>A tenant name may also be specified as part of {@code userId}, by following the syntax
+   * {@code tenant$user}. Refer to the
+   * <a href="https://docs.ceph.com/en/latest/radosgw/multitenancy/">Ceph Multitenancy
+   * Documentation</a> for more details.
+   *
    * @param userId     The user ID to be created.
    * @param parameters The user properties.
    * @return The user information.
@@ -485,6 +505,11 @@ public interface RgwAdmin {
    * If the cap {@code user-info-without-keys} is set and the caller is not the system user, 
    * an admin user, or lacks {@code users=read} capability, S3 keys and Swift keys will not 
    * be included in the response.
+   *
+   * <p>A tenant name may also be specified as part of {@code userId}, by following the syntax
+   * {@code tenant$user}. Refer to the
+   * <a href="https://docs.ceph.com/en/latest/radosgw/multitenancy/">Ceph Multitenancy
+   * Documentation</a> for more details.
    *
    * @param userId The user for which the information is requested.
    * @return The user information.
@@ -548,6 +573,11 @@ public interface RgwAdmin {
    *   <li>op-mask: The op-mask of the user to be modified. Example: read, write, delete, *
    * </ul>
    *
+   * <p>A tenant name may also be specified as part of {@code userId}, by following the syntax
+   * {@code tenant$user}. Refer to the
+   * <a href="https://docs.ceph.com/en/latest/radosgw/multitenancy/">Ceph Multitenancy
+   * Documentation</a> for more details.
+   *
    * @param userId     The user ID to be modified.
    * @param parameters Optional parameters.
    * @return The user information.
@@ -556,6 +586,11 @@ public interface RgwAdmin {
 
   /**
    * Suspend or resume a user
+   *
+   * <p>A tenant name may also be specified as part of {@code userId}, by following the syntax
+   * {@code tenant$user}. Refer to the
+   * <a href="https://docs.ceph.com/en/latest/radosgw/multitenancy/">Ceph Multitenancy
+   * Documentation</a> for more details.
    *
    * @param userId  The user ID to be suspended or resumed.
    * @param suspend Set true to suspend the user and vice versa.
@@ -566,6 +601,11 @@ public interface RgwAdmin {
    * Remove an existing user.
    *
    * <p>Note that the buckets and objects belonging to the user will also be removed.
+   *
+   * <p>A tenant name may also be specified as part of {@code userId}, by following the syntax
+   * {@code tenant$user}. Refer to the
+   * <a href="https://docs.ceph.com/en/latest/radosgw/multitenancy/">Ceph Multitenancy
+   * Documentation</a> for more details.
    *
    * @param userId The user ID to be removed.
    */

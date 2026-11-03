@@ -67,6 +67,34 @@ rgwAdmin.suspendUser(userId, true);
 rgwAdmin.removeUser(userId);
 ```
 
+#### Multitenancy
+
+The multi-tenancy feature allows you to create users and buckets with the same name by segregating them under tenants. Each user and bucket belongs to a tenant. When no explicit tenant is specified, a "legacy" tenant with an empty name is used for backward compatibility.
+
+To create or manage users with explicit tenants, use the `tenant$user` syntax for the user ID:
+
+```java
+// Create a user under a specific tenant
+// Tenant names may contain only alphanumeric characters and underscores
+rgwAdmin.createUser("mytenant$johndoe");
+
+// Get information for a tenant user
+User tenantUser = rgwAdmin.getUserInfo("mytenant$johndoe").get();
+
+// Create a subuser for a tenant user
+SubUser subUser = rgwAdmin.createSubUser(
+    "mytenant$johndoe", 
+    "subuser", 
+    SubUser.Permission.FULL, 
+    CredentialType.SWIFT
+);
+
+// Remove a tenant user
+rgwAdmin.removeUser("mytenant$johndoe");
+```
+
+For more information about multitenancy in Ceph RGW, refer to the [Ceph Multitenancy Documentation](https://docs.ceph.com/en/latest/radosgw/multitenancy/).
+
 ### Quota Management
 
 ```java
